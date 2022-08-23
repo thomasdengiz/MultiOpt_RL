@@ -1,0 +1,15 @@
+- In the file 'Building_Combined' a fifth building (BT5) with a battery storage is added into
+the central optimization problem. 
+- In 'SetUpScenarios' parameters of a battery system are added
+- The battery building optimization problem has not been tested
+
+- ToDos (if battery building should be included)
+	- Test optimization problem in 'Building_Combined'
+	- 'ICSimulation'
+		- Implement check method BT5
+		- Implement conventional control method BT5
+		- Implement single Time slot method for BT5
+	- ANN
+		- Include BT5
+
+- Last updated: 09.3.21
