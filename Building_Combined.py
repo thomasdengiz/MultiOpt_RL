@@ -8,10 +8,14 @@ Centralized optimization problem for mutiple buildings
     - Building Type 2: single-familiy building with modulating air-source heat pump (mHP) 
     - Builidng Type 3: single-familiy building with electric vehicle
     - Building Type 4: multi-familiy building with modulating air-source heat pump (mHP) only for space heating (and not domestic hot water)
-    - Building Type 5: Building with battery --> Not tested
+    - Building Type 5: Building with battery
+    - Building Type 6: Gas heating with hot water tank and additional electrical heating element. 2 Storage systems (Building mass, hot water tank)
+    - Building Type 7: Gas heating without hot water tank and with additional electrical fan heater.
 """
+import SetUpScenarios
 
-def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay):
+
+def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters):
     import SetUpScenarios 
     import Run_Simulations
     import pyomo.environ as pyo
@@ -65,7 +69,9 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     model.set_buildings_BT3 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT3)
     model.set_buildings_BT4 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT4)
     model.set_buildings_BT5 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT5)
-    
+    model.set_buildings_BT6 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT6)
+    model.set_buildings_BT7 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT7)
+
     
     #Reading of the price data
     df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
@@ -101,6 +107,9 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     list_df_buildingData_BT3_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT3_EV_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT3]
     list_df_buildingData_BT4_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT4_mHP_MFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT4]
     list_df_buildingData_BT5_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT5_BAT_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT5]
+    list_df_buildingData_BT6_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT6]
+    list_df_buildingData_BT7_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT7]
+
 
 
     #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -118,7 +127,13 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             list_df_buildingData_BT4_original[i].rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
     for i in range (0, len(list_df_buildingData_BT5_original)):
         if 'Demand Electricity [W]' in list_df_buildingData_BT5_original[i]:
-            list_df_buildingData_BT5_original[i].rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)            
+            list_df_buildingData_BT5_original[i].rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+    for i in range (0, len(list_df_buildingData_BT6_original)):
+        if 'Demand Electricity [W]' in list_df_buildingData_BT6_original[i]:
+            list_df_buildingData_BT6_original[i].rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+    for i in range (0, len(list_df_buildingData_BT7_original)):
+        if 'Demand Electricity [W]' in list_df_buildingData_BT7_original[i]:
+            list_df_buildingData_BT7_original[i].rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
 
             
 
@@ -126,7 +141,9 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     list_df_buildingData_BT2 = list_df_buildingData_BT2_original.copy() 
     list_df_buildingData_BT3 = list_df_buildingData_BT3_original.copy()
     list_df_buildingData_BT4 = list_df_buildingData_BT4_original.copy()
-    list_df_buildingData_BT5 = list_df_buildingData_BT5_original.copy()    
+    list_df_buildingData_BT5 = list_df_buildingData_BT5_original.copy()
+    list_df_buildingData_BT6 = list_df_buildingData_BT6_original.copy()
+    list_df_buildingData_BT7 = list_df_buildingData_BT7_original.copy()
     
 
     
@@ -301,6 +318,9 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.variable_electricalPowerTotal_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots)
         model.variable_pvGeneration_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots)
         model.variable_windPowerAssigned_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots)
+
+        model.variable_deviation_temperature_positive_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within=pyo.NonNegativeReals)
+        model.variable_deviation_temperature_negative_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within=pyo.NonNegativeReals)
         
         
         # Defining the constraints 
@@ -315,9 +335,25 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         model.constraint_temperatureBufferStorage_BT1= pyo.Constraint (model.set_buildings_BT1, model.set_timeslots, rule=temperatureBufferStorageConstraintRule_BT1)
         
-        
-       
-        
+        #Constraint for allowing thermal discomfort
+        def temperatureDeviationConstraintRule1_BT1 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort <= model.variable_temperatureBufferStorage_BT1[i, t] - model.variable_deviation_temperature_positive_BT1 [i, t] +  model.variable_deviation_temperature_negative_BT1 [i, t]
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint1_BT1 = pyo.Constraint(model.set_buildings_BT1, model.set_timeslots, rule = temperatureDeviationConstraintRule1_BT1)
+
+
+        def temperatureDeviationConstraintRule2_BT1 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  model.variable_temperatureBufferStorage_BT1[i, t] - model.variable_deviation_temperature_positive_BT1 [i, t] +  model.variable_deviation_temperature_negative_BT1 [i, t]<= SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint2_BT1 = pyo.Constraint(model.set_buildings_BT1, model.set_timeslots, rule = temperatureDeviationConstraintRule2_BT1)
+
+
         #Constraints for the minimal and maximal temperature at the end of the optimization horizon
         def temperatureBufferStorage_lastLowerLimitRule_BT1 (model, i, t):
             return model.variable_temperatureBufferStorage_BT1[i, model.set_timeslots.last()] >= SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue
@@ -408,8 +444,9 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             return model.variable_SOC_EV_BT1[i, t] == (model.variable_energyLevelEV_BT1 [i, t] / SetUpScenarios.capacityMaximal_EV)*100
         
         model.constraint_SOCofEV_BT1 =  pyo.Constraint(model.set_buildings_BT1, model.set_timeslots, rule = socOfEVRule_BT1)
-        
-        
+
+
+
         #Constraint for the charging power: The EV can only be charged if it is at home (available)
         def chargingPowerOfTheEVRul_BT1 (model, i, t):
             return model.variable_currentChargingPowerEV_BT1 [i, t] <=  model.param_availabilityPerTimeSlotOfEV_BT1 [i, t] * SetUpScenarios.chargingPowerMaximal_EV 
@@ -744,6 +781,9 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.variable_pvGeneration_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots)
         model.variable_windPowerAssigned_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots)
         
+        model.variable_deviation_temperature_positive_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within=pyo.NonNegativeReals)
+        model.variable_deviation_temperature_negative_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within=pyo.NonNegativeReals)
+        
         
         # Defining the constraints 
         
@@ -771,7 +811,23 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.constraint_temperatureBufferStorage_lastUpperLimit_BT2 = pyo.Constraint (model.set_buildings_BT2, model.set_timeslots, rule=temperatureBufferStorage_lastUpperLimitRule_BT2) 
         
         
-        
+        #Constraint for allowing thermal discomfort
+        def temperatureDeviationConstraintRule1_BT2 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort <= model.variable_temperatureBufferStorage_BT2[i, t] - model.variable_deviation_temperature_positive_BT2 [i, t] +  model.variable_deviation_temperature_negative_BT2 [i, t]
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint1_BT2 = pyo.Constraint(model.set_buildings_BT2, model.set_timeslots, rule = temperatureDeviationConstraintRule1_BT2)
+
+
+        def temperatureDeviationConstraintRule2_BT2 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  model.variable_temperatureBufferStorage_BT2[i, t] - model.variable_deviation_temperature_positive_BT2 [i, t] +  model.variable_deviation_temperature_negative_BT2 [i, t]<= SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint2_BT2 = pyo.Constraint(model.set_buildings_BT2, model.set_timeslots, rule = temperatureDeviationConstraintRule2_BT2)
         
         
         #Volume constraint for the DHW tank with energetic difference equation
@@ -1324,8 +1380,11 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.variable_electricalPowerTotal_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots)
         model.variable_pvGeneration_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots)
         model.variable_windPowerAssigned_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots)
+
+        model.variable_deviation_temperature_positive_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots, within=pyo.NonNegativeReals)
+        model.variable_deviation_temperature_negative_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots, within=pyo.NonNegativeReals)
         
-        
+
         # Defining the constraints 
         
         
@@ -1338,6 +1397,25 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         model.constraint_temperatureBufferStorage_BT4= pyo.Constraint (model.set_buildings_BT4, model.set_timeslots, rule=temperatureBufferStorageConstraintRule_BT4)
         
+
+        #Constraint for allowing thermal discomfort
+        def temperatureDeviationConstraintRule1_BT4 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort <= model.variable_temperatureBufferStorage_BT4[i, t] - model.variable_deviation_temperature_positive_BT4 [i, t] +  model.variable_deviation_temperature_negative_BT4 [i, t]
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint1_BT4 = pyo.Constraint(model.set_buildings_BT4, model.set_timeslots, rule = temperatureDeviationConstraintRule1_BT4)
+
+
+        def temperatureDeviationConstraintRule2_BT4 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  model.variable_temperatureBufferStorage_BT4[i, t] - model.variable_deviation_temperature_positive_BT4 [i, t] +  model.variable_deviation_temperature_negative_BT4 [i, t]<= SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint2_BT4 = pyo.Constraint(model.set_buildings_BT4, model.set_timeslots, rule = temperatureDeviationConstraintRule2_BT4)
+
 
                 
         
@@ -1621,12 +1699,521 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             
         model.constraint_windPowerAssignedg_BT5 = pyo.Constraint(model.set_buildings_BT5,model.set_timeslots, rule = windPowerAssignedgRule_BT5)
     
-    
-    
+    ###########################################################################################################################
+
+    #Building Type 6 (BT6): Buildings with modulating gas boiler, an electrical heating element in a combined storage, and the building mass
+
+
+    #Adjust dataframes to the current time resolution and set new index "Timeslot"
+
+    for i in range (0, len(list_df_buildingData_BT6_original)):
+        list_df_buildingData_BT6_original[i]['Time'] = pd.to_datetime(list_df_buildingData_BT6_original[i]['Time'], format = '%d.%m.%Y %H:%M')
+        list_df_buildingData_BT6 [i] = list_df_buildingData_BT6_original[i].set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+        arrayTimeSlots = [k for k in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+        list_df_buildingData_BT6 [i]['Timeslot'] = arrayTimeSlots
+        list_df_buildingData_BT6 [i] = list_df_buildingData_BT6 [i].set_index('Timeslot')
+
+
+
+    if SetUpScenarios.numberOfBuildings_BT6 >=1:
+        #Create dataframes by using pandas series
+
+        list_windProfileNominal_BT6 = [SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,SetUpScenarios.numberOfBuildings_BT1 + index_BT6) for index_BT6 in range(0, SetUpScenarios.numberOfBuildings_BT6)]
+        list_df_windPowerAssignedNominalPerBuilding_BT6 = [pd.DataFrame({'Timeslot': list_df_buildingData_BT6 [i].index, 'Wind [nominal]':list_windProfileNominal_BT6[i] }) for i in range (0, SetUpScenarios.numberOfBuildings_BT6)]
+
+        for i in range (0, len(list_df_windPowerAssignedNominalPerBuilding_BT6)):
+            del list_df_windPowerAssignedNominalPerBuilding_BT6[i]['Timeslot']
+            list_df_windPowerAssignedNominalPerBuilding_BT6[i].index +=1
+
+        combinedDataframe_heatDemand_BT6 = pd.DataFrame()
+        combinedDataframe_DHWDemand_BT6 = pd.DataFrame()
+        combinedDataframe_electricalDemand_BT6 = pd.DataFrame()
+        combinedDataframe_pvGenerationNominal_BT6 = pd.DataFrame()
+        combinedDataframe_windAssigned_BT6 = pd.DataFrame()
+
+
+
+        for index in range (0, len(list_df_buildingData_BT6)):
+            combinedDataframe_heatDemand_BT6[index] = list_df_buildingData_BT6[index] ["Space Heating [W]"]
+            combinedDataframe_DHWDemand_BT6[index] = list_df_buildingData_BT6[index] ["DHW [W]"]
+            combinedDataframe_electricalDemand_BT6[index] = list_df_buildingData_BT6[index] ["Electricity [W]"]
+            combinedDataframe_pvGenerationNominal_BT6[index] = list_df_buildingData_BT6[index] ["PV [nominal]"]
+            combinedDataframe_windAssigned_BT6 [index]= list_df_windPowerAssignedNominalPerBuilding_BT6[index] ["Wind [nominal]"]
+
+
+
+        #Round the values
+        for index in range (0,  SetUpScenarios.numberOfBuildings_BT6):
+            decimalsForRounding = 2
+            list_df_buildingData_BT6 [index]['Space Heating [W]'] = list_df_buildingData_BT6 [index]['Space Heating [W]'].apply(lambda x: round(x, decimalsForRounding))
+            list_df_buildingData_BT6 [index]['DHW [W]'] = list_df_buildingData_BT6 [index]['DHW [W]'].apply(lambda x: round(x, decimalsForRounding))
+            list_df_buildingData_BT6 [index]['Electricity [W]'] = list_df_buildingData_BT6 [index]['Electricity [W]'].apply(lambda x: round(x, decimalsForRounding))
+            decimalsForRounding = 4
+            list_df_buildingData_BT6 [index]['PV [nominal]'] = list_df_buildingData_BT6 [index]['PV [nominal]'].apply(lambda x: round(x, decimalsForRounding))
+
+
+        #Define the parameters of the model in pyomo
+        def init_heatDemand (model, i,j):
+            return combinedDataframe_heatDemand_BT6.iloc[j-1, i-1]
+
+        model.param_heatDemand_In_W_BT6 = pyo.Param(model.set_buildings_BT6, model.set_timeslots, mutable = True, initialize=init_heatDemand)
+
+
+        def init_DHWDemand (model, i,j):
+            return combinedDataframe_DHWDemand_BT6.iloc[j-1, i-1]
+
+        model.param_DHWDemand_In_W_BT6 = pyo.Param(model.set_buildings_BT6, model.set_timeslots,mutable = True, initialize=init_DHWDemand)
+
+
+        def init_electricalDemand (model, i,j):
+            return combinedDataframe_electricalDemand_BT6.iloc[j-1, i-1]
+
+        model.param_electricalDemand_In_W_BT6 = pyo.Param(model.set_buildings_BT6, model.set_timeslots,mutable = True, initialize=init_electricalDemand)
+
+
+        def init_pvGenerationNominal (model, i,j):
+            return combinedDataframe_pvGenerationNominal_BT6.iloc[j-1, i-1]
+
+        model.param_pvGenerationNominal_BT6  = pyo.Param(model.set_buildings_BT6, model.set_timeslots, mutable = True, initialize=init_pvGenerationNominal)
+
+
+        model.param_outSideTemperature_In_C = pyo.Param(model.set_timeslots, initialize=dictionaryTemperature_In_C)
+
+
+        def init_windAssignedNominal (model, i,j):
+            return combinedDataframe_windAssigned_BT6.iloc[j-1, i-1]
+
+        model.param_windAssignedNominal_BT6  = pyo.Param(model.set_buildings_BT6, model.set_timeslots, mutable = True, initialize=init_windAssignedNominal)
+
+
+
+        #Define the variables
+
+        model.variable_heatGenerationCoefficient_GasBoiler_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots,bounds=(0,1))
+        model.variable_heatGenerationCoefficient_ElectricalHeatingElement_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots,bounds=(0,1))
+        model.variable_heatTransferCoefficient_StorageToRoom_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots,bounds=(0, 1))
+        model.variable_temperatureBuilding_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots, bounds=(SetUpScenarios.minimumTemperatureBuilding, SetUpScenarios.maximumTemperatureBuilding))
+
+        model.variable_energyLevelCombinedStorage_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots,  bounds=(0 , SetUpScenarios.maximumEnergyContentCombinedStorage))
+
+        model.variable_electricalPowerTotal_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots)
+        model.variable_pvGeneration_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots)
+        model.variable_windPowerAssigned_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots)
+        
+        
+        
+        model.variable_deviation_temperature_positive_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots, within=pyo.NonNegativeReals)
+        model.variable_deviation_temperature_negative_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots, within=pyo.NonNegativeReals)
+        
+
+        # Defining the constraints
+
+        #Energy constraint for the combined storage
+        def energyCombinedStorageConstraintRule_BT6(model, i, t):
+            if t == model.set_timeslots.first():
+                return model.variable_energyLevelCombinedStorage_BT6[i, t] == SetUpScenarios.initialEnergyContentCombinedStorage + (model.variable_heatGenerationCoefficient_GasBoiler_BT6[i, t] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + model.variable_heatGenerationCoefficient_ElectricalHeatingElement_BT6[i, t] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - model.variable_heatTransferCoefficient_StorageToRoom_BT6[i, t] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage )  * (SetUpScenarios.timeResolution_InMinutes * 60)
+            return model.variable_energyLevelCombinedStorage_BT6[i, t] == model.variable_energyLevelCombinedStorage_BT6[i, t-1] + (model.variable_heatGenerationCoefficient_GasBoiler_BT6[i, t] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + model.variable_heatGenerationCoefficient_ElectricalHeatingElement_BT6[i, t] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - model.variable_heatTransferCoefficient_StorageToRoom_BT6[i, t] * SetUpScenarios.maximalPowerHeatingSystem   - SetUpScenarios.standingLossesCombinedStorage)  * (SetUpScenarios.timeResolution_InMinutes * 60)
+
+        model.constraint_energyCombinedStorage_BT6= pyo.Constraint (model.set_buildings_BT6, model.set_timeslots, rule=energyCombinedStorageConstraintRule_BT6)
+
+
+
+        #Temperature constraint for the buffer storage (space heating) with energetic difference equation
+        def temperatureBuildingConstraintRule_BT6(model, i, t):
+            if t == model.set_timeslots.first():
+                return model.variable_temperatureBuilding_BT6[i, t] == SetUpScenarios.initialTemperatureBuilding + ((model.variable_heatTransferCoefficient_StorageToRoom_BT6[i, t] * SetUpScenarios.maximalPowerHeatingSystem  - model.param_heatDemand_In_W_BT6 [i, t])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+            return model.variable_temperatureBuilding_BT6[i, t] == model.variable_temperatureBuilding_BT6[i, t-1] + ((model.variable_heatTransferCoefficient_StorageToRoom_BT6[i, t] * SetUpScenarios.maximalPowerHeatingSystem  - model.param_heatDemand_In_W_BT6 [i, t])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+        model.constraint_temperatureBuilding_BT6= pyo.Constraint (model.set_buildings_BT6, model.set_timeslots, rule=temperatureBuildingConstraintRule_BT6)
+
+        #Constraint for allowing thermal discomfort
+        def temperatureDeviationConstraintRule1_BT6 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort <= model.variable_temperatureBuilding_BT6[i, t] - model.variable_deviation_temperature_positive_BT6 [i, t] +  model.variable_deviation_temperature_negative_BT6 [i, t]
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint1_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule = temperatureDeviationConstraintRule1_BT6)
+
+
+        def temperatureDeviationConstraintRule2_BT6 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  model.variable_temperatureBuilding_BT6[i, t] - model.variable_deviation_temperature_positive_BT6 [i, t] +  model.variable_deviation_temperature_negative_BT6 [i, t]<= SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint2_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule = temperatureDeviationConstraintRule2_BT6)
+
+
+
+
+        #Constraint for ensuring that the energy taken from the combined storage to the rooms is smaller than the energy content of the combined storage
+        def energyTransferLimitFromCombinedStorageRule (model, i, t):
+            return model.variable_heatTransferCoefficient_StorageToRoom_BT6[i, t] * SetUpScenarios.maximalPowerHeatingSystem <= model.variable_energyLevelCombinedStorage_BT6[i, t]
+
+        model.constraint_energyTransferLimitFromCombinedStorage = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule= energyTransferLimitFromCombinedStorageRule)
+
+
+
+        #Constraints for the minimal and maximal temperature at the end of the optimization horizon
+        def temperatureBuilding_lastLowerLimitRule_BT6 (model, i, t):
+            return model.variable_temperatureBuilding_BT6[i, model.set_timeslots.last()] >= SetUpScenarios.initialTemperatureBuilding - SetUpScenarios.endTemperatureBuildingAllowedDeviationFromInitalValue
+
+        model.constraint_temperatureBuilding_lastLowerLimit_BT6 = pyo.Constraint (model.set_buildings_BT6, model.set_timeslots, rule=temperatureBuilding_lastLowerLimitRule_BT6)
+
+
+        def temperatureBuilding_lastUpperLimitRule_BT6 (model, i, t):
+            return model.variable_temperatureBuilding_BT6[i, model.set_timeslots.last()] <= SetUpScenarios.initialTemperatureBuilding + SetUpScenarios.endTemperatureBuildingAllowedDeviationFromInitalValue
+
+        model.constraint_temperatureBuilding_lastUpperLimit_BT6 = pyo.Constraint (model.set_buildings_BT6, model.set_timeslots, rule=temperatureBuilding_lastUpperLimitRule_BT6)
+
+
+        #Constraints for the electrical power of BT6
+        def electricalPowerTotalRule_BT6 (model,i, t):
+            return model.variable_electricalPowerTotal_BT6 [i, t] == model.variable_heatGenerationCoefficient_ElectricalHeatingElement_BT6[i, t] * SetUpScenarios.maximalPowerElectricalHeatingElement   + model.param_electricalDemand_In_W_BT6 [i, t]
+
+        model.constraint_electricalPowerTotal_BT6 = pyo.Constraint(model.set_buildings_BT6,model.set_timeslots, rule = electricalPowerTotalRule_BT6)
+
+
+
+        #Equation for calculating the PV generation of each BT6-building
+        def PVgenerationTotalRule_BT6 (model,i, t):
+            return model.variable_pvGeneration_BT6 [i, t] == model.param_pvGenerationNominal_BT6 [i, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 +SetUpScenarios.numberOfBuildings_BT5 + i - 1)
+        model.constraint_PVgenerationTotal_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule = PVgenerationTotalRule_BT6)
+
+
+        #Equation for the assigned wind power of each BT6-building
+        def windPowerAssignedgRule_BT6 (model,i, t):
+            return model.variable_windPowerAssigned_BT6 [i, t] == model.param_windAssignedNominal_BT6 [i, t] * SetUpScenarios.maximalPowerOfWindTurbine
+
+        model.constraint_windPowerAssignedg_BT6 = pyo.Constraint(model.set_buildings_BT6,model.set_timeslots, rule = windPowerAssignedgRule_BT6)
+
+
+
+
+        #Constraint system for the maximum number of starts of the heat pump
+
+        model.variable_HPswitchedOff_Individual_GasHeating_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HPswitchedOff_HelpModulationBinary_GasHeating_BT6 = pyo.Var(model.set_buildings_BT6, model.set_timeslots, within =pyo.Binary)
+
+        #Constraints for maximum number of starts for the space heating
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ1_Rule_BT6 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                if t == model.set_timeslots.first():
+                    return model.variable_HPswitchedOff_Individual_GasHeating_BT6 [i, t] == 0
+                return model.variable_HPswitchedOff_Individual_GasHeating_BT6 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 [i, t-1]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ1_BT4 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ1_Rule_BT6)
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ2_Rule_BT6 (model, i,  t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                return model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 [i, t] + model.variable_HPswitchedOff_Individual_GasHeating_BT6 [i, t] <= 1
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ2_BT4 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ2_Rule_BT6)
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ2_2_Rule_BT6 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                if t == model.set_timeslots.first():
+                    return model.variable_HPswitchedOff_Individual_GasHeating_BT6 [i, t] == 0
+                return model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 [i, t] + model.variable_HPswitchedOff_Individual_GasHeating_BT6 [i, t]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ2_2_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ2_2_Rule_BT6)
+
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ3_HelpAssociatedBinary_Rule_BT6 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True :
+                return model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 [i, t] >= model.variable_heatGenerationCoefficient_GasBoiler_BT6[i, t]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+               return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ3_HelpAssociatedBinary_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ3_HelpAssociatedBinary_Rule_BT6)
+
+
+
+        def maximumNumberOfStarts_Individual_Gaseating_EQ4_HelpAssociatedBinary_Rule_BT6 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True :
+                return model.variable_heatGenerationCoefficient_GasBoiler_BT6[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_GasBoiler/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT6 [i, t]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+               return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ4_HelpAssociatedBinary_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule =maximumNumberOfStarts_Individual_Gaseating_EQ4_HelpAssociatedBinary_Rule_BT6)
+
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ5_NumberOfStarts_Rule_BT6 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                return  sum (model.variable_HPswitchedOff_Individual_GasHeating_BT6 [i, t] for t in model.set_timeslots)<= Run_Simulations.maximumNumberOfStarts_Individual
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ5_NumberOfStarts_BT6 = pyo.Constraint(model.set_buildings_BT6, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ5_NumberOfStarts_Rule_BT6)
+
+   ###########################################################################################################################
+
+    #Building Type 7 (BT7): Buildings with modulating gas boiler, an electrical fan heater and no hot water tank (only building mass servers as storage)
+
+
+    #Adjust dataframes to the current time resolution and set new index "Timeslot"
+
+    for i in range (0, len(list_df_buildingData_BT7_original)):
+        list_df_buildingData_BT7_original[i]['Time'] = pd.to_datetime(list_df_buildingData_BT7_original[i]['Time'], format = '%d.%m.%Y %H:%M')
+        list_df_buildingData_BT7 [i] = list_df_buildingData_BT7_original[i].set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+        arrayTimeSlots = [k for k in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+        list_df_buildingData_BT7 [i]['Timeslot'] = arrayTimeSlots
+        list_df_buildingData_BT7 [i] = list_df_buildingData_BT7 [i].set_index('Timeslot')
+
+
+
+    if SetUpScenarios.numberOfBuildings_BT7 >=1:
+        #Create dataframes by using pandas series
+
+        list_windProfileNominal_BT7 = [SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,SetUpScenarios.numberOfBuildings_BT1 + index_BT7) for index_BT7 in range(0, SetUpScenarios.numberOfBuildings_BT7)]
+        list_df_windPowerAssignedNominalPerBuilding_BT7 = [pd.DataFrame({'Timeslot': list_df_buildingData_BT7 [i].index, 'Wind [nominal]':list_windProfileNominal_BT7[i] }) for i in range (0, SetUpScenarios.numberOfBuildings_BT7)]
+
+        for i in range (0, len(list_df_windPowerAssignedNominalPerBuilding_BT7)):
+            del list_df_windPowerAssignedNominalPerBuilding_BT7[i]['Timeslot']
+            list_df_windPowerAssignedNominalPerBuilding_BT7[i].index +=1
+
+        combinedDataframe_heatDemand_BT7 = pd.DataFrame()
+        combinedDataframe_electricalDemand_BT7 = pd.DataFrame()
+        combinedDataframe_pvGenerationNominal_BT7 = pd.DataFrame()
+        combinedDataframe_windAssigned_BT7 = pd.DataFrame()
+
+
+
+        for index in range (0, len(list_df_buildingData_BT7)):
+            combinedDataframe_heatDemand_BT7[index] = list_df_buildingData_BT7[index] ["Space Heating [W]"]
+            combinedDataframe_electricalDemand_BT7[index] = list_df_buildingData_BT7[index] ["Electricity [W]"]
+            combinedDataframe_pvGenerationNominal_BT7[index] = list_df_buildingData_BT7[index] ["PV [nominal]"]
+            combinedDataframe_windAssigned_BT7 [index]= list_df_windPowerAssignedNominalPerBuilding_BT7[index] ["Wind [nominal]"]
+
+
+
+        #Round the values
+        for index in range (0,  SetUpScenarios.numberOfBuildings_BT7):
+            decimalsForRounding = 2
+            list_df_buildingData_BT7 [index]['Space Heating [W]'] = list_df_buildingData_BT7 [index]['Space Heating [W]'].apply(lambda x: round(x, decimalsForRounding))
+            list_df_buildingData_BT7 [index]['Electricity [W]'] = list_df_buildingData_BT7 [index]['Electricity [W]'].apply(lambda x: round(x, decimalsForRounding))
+            decimalsForRounding = 4
+            list_df_buildingData_BT7 [index]['PV [nominal]'] = list_df_buildingData_BT7 [index]['PV [nominal]'].apply(lambda x: round(x, decimalsForRounding))
+
+
+        #Define the parameters of the model in pyomo
+        def init_heatDemand (model, i,j):
+            return combinedDataframe_heatDemand_BT7.iloc[j-1, i-1]
+
+        model.param_heatDemand_In_W_BT7 = pyo.Param(model.set_buildings_BT7, model.set_timeslots, mutable = True, initialize=init_heatDemand)
+
+
+        def init_electricalDemand (model, i,j):
+            return combinedDataframe_electricalDemand_BT7.iloc[j-1, i-1]
+
+        model.param_electricalDemand_In_W_BT7 = pyo.Param(model.set_buildings_BT7, model.set_timeslots,mutable = True, initialize=init_electricalDemand)
+
+
+        def init_pvGenerationNominal (model, i,j):
+            return combinedDataframe_pvGenerationNominal_BT7.iloc[j-1, i-1]
+
+        model.param_pvGenerationNominal_BT7  = pyo.Param(model.set_buildings_BT7, model.set_timeslots, mutable = True, initialize=init_pvGenerationNominal)
+
+
+        model.param_outSideTemperature_In_C = pyo.Param(model.set_timeslots, initialize=dictionaryTemperature_In_C)
+
+
+        def init_windAssignedNominal (model, i,j):
+            return combinedDataframe_windAssigned_BT7.iloc[j-1, i-1]
+
+        model.param_windAssignedNominal_BT7  = pyo.Param(model.set_buildings_BT7, model.set_timeslots, mutable = True, initialize=init_windAssignedNominal)
+
+
+
+        #Define the variables
+
+        model.variable_heatGenerationCoefficient_GasBoiler_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots,bounds=(0,1))
+        model.variable_heatGenerationCoefficient_FanHeater_Stage1_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots,within =pyo.Binary, initialize=0.0)
+        model.variable_heatGenerationCoefficient_FanHeater_Stage2_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots,within =pyo.Binary, initialize=0.0)
+        model.variable_heatGenerationCoefficient_FanHeater_Stage3_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots,within =pyo.Binary, initialize=0.0)
+
+        model.variable_temperatureBuilding_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots, bounds=(SetUpScenarios.minimumTemperatureBuilding, SetUpScenarios.maximumTemperatureBuilding))
+
+        model.variable_electricalPowerTotal_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots)
+        model.variable_electricalPowerFanHeater_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots)
+        model.variable_pvGeneration_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots)
+        model.variable_windPowerAssigned_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots)
+        
+                
+        model.variable_deviation_temperature_positive_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots, within=pyo.NonNegativeReals)
+        model.variable_deviation_temperature_negative_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots, within=pyo.NonNegativeReals)
+
+
+
+
+        # Defining the constraints
+
+
+        #Temperature constraint for the buffer storage (space heating) with energetic difference equation
+        def temperatureBuildingConstraintRule_BT7(model, i, t):
+            if t == model.set_timeslots.first():
+                return model.variable_temperatureBuilding_BT7[i, t] == SetUpScenarios.initialTemperatureBuilding + ((model.variable_heatGenerationCoefficient_GasBoiler_BT7[i, t] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + model.variable_electricalPowerFanHeater_BT7[i, t] * SetUpScenarios.efficiency_ElectricalFanHeater  - model.param_heatDemand_In_W_BT7 [i, t])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+            return model.variable_temperatureBuilding_BT7[i, t] == model.variable_temperatureBuilding_BT7[i, t-1] + ((model.variable_heatGenerationCoefficient_GasBoiler_BT7[i, t] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + model.variable_electricalPowerFanHeater_BT7[i, t] * SetUpScenarios.efficiency_ElectricalFanHeater  - model.param_heatDemand_In_W_BT7 [i, t])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+        model.constraint_temperatureBuilding_BT7= pyo.Constraint (model.set_buildings_BT7, model.set_timeslots, rule=temperatureBuildingConstraintRule_BT7)
+
+
+        #Constraint for allowing thermal discomfort
+        def temperatureDeviationConstraintRule1_BT7 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort <= model.variable_temperatureBuilding_BT7[i, t] - model.variable_deviation_temperature_positive_BT7 [i, t] +  model.variable_deviation_temperature_negative_BT7 [i, t]
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint1_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule = temperatureDeviationConstraintRule1_BT7)
+
+
+        def temperatureDeviationConstraintRule2_BT7 (model, i, t):
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+                return  model.variable_temperatureBuilding_BT7[i, t] - model.variable_deviation_temperature_positive_BT7 [i, t] +  model.variable_deviation_temperature_negative_BT7 [i, t]<= SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort
+            else:
+                return pyo.Constraint.Skip
+
+        model.constraint_temperatureDeviationConstraint2_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule = temperatureDeviationConstraintRule2_BT7)
+
+
+
+        #Constraints for the minimal and maximal temperature at the end of the optimization horizon
+        def temperatureBuilding_lastLowerLimitRule_BT7 (model, i, t):
+            return model.variable_temperatureBuilding_BT7[i, model.set_timeslots.last()] >= SetUpScenarios.initialTemperatureBuilding - SetUpScenarios.endTemperatureBuildingAllowedDeviationFromInitalValue
+
+        model.constraint_temperatureBuilding_lastLowerLimit_BT7 = pyo.Constraint (model.set_buildings_BT7, model.set_timeslots, rule=temperatureBuilding_lastLowerLimitRule_BT7)
+
+
+        def temperatureBuilding_lastUpperLimitRule_BT7 (model, i, t):
+            return model.variable_temperatureBuilding_BT7[i, model.set_timeslots.last()] <= SetUpScenarios.initialTemperatureBuilding + SetUpScenarios.endTemperatureBuildingAllowedDeviationFromInitalValue
+
+        model.constraint_temperatureBuilding_lastUpperLimit_BT7 = pyo.Constraint (model.set_buildings_BT7, model.set_timeslots, rule=temperatureBuilding_lastUpperLimitRule_BT7)
+
+        #Constraint for the electrical heating power of the fan heater
+        def electricalHeatingPowerTotalRule_BT7 (model, i, t):
+            return model.variable_electricalPowerFanHeater_BT7 [i,t] == model.variable_heatGenerationCoefficient_FanHeater_Stage1_BT7 [i,t] * SetUpScenarios.electricalPowerFanHeater_Stage1 + model.variable_heatGenerationCoefficient_FanHeater_Stage2_BT7 [i,t] * SetUpScenarios.electricalPowerFanHeater_Stage2 + model.variable_heatGenerationCoefficient_FanHeater_Stage3_BT7 [i,t] * SetUpScenarios.electricalPowerFanHeater_Stage3
+
+        model.constraint_electricalHeatingPowerTotal_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =electricalHeatingPowerTotalRule_BT7 )
+
+        def electricalHeatingPowerOnlyOneStageRule_BT7  (model, i, t):
+            return model.variable_heatGenerationCoefficient_FanHeater_Stage1_BT7 [i,t] + model.variable_heatGenerationCoefficient_FanHeater_Stage2_BT7 [i,t] + model.variable_heatGenerationCoefficient_FanHeater_Stage3_BT7 [i,t] <= 1
+
+        model.constraint_electricalHeatingPowerOnlyOneStage = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule = electricalHeatingPowerOnlyOneStageRule_BT7)
+
+
+        #Constraints for the electrical power of BT7
+        def electricalPowerTotalRule_BT7 (model,i, t):
+            return model.variable_electricalPowerTotal_BT7 [i, t] == model.variable_electricalPowerFanHeater_BT7 [i,t]  + model.param_electricalDemand_In_W_BT7 [i, t]
+
+        model.constraint_electricalPowerTotal_BT7 = pyo.Constraint(model.set_buildings_BT7,model.set_timeslots, rule = electricalPowerTotalRule_BT7)
+
+
+
+        #Equation for calculating the PV generation of each BT7-building
+        def PVgenerationTotalRule_BT7 (model,i, t):
+            return model.variable_pvGeneration_BT7 [i, t] == model.param_pvGenerationNominal_BT7 [i, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 +SetUpScenarios.numberOfBuildings_BT5 +SetUpScenarios.numberOfBuildings_BT6 + i - 1)
+        model.constraint_PVgenerationTotal_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule = PVgenerationTotalRule_BT7)
+
+
+        #Equation for the assigned wind power of each BT7-building
+        def windPowerAssignedgRule_BT7 (model,i, t):
+            return model.variable_windPowerAssigned_BT7 [i, t] == model.param_windAssignedNominal_BT7 [i, t] * SetUpScenarios.maximalPowerOfWindTurbine
+
+        model.constraint_windPowerAssignedg_BT7 = pyo.Constraint(model.set_buildings_BT7,model.set_timeslots, rule = windPowerAssignedgRule_BT7)
+
+
+
+
+        #Constraint system for the maximum number of starts of the heat pump
+
+        model.variable_HPswitchedOff_Individual_GasHeating_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HPswitchedOff_HelpModulationBinary_GasHeating_BT7 = pyo.Var(model.set_buildings_BT7, model.set_timeslots, within =pyo.Binary)
+
+
+        #Constraints for maximum number of starts for the space heating
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ1_Rule_BT7 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                if t == model.set_timeslots.first():
+                    return model.variable_HPswitchedOff_Individual_GasHeating_BT7 [i, t] == 0
+                return model.variable_HPswitchedOff_Individual_GasHeating_BT7 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 [i, t-1]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ1_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ1_Rule_BT7)
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ2_Rule_BT7 (model, i,  t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                return model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 [i, t] + model.variable_HPswitchedOff_Individual_GasHeating_BT7 [i, t] <= 1
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ2_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ2_Rule_BT7)
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ2_2_Rule_BT7 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                if t == model.set_timeslots.first():
+                    return model.variable_HPswitchedOff_Individual_GasHeating_BT7 [i, t] == 0
+                return model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 [i, t] + model.variable_HPswitchedOff_Individual_GasHeating_BT7 [i, t]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ2_2_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ2_2_Rule_BT7)
+
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ3_HelpAssociatedBinary_Rule_BT7 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True :
+                return model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 [i, t] >= model.variable_heatGenerationCoefficient_GasBoiler_BT7[i, t]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+               return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ3_HelpAssociatedBinary_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ3_HelpAssociatedBinary_Rule_BT7)
+
+
+
+        def maximumNumberOfStarts_Individual_Gaseating_EQ4_HelpAssociatedBinary_Rule_BT7 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True :
+                return model.variable_heatGenerationCoefficient_GasBoiler_BT7[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_GasBoiler/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_GasHeating_BT7 [i, t]
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+               return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ4_HelpAssociatedBinary_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =maximumNumberOfStarts_Individual_Gaseating_EQ4_HelpAssociatedBinary_Rule_BT7)
+
+
+
+        def maximumNumberOfStarts_Individual_GasHeating_EQ5_NumberOfStarts_Rule_BT7 (model, i, t):
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==True:
+                return  sum (model.variable_HPswitchedOff_Individual_GasHeating_BT7 [i, t] for t in model.set_timeslots)<= Run_Simulations.maximumNumberOfStarts_Individual
+            if Run_Simulations.considerMaxiumNumberOfStartsGas_Individual ==False:
+                return pyo.Constraint.Skip
+
+        model.constraint_maximumNumberOfStarts_Individual_GasHeating_EQ5_NumberOfStarts_BT7 = pyo.Constraint(model.set_buildings_BT7, model.set_timeslots, rule =maximumNumberOfStarts_Individual_GasHeating_EQ5_NumberOfStarts_Rule_BT7)
+
+
 
     ###########################################################################################################################
     
-    #Combined equations for all 5 building types
+    #Combined equations for all 7 building types
     
     
     
@@ -1638,11 +2225,15 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     model.variable_surplusPowerNegativePart = pyo.Var(model.set_timeslots, within=pyo.NonNegativeReals)
     model.variable_help_isSurplusPowerPositive = pyo.Var(model.set_timeslots, within=pyo.Binary)
     model.variable_costsPerTimeSlot = pyo.Var(model.set_timeslots)
+    model.variable_gasConsumptionPerTimeSlot_kWh = pyo.Var(model.set_timeslots)
     model.variable_revenuePerTimeSlot = pyo.Var(model.set_timeslots)
+    model.variable_thermalDiscomfortCombined = pyo.Var(model.set_timeslots)
     
     model.variable_objectiveMaximumLoad = pyo.Var(within=pyo.NonNegativeReals)
     model.variable_objectiveSurplusEnergy = pyo.Var()
     model.variable_objectiveCosts = pyo.Var()
+    model.variable_objectiveThermalDiscomfort = pyo.Var()
+    model.variable_objectiveGasConsumption = pyo.Var()
     
     
     #Define help parameters for the printed files
@@ -1660,60 +2251,71 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         return j
     
     model.param_helpTimeSlots_BT3 = pyo.Param(model.set_buildings_BT3, model.set_timeslots, mutable = True, initialize=init_param_helpTimeSlots_BT3)
-    
-    
+
     def init_param_helpTimeSlots_BT4 (model, i,j):
         return j
     
     model.param_helpTimeSlots_BT4 = pyo.Param(model.set_buildings_BT4, model.set_timeslots, mutable = True, initialize=init_param_helpTimeSlots_BT4)
-    
-    
+
     def init_param_helpTimeSlots_BT5 (model, i,j):
         return j
     
     model.param_helpTimeSlots_BT5 = pyo.Param(model.set_buildings_BT5, model.set_timeslots, mutable = True, initialize=init_param_helpTimeSlots_BT5)
-    
-        
 
-    
-    
+    def init_param_helpTimeSlots_BT6 (model, i,j):
+        return j
+
+    model.param_helpTimeSlots_BT6 = pyo.Param(model.set_buildings_BT6, model.set_timeslots, mutable = True, initialize=init_param_helpTimeSlots_BT6)
+
+    def init_param_helpTimeSlots_BT7 (model, i,j):
+        return j
+
+    model.param_helpTimeSlots_BT7 = pyo.Param(model.set_buildings_BT7, model.set_timeslots, mutable = True, initialize=init_param_helpTimeSlots_BT7)
+
+
+
     #Initializer functions for the Big-M parameters
     
     def BigM_Surplus_PositiveRule_Init (model, t):
-        return  sum (model.param_pvGenerationNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.determinePVPeakOfBuildings(setIndex_BT1 - 1) + model.param_windAssignedNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT1 in model.set_buildings_BT1) + sum (model.param_pvGenerationNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + setIndex_BT2 - 1) + model.param_windAssignedNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT2 in model.set_buildings_BT2) + sum (model.param_pvGenerationNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + setIndex_BT3 - 1) + model.param_windAssignedNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT3 in model.set_buildings_BT3) + sum (model.param_pvGenerationNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + setIndex_BT4 - 1) + model.param_windAssignedNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT4 in model.set_buildings_BT4) +  sum (model.param_pvGenerationNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + setIndex_BT5 - 1) + model.param_windAssignedNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT5 in model.set_buildings_BT5) + 1000
+        return  sum (model.param_pvGenerationNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.determinePVPeakOfBuildings(setIndex_BT1 - 1) + model.param_windAssignedNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT1 in model.set_buildings_BT1) + sum (model.param_pvGenerationNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + setIndex_BT2 - 1) + model.param_windAssignedNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT2 in model.set_buildings_BT2) + sum (model.param_pvGenerationNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + setIndex_BT3 - 1) + model.param_windAssignedNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT3 in model.set_buildings_BT3) + sum (model.param_pvGenerationNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + setIndex_BT4 - 1) + model.param_windAssignedNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT4 in model.set_buildings_BT4) +  sum (model.param_pvGenerationNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + setIndex_BT5 - 1) + model.param_windAssignedNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT5 in model.set_buildings_BT5)  +  sum (model.param_pvGenerationNominal_BT6 [setIndex_BT6, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + SetUpScenarios.numberOfBuildings_BT5 + setIndex_BT6 - 1) + model.param_windAssignedNominal_BT6 [setIndex_BT6, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT6 in model.set_buildings_BT6)  +  sum (model.param_pvGenerationNominal_BT7 [setIndex_BT7, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + SetUpScenarios.numberOfBuildings_BT5 + SetUpScenarios.numberOfBuildings_BT6 + setIndex_BT7 - 1) + model.param_windAssignedNominal_BT7 [setIndex_BT7, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT7 in model.set_buildings_BT7) + 1000
     
     
     def BigM_Surplus_NegativeRule_Init (model, t):
-        return  sum (SetUpScenarios.electricalPower_HP  +  SetUpScenarios.chargingPowerMaximal_EV + model.param_electricalDemand_In_W_BT1 [setIndex_BT1, t] for setIndex_BT1 in model.set_buildings_BT1) + sum (SetUpScenarios.electricalPower_HP  +   model.param_electricalDemand_In_W_BT2 [setIndex_BT2, t] for setIndex_BT2 in model.set_buildings_BT2) + sum ( SetUpScenarios.chargingPowerMaximal_EV + model.param_electricalDemand_In_W_BT3 [setIndex_BT3, t] for setIndex_BT3 in model.set_buildings_BT3)  + sum (SetUpScenarios.electricalPower_HP_BT4_MFH  + model.param_electricalDemand_In_W_BT4 [setIndex_BT4, t] for setIndex_BT4 in model.set_buildings_BT4) + sum ( SetUpScenarios.chargingPowerMaximal_BAT + model.param_electricalDemand_In_W_BT5 [setIndex_BT5, t] for setIndex_BT5 in model.set_buildings_BT5)  + 1000
+        return  sum (SetUpScenarios.electricalPower_HP  +  SetUpScenarios.chargingPowerMaximal_EV + model.param_electricalDemand_In_W_BT1 [setIndex_BT1, t] for setIndex_BT1 in model.set_buildings_BT1) + sum (SetUpScenarios.electricalPower_HP  +   model.param_electricalDemand_In_W_BT2 [setIndex_BT2, t] for setIndex_BT2 in model.set_buildings_BT2) + sum ( SetUpScenarios.chargingPowerMaximal_EV + model.param_electricalDemand_In_W_BT3 [setIndex_BT3, t] for setIndex_BT3 in model.set_buildings_BT3)  + sum (SetUpScenarios.electricalPower_HP_BT4_MFH  + model.param_electricalDemand_In_W_BT4 [setIndex_BT4, t] for setIndex_BT4 in model.set_buildings_BT4) + sum ( SetUpScenarios.chargingPowerMaximal_BAT + model.param_electricalDemand_In_W_BT5 [setIndex_BT5, t] for setIndex_BT5 in model.set_buildings_BT5) + sum (SetUpScenarios.maximalPowerElectricalHeatingElement  + model.param_electricalDemand_In_W_BT6 [setIndex_BT6, t] for setIndex_BT6 in model.set_buildings_BT6) + sum (SetUpScenarios.electricalPowerFanHeater_Stage3  + model.param_electricalDemand_In_W_BT7 [setIndex_BT7, t] for setIndex_BT7 in model.set_buildings_BT7) + 1000
 
-    
     
     model.param_BigM_Surplus_Positive = pyo.Param(model.set_timeslots, mutable=True, initialize =BigM_Surplus_PositiveRule_Init)
     model.param_BigM_Surplus_Negative = pyo.Param(model.set_timeslots, mutable=True, initialize =BigM_Surplus_NegativeRule_Init)
 
-    
+
     
     #Equations for calculating the total generation from renewable energy sources (RES): 
     def RESgenerationTotalRule (model, t):
-        return model.variable_RESGenerationTotal [t] == sum (model.param_pvGenerationNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.determinePVPeakOfBuildings(setIndex_BT1 - 1) + model.param_windAssignedNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT1 in model.set_buildings_BT1) + sum (model.param_pvGenerationNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + setIndex_BT2 - 1) + model.param_windAssignedNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT2 in model.set_buildings_BT2) + sum (model.param_pvGenerationNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + setIndex_BT3 - 1) + model.param_windAssignedNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT3 in model.set_buildings_BT3) + sum (model.param_pvGenerationNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2  + SetUpScenarios.numberOfBuildings_BT3  + setIndex_BT4 - 1) + model.param_windAssignedNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT4 in model.set_buildings_BT4) + sum (model.param_pvGenerationNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2  + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4  + setIndex_BT5 - 1) + model.param_windAssignedNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT5 in model.set_buildings_BT5) 
+        return model.variable_RESGenerationTotal [t] == sum (model.param_pvGenerationNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.determinePVPeakOfBuildings(setIndex_BT1 - 1) + model.param_windAssignedNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT1 in model.set_buildings_BT1) + sum (model.param_pvGenerationNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + setIndex_BT2 - 1) + model.param_windAssignedNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT2 in model.set_buildings_BT2) + sum (model.param_pvGenerationNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + setIndex_BT3 - 1) + model.param_windAssignedNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT3 in model.set_buildings_BT3) + sum (model.param_pvGenerationNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2  + SetUpScenarios.numberOfBuildings_BT3  + setIndex_BT4 - 1) + model.param_windAssignedNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT4 in model.set_buildings_BT4) + sum (model.param_pvGenerationNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2  + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4  + setIndex_BT5 - 1) + model.param_windAssignedNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT5 in model.set_buildings_BT5) +  sum (model.param_pvGenerationNominal_BT6 [setIndex_BT6, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2  + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + SetUpScenarios.numberOfBuildings_BT5  + setIndex_BT6 - 1) + model.param_windAssignedNominal_BT6 [setIndex_BT6, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT6 in model.set_buildings_BT6) +  sum (model.param_pvGenerationNominal_BT7 [setIndex_BT7, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2  + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + SetUpScenarios.numberOfBuildings_BT5  + SetUpScenarios.numberOfBuildings_BT6  + setIndex_BT7 - 1) + model.param_windAssignedNominal_BT7 [setIndex_BT7, t] * SetUpScenarios.maximalPowerOfWindTurbine for setIndex_BT7 in model.set_buildings_BT7)
         
     model.constraint_RESgenerationTotal = pyo.Constraint(model.set_timeslots, rule = RESgenerationTotalRule)
-    
-    
-    
+
+
+    #Equations for calculating the total thermal discomfort
+    def totalDiscomfortRule (model, t):
+        return model.variable_thermalDiscomfortCombined [t] == sum (model.variable_deviation_temperature_positive_BT1 [setIndex_BT1, t] + model.variable_deviation_temperature_negative_BT1[setIndex_BT1, t] for setIndex_BT1 in model.set_buildings_BT1) +  sum (model.variable_deviation_temperature_positive_BT2 [setIndex_BT2, t] + model.variable_deviation_temperature_negative_BT2[setIndex_BT2, t] for setIndex_BT2 in model.set_buildings_BT2) + sum (model.variable_deviation_temperature_positive_BT4 [setIndex_BT4, t] + model.variable_deviation_temperature_negative_BT4[setIndex_BT4, t] for setIndex_BT4 in model.set_buildings_BT4) + sum (model.variable_deviation_temperature_positive_BT6 [setIndex_BT6, t] + model.variable_deviation_temperature_negative_BT6[setIndex_BT6, t] for setIndex_BT6 in model.set_buildings_BT6) +  sum (model.variable_deviation_temperature_positive_BT7 [setIndex_BT7, t] + model.variable_deviation_temperature_negative_BT7[setIndex_BT7, t] for setIndex_BT7 in model.set_buildings_BT7)
+
+    model.constraint_totalDiscomfort = pyo.Constraint(model.set_timeslots, rule = totalDiscomfortRule)
+
+
     
     #Equations for calculating the total generation from PV
     def PVgenerationTotalRule (model, t):
-        return model.variable_PVGenerationTotal [t] == sum (model.param_pvGenerationNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.determinePVPeakOfBuildings(setIndex_BT1 - 1)  for setIndex_BT1 in model.set_buildings_BT1) + sum (model.param_pvGenerationNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + setIndex_BT2 - 1) for setIndex_BT2 in model.set_buildings_BT2) + sum (model.param_pvGenerationNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + setIndex_BT3 - 1) for setIndex_BT3 in model.set_buildings_BT3)  + sum (model.param_pvGenerationNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + setIndex_BT4 - 1) for setIndex_BT4 in model.set_buildings_BT4) + sum (model.param_pvGenerationNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + setIndex_BT5 - 1) for setIndex_BT5 in model.set_buildings_BT5) 
+        return model.variable_PVGenerationTotal [t] == sum (model.param_pvGenerationNominal_BT1 [setIndex_BT1, t] * SetUpScenarios.determinePVPeakOfBuildings(setIndex_BT1 - 1)  for setIndex_BT1 in model.set_buildings_BT1) + sum (model.param_pvGenerationNominal_BT2 [setIndex_BT2, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + setIndex_BT2 - 1) for setIndex_BT2 in model.set_buildings_BT2) + sum (model.param_pvGenerationNominal_BT3 [setIndex_BT3, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + setIndex_BT3 - 1) for setIndex_BT3 in model.set_buildings_BT3)  + sum (model.param_pvGenerationNominal_BT4 [setIndex_BT4, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + setIndex_BT4 - 1) for setIndex_BT4 in model.set_buildings_BT4) + sum (model.param_pvGenerationNominal_BT5 [setIndex_BT5, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + setIndex_BT5 - 1) for setIndex_BT5 in model.set_buildings_BT5) +  sum (model.param_pvGenerationNominal_BT6 [setIndex_BT6, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + SetUpScenarios.numberOfBuildings_BT5 + setIndex_BT6 - 1) for setIndex_BT6 in model.set_buildings_BT6) + sum (model.param_pvGenerationNominal_BT7 [setIndex_BT7, t] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + SetUpScenarios.numberOfBuildings_BT4 + SetUpScenarios.numberOfBuildings_BT5 + SetUpScenarios.numberOfBuildings_BT6 + setIndex_BT7 - 1) for setIndex_BT7 in model.set_buildings_BT7)
         
     model.constraint_PVgenerationTotal = pyo.Constraint(model.set_timeslots, rule = PVgenerationTotalRule)
     
     
     
-    
+
     #Equation for calculating the total electrical power
     def electricalPowerTotalRule (model, t):
-        return model.variable_electricalPowerTotal [t] == sum ((model.variable_heatGenerationCoefficient_SpaceHeating_BT1 [setIndex_BT1, t] + model.variable_heatGenerationCoefficient_DHW_BT1 [setIndex_BT1, t] ) * SetUpScenarios.electricalPower_HP  + model.variable_currentChargingPowerEV_BT1 [setIndex_BT1, t] + model.param_electricalDemand_In_W_BT1 [setIndex_BT1, t] for setIndex_BT1 in model.set_buildings_BT1) + sum ((model.variable_heatGenerationCoefficient_SpaceHeating_BT2 [setIndex_BT2, t] + model.variable_heatGenerationCoefficient_DHW_BT2 [setIndex_BT2, t] ) * SetUpScenarios.electricalPower_HP   + model.param_electricalDemand_In_W_BT2 [setIndex_BT2, t] for setIndex_BT2 in model.set_buildings_BT2) + sum ( model.variable_currentChargingPowerEV_BT3 [setIndex_BT3, t] + model.param_electricalDemand_In_W_BT3 [setIndex_BT3, t] for setIndex_BT3 in model.set_buildings_BT3) + sum ((model.variable_heatGenerationCoefficient_SpaceHeating_BT4 [setIndex_BT4, t] ) * SetUpScenarios.electricalPower_HP_BT4_MFH   + model.param_electricalDemand_In_W_BT4 [setIndex_BT4, t] for setIndex_BT4 in model.set_buildings_BT4) + sum ( model.variable_currentChargingPowerBAT_BT5 [setIndex_BT5, t] - model.variable_currentDisChargingPowerBAT_BT5 [setIndex_BT5, t] + model.param_electricalDemand_In_W_BT5 [setIndex_BT5, t] for setIndex_BT5 in model.set_buildings_BT5)   
+        return model.variable_electricalPowerTotal [t] == sum (  model.variable_electricalPowerTotal_BT1 [setIndex_BT1, t] for setIndex_BT1 in model.set_buildings_BT1) + sum (  model.variable_electricalPowerTotal_BT2 [setIndex_BT2, t] for setIndex_BT2 in model.set_buildings_BT2) + sum (  model.variable_electricalPowerTotal_BT3 [setIndex_BT3, t] for setIndex_BT3 in model.set_buildings_BT3) + sum (  model.variable_electricalPowerTotal_BT4 [setIndex_BT4, t] for setIndex_BT4 in model.set_buildings_BT4) + sum (  model.variable_electricalPowerTotal_BT5 [setIndex_BT5, t] for setIndex_BT5 in model.set_buildings_BT5) + sum ( model.variable_electricalPowerTotal_BT6 [setIndex_BT6, t] for setIndex_BT6 in model.set_buildings_BT6) + sum (  model.variable_electricalPowerTotal_BT7 [setIndex_BT7, t] for setIndex_BT7 in model.set_buildings_BT7)
     
     model.constraint_electricalPowerTotal = pyo.Constraint(model.set_timeslots, rule = electricalPowerTotalRule)
     
@@ -1752,16 +2354,23 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     
     #Equation for calculating the costs per timeslot
     def costsPerTimeSlotRule (model, t):
-            return model.variable_costsPerTimeSlot [t] == (1 - model.variable_help_isSurplusPowerPositive [t]) * (model.variable_electricalPowerTotal [t] - model.variable_PVGenerationTotal [t]) * SetUpScenarios.timeResolution_InMinutes * 60 * (model.param_electricityPrice_In_Cents[t]/3600000)
+            return model.variable_costsPerTimeSlot [t] == (1 - model.variable_help_isSurplusPowerPositive [t]) * (model.variable_electricalPowerTotal [t] - model.variable_PVGenerationTotal [t]) * SetUpScenarios.timeResolution_InMinutes * 60 * (model.param_electricityPrice_In_Cents[t]/3600000) + model.variable_gasConsumptionPerTimeSlot_kWh [t] * SetUpScenarios.priceForGasInCentPerKWH
     
     model.constraint_costsPerTimeSlots = pyo.Constraint(model.set_timeslots, rule =costsPerTimeSlotRule )
     
     
-    
+
     def revenuePerTimeSlotRule (model, t):
         return model.variable_revenuePerTimeSlot [t] == model.variable_help_isSurplusPowerPositive [t] * (model.variable_PVGenerationTotal [t] - model.variable_electricalPowerTotal [t]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
     
     model.constraint_revenuePerTimeSlots = pyo.Constraint(model.set_timeslots, rule = revenuePerTimeSlotRule)
+
+
+    def gasConsumptionPerTimeSlotRule (model, t):
+        return model.variable_gasConsumptionPerTimeSlot_kWh [t] == sum (model.variable_heatGenerationCoefficient_GasBoiler_BT6[setIndex_BT6, t] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.timeResolution_InMinutes * 60 for setIndex_BT6 in model.set_buildings_BT6)/3600000 + sum (model.variable_heatGenerationCoefficient_GasBoiler_BT7[setIndex_BT7, t] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.timeResolution_InMinutes * 60 for setIndex_BT7 in model.set_buildings_BT7)/3600000
+
+    model.constraint_gasConsumptionPerTimeSlot = pyo.Constraint(model.set_timeslots, rule = gasConsumptionPerTimeSlotRule)
+
 
 
     
@@ -1772,7 +2381,12 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         return model.variable_objectiveSurplusEnergy == sum(model.variable_surplusPowerPositivePart[t] for t in model.set_timeslots)
     
     model.constraint_objective_minimizeSurplusPower = pyo.Constraint( rule = objective_minimizeSurplusPowerRuel)
-    
+
+    #Equation for the objective: Minimize gas consumption
+    def objectiveGasConsumption (model):
+        return model.variable_objectiveGasConsumption == sum (model.variable_gasConsumptionPerTimeSlot_kWh[t] for t in model.set_timeslots)
+
+    model.constraints_objective_minimizeGasConsumption = pyo.Constraint(rule= objectiveGasConsumption)
     
     #Equation for the objective: Minimize costs
     def objective_minimizeCostsRule (model):
@@ -1792,44 +2406,107 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         return model.variable_objectiveMaximumLoad >= model.variable_PVGenerationTotal [t] - model.variable_electricalPowerTotal [t] 
     
     model.constraints_objective_maxiumLoad_2 = pyo.Constraint(model.set_timeslots, rule = objective_maximumLoadRule_2)
-    
-    
-    
-    
+
+
+    def objective_minimizeThermalDiscomfortRule (model):
+        return model.variable_objectiveThermalDiscomfort == sum (model.variable_thermalDiscomfortCombined[t] for t in model.set_timeslots)
+
+    model.constraint_objective_minimizeThermalDiscomfort = pyo.Constraint ( rule = objective_minimizeThermalDiscomfortRule)
+
+
+    #Define additional constraints for the box-epsilon-method
+    def epsilon_objective_minimizeCostsRule (model):
+        if optParameters ["epsilon_objective_minimizeCosts_Active"] == True:
+            return model.variable_objectiveCosts <= optParameters["epsilon_objective_minimizeCosts_TargetValue"]
+        else:
+            return pyo.Constraint.Skip
+
+    model.constraint_epsilon_objective_minimizeCosts = pyo.Constraint(rule = epsilon_objective_minimizeCostsRule)
+
+
+    def epsilon_objective_minimizeMaximumLoadRule(model):
+        if optParameters["epsilon_objective_minimizePeakLoad_Active"] == True:
+            return model.variable_objectiveMaximumLoad <= optParameters["epsilon_objective_minimizeMaximumLoad_TargetValue"]
+        else:
+            return pyo.Constraint.Skip
+
+    model.constraint_epsilon_objective_minimizeMaximumLoad = pyo.Constraint(rule = epsilon_objective_minimizeMaximumLoadRule)
+
+
+    def epsilon_objective_minimizeGasConsumptionRule (model):
+        if optParameters["epsilon_objective_minimizeGasConsumption_Active"] == True:
+            return model.variable_objectiveGasConsumption <= optParameters["epsilon_objective_minimizeGasConsumption_TargetValue"]
+        else:
+            return pyo.Constraint.Skip
+
+    model.constraint_epsilon_objective_minimizeGasConsumption = pyo.Constraint(rule = epsilon_objective_minimizeGasConsumptionRule)
+
+
+    def epsilon_objective_minimizeThermalDiscomfortsRule (model):
+        if optParameters["epsilon_objective_minimizeThermalDiscomfort_Active"] == True:
+            return model.variable_objectiveThermalDiscomfort <= optParameters["epsilon_objective_minimizeThermalDiscomfort_TargetValue"]
+        else:
+            return pyo.Constraint.Skip
+
+    model.constraint_epsilon_objective_minimizeThermalDiscomfort = pyo.Constraint(rule = epsilon_objective_minimizeThermalDiscomfortsRule)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #Define combined objective function for the optimization depending on the objectives specified in the file Run_Simulations
     
     def objectiveRule_combined_general (model):
-        if Run_Simulations.optimization_1Objective == True:
+        if optParameters['optimization_1Objective'] == True:
             
             
-            if Run_Simulations.optimizationGoal_minimizeSurplusEnergy == True:
+            if optParameters['optimizationGoal_minimizeSurplusEnergy'] == True:
                return  (model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600
     
           
-            if Run_Simulations.optimizationGoal_minimizePeakLoad == True:
+            if optParameters['optimizationGoal_minimizePeakLoad'] == True:
                 return model.variable_objectiveMaximumLoad
            
-            if Run_Simulations.optimizationGoal_minimizeCosts == True:
+            if optParameters['optimizationGoal_minimizeCosts'] == True:
                 return  model.variable_objectiveCosts
+
+            if optParameters['optimizationGoal_minimizeThermalDiscomfort'] ==True:
+                return model.variable_objectiveThermalDiscomfort
+
+            if optParameters['optimizationGoal_minimizeGas'] == True:
+                return model.variable_objectiveGasConsumption
             
                 
-        if Run_Simulations.optimization_2Objective == True:
+        if optParameters['optimization_2Objective'] == True:
     
-            if (Run_Simulations.optimizationGoal_minimizeSurplusEnergy == True and Run_Simulations.optimizationGoal_minimizePeakLoad == True):
-                return Run_Simulations.objective_minimizePeakLoad_weight * ((model.variable_objectiveMaximumLoad)/Run_Simulations.objective_minimizePeakLoad_normalizationValue) + Run_Simulations.objective_minimizeSurplusEnergy_weight * (((model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600) /Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue)
+            if (optParameters['optimizationGoal_minimizeSurplusEnergy'] == True and optParameters['optimizationGoal_minimizePeakLoad'] == True):
+                return optParameters['objective_minimizePeakLoad_weight'] * ((model.variable_objectiveMaximumLoad)/optParameters['objective_minimizePeakLoad_normalizationValue']) + optParameters['objective_minimizeSurplusEnergy_weight'] * (((model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600) /optParameters['objective_minimizeSurplusEnergy_normalizationValue'])
             
-            if (Run_Simulations.optimizationGoal_minimizeSurplusEnergy == True and Run_Simulations.optimizationGoal_minimizeCosts == True):
-                return Run_Simulations.objective_minimizeCosts_weight * ((model.variable_objectiveCosts) /Run_Simulations.objective_minimizeCosts_normalizationValue) + Run_Simulations.objective_minimizeSurplusEnergy_weight * (((model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600) /Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue)
+            if (optParameters['optimizationGoal_minimizeSurplusEnergy'] == True and optParameters['optimizationGoal_minimizeCosts'] == True):
+                return optParameters['objective_minimizeCosts_weight'] * ((model.variable_objectiveCosts) /optParameters['objective_minimizeCosts_normalizationValue']) + optParameters['objective_minimizeSurplusEnergy_weight'] * (((model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600) /optParameters['objective_minimizeSurplusEnergy_normalizationValue'])
             
-            if (Run_Simulations.optimizationGoal_minimizePeakLoad == True and Run_Simulations.optimizationGoal_minimizeCosts == True):
-                return Run_Simulations.objective_minimizePeakLoad_weight * ((model.variable_objectiveMaximumLoad) /Run_Simulations.objective_minimizePeakLoad_normalizationValue) + Run_Simulations.objective_minimizeCosts_weight * ((model.variable_objectiveCosts) /Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue)
-            
-        if Run_Simulations.optimization_3Objectives == True:
-            return Run_Simulations.objective_minimizePeakLoad_weight * ((model.variable_objectiveMaximumLoad) /Run_Simulations.objective_minimizePeakLoad_normalizationValue) + Run_Simulations.objective_minimizeCosts_weight * ((model.variable_objectiveCosts) /Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue) + Run_Simulations.objective_minimizeSurplusEnergy_weight * (((model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600) /Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue)
+            if (optParameters['optimizationGoal_minimizePeakLoad'] == True and optParameters['optimizationGoal_minimizeCosts'] == True):
+                return (optParameters['objective_minimizePeakLoad_weight'] * (model.variable_objectiveMaximumLoad /optParameters['objective_minimizePeakLoad_normalizationValue']) + optParameters['objective_minimizeCosts_weight'] * (model.variable_objectiveCosts /optParameters['objective_minimizeCosts_normalizationValue']))*100
+
+            if (optParameters['optimizationGoal_minimizeCosts'] == True and optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True):
+                return optParameters['objective_minimizeThermalDiscomfort_weight'] * ((model.variable_objectiveThermalDiscomfort) /optParameters['objective_minimizeThermalDiscomfort_normalizationValue']) + optParameters['objective_minimizeCosts_weight'] * ((model.variable_objectiveCosts) /optParameters['objective_minimizeCosts_normalizationValue'])
+
+        if optParameters['optimization_3Objectives'] == True:
+            return optParameters['objective_minimizePeakLoad_weight'] * ((model.variable_objectiveMaximumLoad) /optParameters['objective_minimizePeakLoad_normalizationValue']) + optParameters['objective_minimizeCosts_weight'] * ((model.variable_objectiveCosts) /optParameters['objective_minimizeSurplusEnergy_normalizationValue']) + optParameters['objective_minimizeSurplusEnergy_weight'] * (((model.variable_objectiveSurplusEnergy * SetUpScenarios.timeResolution_InMinutes * 60) /3600) /optParameters['objective_minimizeSurplusEnergy_normalizationValue'])
               
     
     model.objective_combined_general = pyo.Objective( rule=objectiveRule_combined_general, sense =pyo.minimize)
-    
+
     
 
     #Solve the model
@@ -1838,15 +2515,19 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     solver.options['MIPGap'] = SetUpScenarios.solverOption_relativeGap_Central
     solver.options['TimeLimit'] = SetUpScenarios.solverOption_timeLimit_Central
     solution = solver.solve(model, tee=True)
-    
+    model.variable_objectiveThermalDiscomfort.pprint()
     
     #Help function for priting infeasible constraints if the model can't be solved
     #log_infeasible_constraints(model)
-    
+    mipGapPercentOfFoundSolution = -1
+    timeForFindingOptimalSolution = -1
 
     #Check if the problem is solved or infeasible
     if (solution.solver.status == SolverStatus.ok  and solution.solver.termination_condition == TerminationCondition.optimal) or  solution.solver.termination_condition == TerminationCondition.maxTimeLimit:
         print("Result Status: Optimal")
+        mipGapPercentOfFoundSolution = round((abs(solution.problem.upper_bound - solution.problem.lower_bound) / solution.problem.upper_bound)*100, 2)
+        timeForFindingOptimalSolution = round(solution.solver.time,2)
+
         if SetUpScenarios.numberOfBuildings_BT1 >=1:
     
             #Create pandas dataframe for displaying the results of BT1
@@ -1882,7 +2563,8 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         if SetUpScenarios.numberOfBuildings_BT2 >=1:        
             #Create pandas dataframe for displaying the results of BT2
             outputVariables_list_BT2 = [model.param_helpTimeSlots_BT2, model.variable_heatGenerationCoefficient_SpaceHeating_BT2, model.variable_heatGenerationCoefficient_DHW_BT2, model.variable_help_OnlyOneStorage_BT2, model.variable_temperatureBufferStorage_BT2, model.variable_usableVolumeDHWTank_BT2,  model.variable_electricalPowerTotal_BT2, model.variable_pvGeneration_BT2, model.variable_windPowerAssigned_BT2,  model.param_heatDemand_In_W_BT2, model.param_DHWDemand_In_W_BT2, model.param_electricalDemand_In_W_BT2, model.param_pvGenerationNominal_BT2, model.param_outSideTemperature_In_C, model.param_windAssignedNominal_BT2,  model.param_COPHeatPump_SpaceHeating_BT2, model.param_COPHeatPump_DHW_BT2, model.param_electricityPrice_In_Cents, model.set_timeslots]
-            optimal_values_list_BT2 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT2] 
+            optimal_values_list_BT2 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT2]
+
             results_BT2 = pd.DataFrame(optimal_values_list_BT2)
             results_BT2= results_BT2.T
             results_BT2 = results_BT2.rename(columns = {0:'timeslot', 1:'variable_heatGenerationCoefficient_SpaceHeating', 2:'variable_heatGenerationCoefficient_DHW', 3:'variable_help_OnlyOneStorage', 4:'variable_temperatureBufferStorage', 5:'variable_usableVolumeDHWTank',    6:'variable_electricalPowerTotal',  7:'variable_pvGeneration', 8:'variable_windPowerAssigned', 9:'param_heatDemand_In_W', 10:'param_DHWDemand_In_W', 11:'param_electricalDemand_In_W', 12:'param_pvGenerationNominal', 13:'param_outSideTemperature_In_C', 14:'param_windAssignedNominal', 15:'param_COPHeatPump_SpaceHeating', 16:'param_COPHeatPump_DHW',  17:'param_PriceElectricity [Cents]', 18:'set_timeslots'})
@@ -1926,7 +2608,16 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         if SetUpScenarios.numberOfBuildings_BT4 >=1:
            #Create pandas dataframe for displaying the results of BT4
             outputVariables_list_BT4 = [model.param_helpTimeSlots_BT4, model.variable_heatGenerationCoefficient_SpaceHeating_BT4, model.variable_temperatureBufferStorage_BT4,   model.variable_electricalPowerTotal_BT4, model.variable_pvGeneration_BT4, model.variable_windPowerAssigned_BT4,  model.param_heatDemand_In_W_BT4,  model.param_electricalDemand_In_W_BT4, model.param_pvGenerationNominal_BT4, model.param_outSideTemperature_In_C, model.param_windAssignedNominal_BT4,  model.param_COPHeatPump_SpaceHeating_BT4, model.param_electricityPrice_In_Cents, model.set_timeslots]
-            optimal_values_list_BT4 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT4] 
+            #optimal_values_list_BT4 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT4]
+
+            from typing import Union
+            optimal_values_list_BT4 = []
+            for model_item in outputVariables_list_BT4:
+                if isinstance(model_item, Union[pyo.Set, pyo.RangeSet]):
+                    optimal_values_list_BT4.append(list(model_item))
+                else:
+                    optimal_values_list_BT4.append([pyo.value(model_item[k]) for k in model_item.index_set()])
+
             results_BT4 = pd.DataFrame(optimal_values_list_BT4)
             results_BT4= results_BT4.T
             results_BT4 = results_BT4.rename(columns = {0:'timeslot', 1:'variable_heatGenerationCoefficient_SpaceHeating', 2:'variable_temperatureBufferStorage',  3:'variable_electricalPowerTotal', 4:'variable_pvGeneration', 5:'variable_windPowerAssigned', 6:'param_heatDemand_In_W', 7:'param_electricalDemand_In_W', 8:'param_pvGenerationNominal', 9:'param_outSideTemperature_In_C', 10:'param_windAssignedNominal', 11:'param_COPHeatPump_SpaceHeating', 12:'param_PriceElectricity [Cents]', 13:'set_timeslots'})
@@ -1946,7 +2637,8 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         if SetUpScenarios.numberOfBuildings_BT5 >=1:
             #Create pandas dataframe for displaying the results of BT5
             outputVariables_list_BT5 = [model.param_helpTimeSlots_BT5, model.variable_electricalPowerTotal_BT5, model.variable_pvGeneration_BT5, model.variable_windPowerAssigned_BT5, model.variable_currentChargingPowerBAT_BT5,  model.variable_currentDisChargingPowerBAT_BT5, model.variable_energyLevelBAT_BT5, model.variable_SOC_BAT_BT5, model.param_electricalDemand_In_W_BT5, model.param_pvGenerationNominal_BT5, model.param_outSideTemperature_In_C, model.param_windAssignedNominal_BT5, model.param_electricityPrice_In_Cents, model.set_timeslots]
-            optimal_values_list_BT5 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT5] 
+            #optimal_values_list_BT5 = [[pyo.at(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT5]
+            optimal_values_list_BT5 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT5]
             results_BT5 = pd.DataFrame(optimal_values_list_BT5)
             results_BT5= results_BT5.T
             results_BT5 = results_BT5.rename(columns = {0:'timeslot', 1:'variable_electricalPower', 2:'variable_pvGeneration', 3:'variable_windPowerAssigned',  4:'variable_currentChargingPowerBAT', 5:'variable_currentDisChargingPowerBAT', 6:'variable_energyLevelBAT_kWh', 7:'variable_SOC_BAT', 8:'param_electricalDemand_In_W', 9:'param_pvGenerationNominal', 10:'param_outSideTemperature_In_C', 11:'param_windAssignedNominal', 12:'param_PriceElectricity [Cents]', 13:'set_timeslots'})
@@ -1964,14 +2656,67 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             outputVector_chargingPowerBAT_BT5 = outputVector_chargingPowerBAT_BT5.transpose()
             outputVector_dischargingPowerBAT_BT5 = results_BT5['variable_currentDisChargingPowerBAT'].to_numpy().reshape((SetUpScenarios.numberOfTimeSlotsPerDay,SetUpScenarios.numberOfBuildings_BT5), order='F')
             outputVector_dischargingPowerBAT_BT5 = outputVector_dischargingPowerBAT_BT5.transpose()
-        
-        
+
+
+        if SetUpScenarios.numberOfBuildings_BT6 >=1:
+
+            #Create pandas dataframe for displaying the results of BT6
+            outputVariables_list_BT6 = [model.param_helpTimeSlots_BT6, model.variable_heatGenerationCoefficient_GasBoiler_BT6, model.variable_heatGenerationCoefficient_ElectricalHeatingElement_BT6, model.variable_energyLevelCombinedStorage_BT6,  model.variable_heatTransferCoefficient_StorageToRoom_BT6, model.variable_temperatureBuilding_BT6,  model.variable_electricalPowerTotal_BT6, model.variable_pvGeneration_BT6, model.variable_windPowerAssigned_BT6,   model.param_heatDemand_In_W_BT6, model.param_DHWDemand_In_W_BT6, model.param_electricalDemand_In_W_BT6, model.param_pvGenerationNominal_BT6, model.param_outSideTemperature_In_C, model.param_windAssignedNominal_BT6,  model.param_electricityPrice_In_Cents , model.set_timeslots]
+            optimal_values_list_BT6 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT6]
+            results_BT6 = pd.DataFrame(optimal_values_list_BT6)
+            results_BT6= results_BT6.T
+            results_BT6 = results_BT6.rename(columns = {0:'timeslot', 1:'variable_heatGenerationCoefficient_GasBoiler', 2:'variable_heatGenerationCoefficient_ElectricalHeatingElement', 3:'variable_energyLevelCombinedStorage', 4:'variable_heatTransferCoefficient_StorageToRoom', 5:'variable_temperatureBuilding',  6:'variable_electricalPowerTotal', 7:'variable_PVGeneration', 8:'variable_windPowerAssigned', 9:'param_heatDemand_In_W', 10:'param_DHWDemand_In_W', 11:'param_electricalDemand_In_W', 12:'param_pvGenerationNominal', 13:'param_outSideTemperature_In_C', 14:'param_windAssignedNominal',  15:'param_PriceElectricity [Cents]', 16:'set_timeslots'})
+            cols = ['set_timeslots']
+            results_BT6.set_index('set_timeslots', inplace=True)
+            #Round values
+            results_BT6['variable_temperatureBuilding'] = results_BT6['variable_temperatureBuilding'].round(2)
+            results_BT6['variable_energyLevelCombinedStorage'] = round((results_BT6['variable_energyLevelCombinedStorage']/3600000),2)
+
+            results_BT6['variable_heatGenerationCoefficient_GasBoiler'] = results_BT6['variable_heatGenerationCoefficient_GasBoiler'].round(4)
+            results_BT6['variable_heatGenerationCoefficient_ElectricalHeatingElement'] = results_BT6['variable_heatGenerationCoefficient_ElectricalHeatingElement'].round(4)
+            filePath_BT6 = folderPath + "\Combined_BT6.csv"
+            results_BT6.to_csv(filePath_BT6, index=False,  sep =";")
+
+            #Create output vector in the correct format
+            outputVector_heatGenerationCoefficient_GasBoiler_BT6 = results_BT6['variable_heatGenerationCoefficient_GasBoiler'].to_numpy().reshape((SetUpScenarios.numberOfTimeSlotsPerDay,SetUpScenarios.numberOfBuildings_BT6), order='F')
+            outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 = results_BT6['variable_heatGenerationCoefficient_ElectricalHeatingElement'].to_numpy().reshape((SetUpScenarios.numberOfTimeSlotsPerDay,SetUpScenarios.numberOfBuildings_BT6), order='F')
+            outputVector_heatTransferCoefficient_StorageToRoom_BT6 = results_BT6['variable_heatTransferCoefficient_StorageToRoom'].to_numpy().reshape((SetUpScenarios.numberOfTimeSlotsPerDay,SetUpScenarios.numberOfBuildings_BT6), order='F')
+            outputVector_heatGenerationCoefficient_GasBoiler_BT6 = outputVector_heatGenerationCoefficient_GasBoiler_BT6.transpose()
+            outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 = outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6.transpose()
+            outputVector_heatTransferCoefficient_StorageToRoom_BT6 = outputVector_heatTransferCoefficient_StorageToRoom_BT6.transpose()
+
+
+        if SetUpScenarios.numberOfBuildings_BT7 >=1:
+
+            #Create pandas dataframe for displaying the results of BT7
+            outputVariables_list_BT7 = [model.param_helpTimeSlots_BT7, model.variable_heatGenerationCoefficient_GasBoiler_BT7, model.variable_electricalPowerFanHeater_BT7, model.variable_temperatureBuilding_BT7,  model.variable_electricalPowerTotal_BT7, model.variable_pvGeneration_BT7, model.variable_windPowerAssigned_BT7,   model.param_heatDemand_In_W_BT7, model.param_electricalDemand_In_W_BT7, model.param_pvGenerationNominal_BT7, model.param_outSideTemperature_In_C, model.param_windAssignedNominal_BT7,  model.param_electricityPrice_In_Cents , model.set_timeslots]
+            optimal_values_list_BT7 = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_BT7]
+            results_BT7 = pd.DataFrame(optimal_values_list_BT7)
+            results_BT7= results_BT7.T
+            results_BT7 = results_BT7.rename(columns = {0:'timeslot', 1:'variable_heatGenerationCoefficient_GasBoiler', 2:'variable_electricalPowerFanHeater', 3:'variable_temperatureBuilding',  4:'variable_electricalPowerTotal', 5:'variable_PVGeneration', 6:'variable_windPowerAssigned', 7:'param_heatDemand_In_W', 8:'param_electricalDemand_In_W', 9:'param_pvGenerationNominal', 10:'param_outSideTemperature_In_C', 11:'param_windAssignedNominal',  12:'param_PriceElectricity [Cents]', 13:'set_timeslots'})
+            cols = ['set_timeslots']
+            results_BT7.set_index('set_timeslots', inplace=True)
+            #Round values
+            results_BT7['variable_temperatureBuilding'] = results_BT7['variable_temperatureBuilding'].round(2)
+            results_BT7['variable_heatGenerationCoefficient_GasBoiler'] = results_BT7['variable_heatGenerationCoefficient_GasBoiler'].round(4)
+            results_BT7['variable_electricalPowerFanHeater'] = results_BT7['variable_electricalPowerFanHeater'].round(4)
+            filePath_BT7 = folderPath + "\Combined_BT7.csv"
+            results_BT7.to_csv(filePath_BT7, index=False,  sep =";")
+
+            #Create output vector in the correct format
+            outputVector_heatGenerationCoefficient_GasBoiler_BT7 = results_BT7['variable_heatGenerationCoefficient_GasBoiler'].to_numpy().reshape((SetUpScenarios.numberOfTimeSlotsPerDay,SetUpScenarios.numberOfBuildings_BT7), order='F')
+            outputVector_electricalPowerFanHeater_BT7 = results_BT7['variable_electricalPowerFanHeater'].to_numpy().reshape((SetUpScenarios.numberOfTimeSlotsPerDay,SetUpScenarios.numberOfBuildings_BT7), order='F')
+            outputVector_heatGenerationCoefficient_GasBoiler_BT7 = outputVector_heatGenerationCoefficient_GasBoiler_BT7.transpose()
+            outputVector_electricalPowerFanHeater_BT7 = outputVector_electricalPowerFanHeater_BT7.transpose()
+
+
         #Create pandas dataframe for displaying the results of the whole residential area
-        outputVariables_list_All = [model.variable_surplusPowerTotal, model.variable_surplusPowerPositivePart, model.variable_surplusPowerNegativePart, model.variable_help_isSurplusPowerPositive, model.variable_electricalPowerTotal, model.variable_RESGenerationTotal, model.variable_PVGenerationTotal, model.variable_costsPerTimeSlot, model.variable_revenuePerTimeSlot, model.param_outSideTemperature_In_C, model.param_electricityPrice_In_Cents,  model.param_BigM_Surplus_Positive, model.param_BigM_Surplus_Negative,  model.variable_objectiveMaximumLoad, model.variable_objectiveSurplusEnergy, model.variable_objectiveCosts, model.objective_combined_general, model.set_timeslots]
+
+        outputVariables_list_All = [model.variable_surplusPowerTotal, model.variable_surplusPowerPositivePart, model.variable_surplusPowerNegativePart, model.variable_help_isSurplusPowerPositive, model.variable_electricalPowerTotal, model.variable_RESGenerationTotal, model.variable_PVGenerationTotal, model.variable_costsPerTimeSlot, model.variable_revenuePerTimeSlot, model.param_outSideTemperature_In_C, model.param_electricityPrice_In_Cents, model.variable_gasConsumptionPerTimeSlot_kWh,  model.param_BigM_Surplus_Positive, model.param_BigM_Surplus_Negative,  model.variable_objectiveMaximumLoad, model.variable_objectiveSurplusEnergy, model.variable_objectiveCosts,model.variable_objectiveThermalDiscomfort, model.objective_combined_general, model.set_timeslots]
         optimal_values_list_All = [[pyo.value(model_item[key]) for key in model_item] for model_item in outputVariables_list_All] 
         results_All = pd.DataFrame(optimal_values_list_All)
         results_All= results_All.T
-        results_All = results_All.rename(columns = { 0:'variable_surplusPowerTotal', 1:'variable_surplusPowerPositivePart', 2:'variable_surplusPowerNegativePart', 3:'variable_help_isSurplusPowerPositive', 4:'variable_electricalPowerTotal', 5:'variable_RESGenerationTotal', 6:'variable_pvGeneration', 7:'variable_costsPerTimeSlot', 8:'variable_revenuePerTimeSlot',  9:'param_outSideTemperature_In_C', 10:'param_electricityPrice_In_Cents',  11:'param_BigM_Surplus_Positive', 12:'param_BigM_Surplus_Negative', 13:'variable_objectiveMaximumLoad_kW', 14:'variable_objectiveSurplusEnergy_kWh', 15:'variable_objectiveCosts_Euro', 16:'objective_combined_general', 17:'set_timeslots'})
+        results_All = results_All.rename(columns = { 0:'variable_surplusPowerTotal', 1:'variable_surplusPowerPositivePart', 2:'variable_surplusPowerNegativePart', 3:'variable_help_isSurplusPowerPositive', 4:'variable_electricalPowerTotal', 5:'variable_RESGenerationTotal', 6:'variable_pvGeneration', 7:'variable_costsPerTimeSlot', 8:'variable_revenuePerTimeSlot',  9:'param_outSideTemperature_In_C', 10:'param_electricityPrice_In_Cents', 11:'variable_gasConsumptionInKWH',  12:'param_BigM_Surplus_Positive', 13:'param_BigM_Surplus_Negative', 14:'variable_objectiveMaximumLoad_kW', 15:'variable_objectiveSurplusEnergy_kWh', 16:'variable_objectiveCosts_Euro', 17:'variable_objectiveThermalDiscomfort', 18:'objective_combined_general', 19:'set_timeslots'})
         cols = ['set_timeslots']
         results_All.set_index('set_timeslots', inplace=True)
         results_All ['variable_objectiveMaximumLoad_kW'] = results_All['variable_objectiveMaximumLoad_kW']/1000
@@ -1980,11 +2725,13 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         results_All ['variable_objectiveSurplusEnergy_kWh'] = results_All['variable_objectiveSurplusEnergy_kWh'].round(2)
         results_All ['variable_objectiveCosts_Euro'] = results_All['variable_objectiveCosts_Euro']/100
         results_All ['variable_objectiveCosts_Euro'] = results_All['variable_objectiveCosts_Euro'].round(2)
+        results_All['variable_objectiveThermalDiscomfort'] = results_All['variable_objectiveThermalDiscomfort'].round(2)
         results_All ['objective_combined_general'] = results_All['objective_combined_general'].round(2)
+        results_All['variable_gasConsumptionInKWH'] = results_All['variable_gasConsumptionInKWH'].round(2)
         filePath_All = folderPath + "\Combined_WholeResidentialArea.csv"
-        results_All.to_csv(filePath_All, index=True,  sep =";") 
-    
-        
+        results_All.to_csv(filePath_All, index=True,  sep =";")
+
+
     
         #Read the just created resul files for all buildings and subdivide them into a file for each building
         sleep(0.5)
@@ -2026,7 +2773,23 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
                 individual_dataframe_BT5 = multiple_dataframes_BT5[index]
                 individual_dataframe_BT5.set_index('timeslot', inplace=True)
                 filePath_Individual_BT5 = folderPath + "\BT5_Building_" + str(index+1) + ".csv"
-                individual_dataframe_BT5.to_csv(filePath_Individual_BT5, index=True,  sep =";") 
+                individual_dataframe_BT5.to_csv(filePath_Individual_BT5, index=True,  sep =";")
+
+        if SetUpScenarios.numberOfBuildings_BT6 >=1:
+            multiple_dataframes_BT6 = list(pd.read_csv(filePath_BT6, sep =";", chunksize=SetUpScenarios.numberOfTimeSlotsPerDay))
+            for index in range (0, len(multiple_dataframes_BT6)):
+                individual_dataframe_BT6 = multiple_dataframes_BT6[index]
+                individual_dataframe_BT6.set_index('timeslot', inplace=True)
+                filePath_Individual_BT6 = folderPath + "\BT6_Building_" + str(index+1) + ".csv"
+                individual_dataframe_BT6.to_csv(filePath_Individual_BT6, index=True,  sep =";")
+
+        if SetUpScenarios.numberOfBuildings_BT7 >=1:
+            multiple_dataframes_BT7 = list(pd.read_csv(filePath_BT7, sep =";", chunksize=SetUpScenarios.numberOfTimeSlotsPerDay))
+            for index in range (0, len(multiple_dataframes_BT7)):
+                individual_dataframe_BT7 = multiple_dataframes_BT7[index]
+                individual_dataframe_BT7.set_index('timeslot', inplace=True)
+                filePath_Individual_BT7 = folderPath + "\BT7_Building_" + str(index+1) + ".csv"
+                individual_dataframe_BT7.to_csv(filePath_Individual_BT7, index=True,  sep =";")
     
         
     elif (solution.solver.termination_condition == TerminationCondition.infeasible):
@@ -2035,7 +2798,6 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     else:
         # Something else is wrong
         print("Solver Status: ", solution.solver.status)
-        
 
     
     # Close the log file if output is printed on a log file and not on the console
@@ -2089,6 +2851,39 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     else:
         outputVector_dischargingPowerBAT_BT5 = np.zeros(0)
 
+    if 'outputVector_heatGenerationCoefficient_GasBoiler_BT6' in locals():
+        pass
+    else:
+        outputVector_heatGenerationCoefficient_GasBoiler_BT6 = np.zeros(0)
 
-    
-    return    outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_dischargingPowerBAT_BT5
+    if 'outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6' in locals():
+        pass
+    else:
+        outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 = np.zeros(0)
+
+    if 'outputVector_heatTransferCoefficient_StorageToRoom_BT6' in locals():
+        pass
+    else:
+        outputVector_heatTransferCoefficient_StorageToRoom_BT6 = np.zeros(0)
+
+    if 'outputVector_heatGenerationCoefficient_GasBoiler_BT7' in locals():
+        pass
+    else:
+        outputVector_heatGenerationCoefficient_GasBoiler_BT7 = np.zeros(0)
+
+    if 'outputVector_electricalPowerFanHeater_BT7' in locals():
+        pass
+    else:
+        outputVector_electricalPowerFanHeater_BT7 = np.zeros(0)
+
+
+    if includeObjectivesInReturnStatementCentralized == False:
+        return outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_dischargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7
+
+    if includeObjectivesInReturnStatementCentralized == True:
+        objectiveMaximumLoad = pyo.value(model.variable_objectiveMaximumLoad)
+        objectiveSurplusEnergy = pyo.value(model.variable_objectiveSurplusEnergy)
+        objectiveCosts = pyo.value(model.variable_objectiveCosts)
+        objectiveThermalDiscomfort = pyo.value(model.variable_objectiveThermalDiscomfort)
+
+        return outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_dischargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, objectiveMaximumLoad, objectiveSurplusEnergy, objectiveCosts, objectiveThermalDiscomfort, mipGapPercentOfFoundSolution, timeForFindingOptimalSolution

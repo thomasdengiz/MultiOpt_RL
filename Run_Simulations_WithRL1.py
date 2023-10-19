@@ -22,19 +22,11 @@ useReinforcementLearning = False
 useConventionalControl = False
 generateTrainingData = False
 
-#Local Search Parameters: Default
-'''
+#Local Search Parameters
 max_population_size = 40
 number_of_pareto_optimal_solutions_in_population = int(max_population_size * 0.6)
 number_of_new_solutions_per_solution_in_iteration = 5
 number_of_iterations_local_search = 7
-time_limit_in_seconds_for_local_search = 15 * 60
-'''
-#Local Search Parameters
-max_population_size = 20
-number_of_pareto_optimal_solutions_in_population = int(max_population_size * 0.6)
-number_of_new_solutions_per_solution_in_iteration = 3
-number_of_iterations_local_search = 12
 time_limit_in_seconds_for_local_search = 2 * 60
 
 share_of_cost_min_iterations = 0.6
@@ -90,13 +82,12 @@ dichotomicMethodprintListOfActivePoints = False
 useBoxMethodCentralized_Cost_Peak = False
 useBoxMethodCentralized_Cost_Comfort = False
 boxMethodTermination_AverageDifference = 0
-boxMethodTermination_NumberOfSolutions = 50
+boxMethodTermination_NumberOfSolutions = 100
 
 create_result_load_profiles_multi_opt = True
 
 use_local_search = True
 calculate_pareto_front_comparisons = True
-
 
 
 
@@ -358,7 +349,7 @@ if __name__ == "__main__":
     
     # define the directory to be created for the result files
     currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
-    simulationName = "Run0"
+    simulationName = "Run1"
     folderName_WholeSimulation = currentDatetimeString + "_" + simulationName + "_BTCombined_" + str(SetUpScenarios.numberOfBuildings_Total) 
     folderPath_WholeSimulation = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/Instance_Base/" + folderName_WholeSimulation
     pathForCreatingTheResultData_Centralized = folderPath_WholeSimulation + "/Centralized"
@@ -531,19 +522,30 @@ if __name__ == "__main__":
 
                         id_of_the_run+=1
 
+                        #load the trained model A2C, DQN, PPO
+                        from stable_baselines3 import DQN
+                        model = DQN.load("C:/Users/wi9632/Desktop/Ergebnisse/DSM/RL/RL_Models/RL1_Days12_SolSol15_SolIt15_ItDay2_ResStateTrue_DQN_vq/trained_DQN_model")
+
+                        state_thermal_discomfort = round(returned_objects[2][0], 3)
+                        state_difference_peak_to_conventional_solution = round(returned_objects[1][0] /help_value_normalization_maxiumLoad_conventional[0], 3)
+
+                        state_difference_costs_to_conventional_solution= round(returned_objects[4][0] /help_value_normalization_cost_conventional[0], 3)
+                        observation_space = np.array([state_difference_costs_to_conventional_solution, state_difference_peak_to_conventional_solution,state_thermal_discomfort])
+                        observation_space= observation_space.flatten()
+                        action_rl_agent1, _ = model.predict(observation_space, deterministic=False )
+
 
                         #Choose the search direction (optimization goal)
-                        random_float_search_direction = random.uniform(0, 1)
-                        if random_float_search_direction < share_of_cost_min_iterations:
+                        if action_rl_agent1 ==0:
                             optimize_costs_local_search = True
                             optimize_peak_local_search = False
                             optimize_comfort_local_search = False
 
-                        if random_float_search_direction >= share_of_cost_min_iterations and random_float_search_direction < share_of_cost_min_iterations + share_of_peak_min_iterations:
+                        if action_rl_agent1 ==1:
                             optimize_costs_local_search = False
                             optimize_peak_local_search = True
                             optimize_comfort_local_search = False
-                        if random_float_search_direction >=  share_of_cost_min_iterations + share_of_peak_min_iterations and random_float_search_direction < share_of_cost_min_iterations + share_of_peak_min_iterations + share_of_comfort_max_iterations:
+                        if action_rl_agent1 ==2:
                             optimize_costs_local_search = False
                             optimize_peak_local_search = False
                             optimize_comfort_local_search = True
@@ -631,14 +633,6 @@ if __name__ == "__main__":
                             percentage_shifted_loads [random_index_shifting_timeslot_1] = random.uniform(20-index_iteration, 40-index_iteration*2)
                             percentage_shifted_loads[random_index_shifting_timeslot_2] = random.uniform(20-index_iteration, 40-index_iteration*2)
 
-                            # Print Help Info
-                            '''
-                            print(f"Info: random_index_shifting_timeslot_1: {random_index_shifting_timeslot_1}")
-                            print(f"Info: random_index_shifting_timeslot_2: {random_index_shifting_timeslot_2}")
-                            print(f"Info: percentage_shifted_loads_1: {round(percentage_shifted_loads [random_index_shifting_timeslot_1],1)}")
-                            print(f"Info: percentage_shifted_loads_2: {round(percentage_shifted_loads[random_index_shifting_timeslot_2],1)}")
-                            '''
-
                             random_number_param_1 = random.random()
 
                             help_threshould_1 = 1.6
@@ -706,7 +700,6 @@ if __name__ == "__main__":
                                             help_output_EVpower_new = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
                                             changed_EVpower = help_output_EVpower_old - help_output_EVpower_new
 
-                                            #Check if the EV is available at the desired timeslot for increasing the load
                                             current_price_inverval_temp = current_price_inverval
                                             while availability_pattern_EV_BT1 [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval_temp] [help_balance_time_slot]] ==0 and current_price_inverval_temp<len(lowest_k_prices_array_full_day_1) - 1:
                                                 current_price_inverval_temp += 1
@@ -974,8 +967,6 @@ if __name__ == "__main__":
                             sorted_indices_descending = np.argsort(help_price_array)
                             highest_k_prices_array_full_day_1 = np.array([sorted_indices_ascending[:k],sorted_indices_ascending[k:2 * k],sorted_indices_ascending[2 * k:3 * k], sorted_indices_ascending[3 * k:4 * k],sorted_indices_ascending[4 * k:5 * k],sorted_indices_ascending[5 * k:6 * k],sorted_indices_ascending[6 * k:7 * k],sorted_indices_ascending[7 * k:8 * k],sorted_indices_ascending[8 * k:9 * k],sorted_indices_ascending[9 * k:10 * k],sorted_indices_ascending[10 * k:11 * k],sorted_indices_ascending[11 * k:12 * k]])
                             lowest_k_prices_array_full_day_1 = np.array([sorted_indices_descending[:k],sorted_indices_descending[k:2 * k],sorted_indices_descending[2 * k:3 * k], sorted_indices_descending[3 * k:4 * k],sorted_indices_descending[4 * k:5 * k],sorted_indices_descending[5 * k:6 * k],sorted_indices_descending[6 * k:7 * k],sorted_indices_descending[7 * k:8 * k],sorted_indices_descending[8 * k:9 * k],sorted_indices_descending[9 * k:10 * k],sorted_indices_descending[10 * k:11 * k],sorted_indices_descending[11 * k:12 * k]])
-
-
 
                             #Reduce load at all peaks
                             #shifting_percentage_load = percentage_difference_highest_loads + random.uniform(2, 8)
@@ -1404,8 +1395,7 @@ if __name__ == "__main__":
                     print(f"pareto_df: {pareto_df}")
                 a = 1
             pareto_front = pareto_df
-
-
+            # Plot the results into a file
             # Print results to csv
             titleOfThePlot = "Local Search - Day: " + str(currentDay) + " - "
             appendixResultFile = "Local Search" + "_Day" + str(currentDay) + ""
@@ -1435,43 +1425,15 @@ if __name__ == "__main__":
 
             pareto_front.to_csv(pathForCreatingTheResultData_LocalSearch + "/ParetoFront_" + appendixResultFile + ".csv",index=False, sep=";")
 
-
-
-            # Plot Pareto efficient solutions with line
-            import matplotlib.pyplot as plt
-            import matplotlib
-
-            plt.scatter(pareto_front['Costs'], pareto_front['Peak Load'], color='blue')
-            plt.plot(pareto_front['Costs'], pareto_front['Peak Load'], color='red')
-            plt.xlabel('Costs', fontsize=15)
-            plt.ylabel('Peak Load', fontsize=15)
-            if font_size_title_Pareto_Plot > 0:
-                plt.title(titleOfThePlot, fontsize=font_size_title_Pareto_Plot)
-            plt.tick_params(axis='both', which='major', labelsize=11)
-            plt.subplots_adjust(left=0.15)
-            plt.savefig(pathForCreatingTheResultData_LocalSearch + '/PFront_Line_' + appendixResultFile + '.png', dpi=100)
-
-            # Clear current figure
-            plt.clf()
-            # Plot Pareto efficient solutions without line
-            plt.scatter(pareto_front['Costs'], pareto_front['Peak Load'], color='blue')
-            plt.xlabel('Costs', fontsize=14)
-            plt.ylabel('Peak Load', fontsize=14)
-            plt.subplots_adjust(left=0.15)
-            if font_size_title_Pareto_Plot > 0:
-                plt.title(titleOfThePlot, fontsize=font_size_title_Pareto_Plot)
-            plt.tick_params(axis='both', which='major', labelsize=11)
-            plt.savefig(pathForCreatingTheResultData_LocalSearch + '/PFront_' + appendixResultFile + '.png', dpi=100)
-
             #Calculate parto front metrics for comparisons if desired
             if calculate_pareto_front_comparisons == True:
                 #Read pareto front dataframe from file
-
                 file_path = r'C:\Users\wi9632\Desktop\Ergebnisse\DSM\Pareto_Front_Full\ParetoFront_' + appendixResultFile + '.csv'
                 file_path_adjusted = file_path.replace("Local Search_", "")
                 pareto_front_full = pd.read_csv(file_path_adjusted, sep=';')
                 pareto_front_approximation = pareto_front
 
+                #Get the values from the dataframes
                 pareto_front_approximation['Costs'] = pareto_front_approximation['Costs'].apply(lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x)
                 pareto_front_approximation['Peak Load'] = pareto_front_approximation['Peak Load'].apply(lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x)
 
@@ -1497,10 +1459,9 @@ if __name__ == "__main__":
                 print("Hypervolume PF_Full", hypervolume_full_front)
                 print("Hypervolume Percentage PF_Approximation ", hypervolume_ratio_from_approximation_of_full_pareto_front)
 
-
                 #Plot the combined pareto front
-                # Clear current figure
-                plt.clf()
+                import matplotlib.pyplot as plt
+                import matplotlib
 
                 # Plot Pareto efficient solutions from pareto_front in blue
                 plt.scatter(pareto_front['Costs'], pareto_front['Peak Load'], color='blue', label='Pareto Front Approximation')
@@ -1520,7 +1481,6 @@ if __name__ == "__main__":
 
                 # Save the combined Pareto diagram
                 plt.savefig(pathForCreatingTheResultData_LocalSearch + '/PFrontCombined_' + appendixResultFile + '.png', dpi=100)
-
 
             end_time = time.time()
             execution_time = end_time - start_time
@@ -2142,8 +2102,6 @@ if __name__ == "__main__":
             id_of_the_run = 0
             df_results = pd.DataFrame(columns=["id of the run", "Costs", "Peak Load","epsilon_MaximumLoad_TargetValue", "MIP Gap", "Solving time"])
 
-            df_results_v2 = pd.DataFrame(columns=["id of the run", "Costs", "Peak Load","Thermal Discomfort"])
-
 
 
 
@@ -2169,8 +2127,7 @@ if __name__ == "__main__":
                 overruleActions = False
                 pathForCreatingTheResultData = pathForCreatingTheResultData_Box + "/Profiles/Solution_ID" + str(id_of_the_run)
                 useLocalSearch = False
-                simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined,simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearch)
-                df_results_v2.loc[id_of_the_run - 1] = [id_of_the_run, simulationObjective_costs_Euro_combined, simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined]
+                simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearch)
 
 
 
@@ -2189,8 +2146,7 @@ if __name__ == "__main__":
                 overruleActions = False
                 pathForCreatingTheResultData = pathForCreatingTheResultData_Box + "/Profiles/Solution_ID" + str(id_of_the_run)
                 useLocalSearch = False
-                simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined,simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearch)
-                df_results_v2.loc[id_of_the_run - 1] = [id_of_the_run, simulationObjective_costs_Euro_combined, simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined]
+                simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearch)
 
 
             #Do the box-method iteration
@@ -2247,8 +2203,7 @@ if __name__ == "__main__":
                         overruleActions = False
                         pathForCreatingTheResultData = pathForCreatingTheResultData_Box + "/Profiles/Solution_ID" + str(id_of_the_run)
                         useLocalSearch = False
-                        simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined,simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearch)
-                        df_results_v2.loc[id_of_the_run - 1] = [id_of_the_run, simulationObjective_costs_Euro_combined, simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined]
+                        simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearch)
 
 
 
@@ -2284,7 +2239,6 @@ if __name__ == "__main__":
             titleOfThePlot = titleOfThePlot[:-2]
 
 
-            #Round the values of the result dataframe
             df_results['Costs'] = df_results['Costs'] / 100
             df_results['Costs'] = df_results['Costs'].round(2)
             df_results['Peak Load'] = df_results['Peak Load'] / 1000
@@ -2293,16 +2247,9 @@ if __name__ == "__main__":
             df_results['epsilon_MaximumLoad_TargetValue'] = df_results['epsilon_MaximumLoad_TargetValue'].round(0)
 
 
-            #Adjust the values of the result_v2 dataframes which contains the values after the simulation with the internal controller
-            columns_to_extract = ['Peak Load', 'Costs', 'Thermal Discomfort']
-            # Use the apply method to extract the first element from each list or array
-            for column in columns_to_extract:
-                df_results_v2[column] = df_results_v2[column].apply(lambda x: x[0])
-
-
             df_results.to_csv(pathForCreatingTheResultData_Box + "/Peak_Costs" + appendixResultFile + ".csv",index=False, sep=";")
 
-            df_results_v2.to_csv(pathForCreatingTheResultData_Box + "/Peak_Costs" + appendixResultFile + "_v2.csv",index=False, sep=";")
+
 
 
 
@@ -2316,14 +2263,14 @@ if __name__ == "__main__":
 
             matplotlib.use('Agg')
 
-            if df_results_v2.empty:
-                print("Error: df_results_v2 DataFrame is empty.")
+            if df_results.empty:
+                print("Error: df_results DataFrame is empty.")
             else:
                 # Create an empty DataFrame to store the Pareto-efficient solutions
                 pareto_front = pd.DataFrame(columns=['Costs', 'Peak Load'])
 
                 # Loop through all solutions in the DataFrame
-                for i, row in df_results_v2.iterrows():
+                for i, row in df_results.iterrows():
                     # Assume the current solution is Pareto-efficient until proven otherwise
                     is_efficient = True
                     # Loop through all existing solutions in the Pareto front
@@ -2336,7 +2283,7 @@ if __name__ == "__main__":
                         elif (row['Costs'] <= pareto_row['Costs'] and row['Peak Load'] <= pareto_row['Peak Load']):
                             pareto_front = pareto_front.drop(j)
                     # If the current solution is Pareto-efficient, add it to the Pareto front
-                    if is_efficient and row['Thermal Discomfort'] <= threshold_discomfort_local_search:
+                    if is_efficient:
                         pareto_front = pd.concat([pareto_front, row.to_frame().T], ignore_index=True)
 
                 if pareto_front.empty:
@@ -2346,9 +2293,6 @@ if __name__ == "__main__":
                     pareto_front = pareto_front.sort_values(['Costs', 'Peak Load'], ascending=[True, True])
                     # Reset the index of the Pareto front DataFrame
                     pareto_front = pareto_front.reset_index(drop=True)
-
-                    #Print the pareto optimal solution into a csv file
-                    pareto_front.to_csv(pathForCreatingTheResultData_Box + "/ParetoFront_" + appendixResultFile + ".csv",index=False, sep=";")
 
                     # Plot Pareto efficient solutions with line
                     plt.scatter(pareto_front['Costs'], pareto_front['Peak Load'], color='blue')
@@ -2591,6 +2535,290 @@ if __name__ == "__main__":
 
 
 
+
+
+    #ANN methods (testing)
+    if useSupervisedLearning == True:
+        print("\n--------------Supervised Control------------\n")
+        pathForTheTrainedModels = pathForCreatingTheResultData_SupervisedML + "/ML Training Configurations/"
+        os.makedirs(pathForTheTrainedModels)
+        currentDay = 1
+        indexOfBuildingsOverall_BT1 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT1 + 1)]
+        indexOfBuildingsOverall_BT2 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT2 + 1)]
+        indexOfBuildingsOverall_BT3 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT3 + 1)]
+        indexOfBuildingsOverall_BT4 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT4 + 1 )]
+        indexOfBuildingsOverall_BT5 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT5 + 1 )]
+
+
+        if SetUpScenarios.numberOfBuildings_BT1 >= 1:
+
+            #Choose training and test days
+            daySelectionMethod = 'Random'    # Options: ['Random'] ['Clustering_kMeans'] ['Clustering_Wards']
+            numberOfTrainingDays = 80
+            numberOfBuildingsForTrainingData_Overall = 10
+            numberOfTestDays_Oveall = 20
+            numberOfBuildingsForTestData_Overall = 5
+            trainingDaysForSupervisedLearning, testDaysForSupvervisedControl = chooseTrainingAndTestDays_Random(numberOfTrainingDays, numberOfBuildingsForTrainingData_Overall , numberOfTestDays_Oveall ,numberOfBuildingsForTestData_Overall, numberOfBuildingDataOverall)
+
+            #TEST Clustering
+            ANN.clusterTrainingData(trainingDaysForSupervisedLearning, 0, 0)
+
+            #Train the supvervised learning model
+            usedMLMethod = ML_METHOD_RANDOM_FOREST  # Options: [ML_METHOD_MULTI_LAYER_PERCEPTRON], [ML_METHOD_RANDOM_FOREST], [ML_METHOD_GRADIENT_BOOSTING], [ML_METHOD_RNN], [ML_METHOD_RNN]
+            objective = OPT_OBJECTIVE_MIN_SURPLUS   # Options: [OPT_OBJECTIVE_MIN_SURPLUS], [OPT_OBJECTIVE_MIN_PEAK], [OPT_OBJECTIVE_MIN_COSTS]
+            useNormalizedData = False
+            useStandardizedData = True
+            dayClusterName = 'ClusterAllDays'
+            practiseModeWithTestPredictions = True
+            perfectForecastForSequencePredictions = False
+
+
+
+            #Call method for training the supervised ML
+            if usedMLMethod == ML_METHOD_MULTI_LAYER_PERCEPTRON or usedMLMethod == ML_METHOD_RANDOM_FOREST or usedMLMethod == ML_METHOD_GRADIENT_BOOSTING:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainSupervisedML_SingleTimeslot_SingleBuildingOptScenario (trainingDaysForSupervisedLearning, objective ,useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName,pathForTheTrainedModels, practiseModeWithTestPredictions)
+
+                #Call method for the simulation of one day by generating and taking actions for single time slots
+                outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1, outputVectorANN_temperatureBufferStorage_BT1, outputVectorANN_volumeDHWTank_BT1, outputVectorANN_SOC_BT1 = ANN.generateActionsForSingleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            if usedMLMethod == ML_METHOD_LSTM or usedMLMethod == ML_METHOD_RNN:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainRNN_MultipleTimeslot_SingleBuildingOptScenario(trainingDaysForSupervisedLearning, objective, useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName, practiseModeWithTestPredictions, perfectForecastForSequencePredictions)
+
+                # Call method for the simulation of one day by generating and taking actions for multiple time slots
+                outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1 = ANN.generateActionsForMutipleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            #Set the irrelevant output vectors for this building to 0
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT2 =np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT3 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4 = np.zeros(0)
+            outputVectorANN_chargingPowerBAT_BT5 = np.zeros(0)
+            outputVectorANN_disChargingPowerEV_BT5 = np.zeros(0)
+
+            #Reshape outputdata of the ANN (:=input data for the internal controller)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1 = outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+            outputVectorANN_heatGenerationCoefficientDHW_BT1 = outputVectorANN_heatGenerationCoefficientDHW_BT1.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+            outputVectorANN_chargingPowerEV_BT1 = outputVectorANN_chargingPowerEV_BT1.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+
+            #Call the internal controller with the schedules
+            overruleActions = False
+            simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, negativeScore_total_overall = ICSimulation.simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, overruleActions, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2, outputVectorANN_chargingPowerEV_BT3, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4, outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerEV_BT5, pathForCreatingTheResultData_SupervisedML)
+
+
+        if SetUpScenarios.numberOfBuildings_BT2 == 1:
+            #Choose training and test days
+            daySelectionMethod = 'Random'    # Options: ['Random'] ['Clustering_kMeans'] ['Clustering_Wards']
+            numberOfTrainingDays = 80
+            numberOfBuildingsForTrainingData_Overall = 3
+            numberOfTestDays_Oveall = 20
+            numberOfBuildingsForTestData_Overall = 1
+            trainingDaysForSupervisedLearning, testDaysForSupvervisedControl = chooseTrainingAndTestDays_Random(numberOfTrainingDays, numberOfBuildingsForTrainingData_Overall , numberOfTestDays_Oveall ,numberOfBuildingsForTestData_Overall, numberOfBuildingDataOverall)
+
+            #Train the supvervised learning model
+            usedMLMethod = ML_METHOD_GRADIENT_BOOSTING  # Options: [ML_METHOD_MULTI_LAYER_PERCEPTRON], [ML_METHOD_RANDOM_FOREST], [ML_METHOD_GRADIENT_BOOSTING], [ML_METHOD_RNN], [ML_METHOD_RNN]
+            objective = OPT_OBJECTIVE_MIN_PEAK   # Options: [OPT_OBJECTIVE_MIN_SURPLUS], [OPT_OBJECTIVE_MIN_PEAK], [OPT_OBJECTIVE_MIN_COSTS]
+            useNormalizedData = False
+            useStandardizedData = True
+            dayClusterName = 'ClusterAllDays'
+            practiseModeWithTestPredictions = True
+            perfectForecastForSequencePredictions = False
+
+
+            #Call method for training the supervised ML
+            if usedMLMethod == ML_METHOD_MULTI_LAYER_PERCEPTRON or usedMLMethod == ML_METHOD_RANDOM_FOREST or usedMLMethod == ML_METHOD_GRADIENT_BOOSTING:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainSupervisedML_SingleTimeslot_SingleBuildingOptScenario (trainingDaysForSupervisedLearning, objective ,useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName,pathForTheTrainedModels, practiseModeWithTestPredictions)
+
+                #Call method for the simulation of one day by generating and taking actions for single time slots
+                outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2, outputVectorANN_temperatureBufferStorage_BT2, outputVectorANN_volumeDHWTank_BT2 = ANN.generateActionsForSingleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            if usedMLMethod == ML_METHOD_LSTM or usedMLMethod == ML_METHOD_RNN:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainRNN_MultipleTimeslot_SingleBuildingOptScenario(trainingDaysForSupervisedLearning, objective, useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName, practiseModeWithTestPredictions, perfectForecastForSequencePredictions)
+
+                # Call method for the simulation of one day by generating and taking actions for multiple time slots
+                outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2 = ANN.generateActionsForMutipleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            #Call method for the simulation of one day by generating and taking actions for single time slots
+
+            #Set the irrelevant output vectors for this building to 0
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT1 = np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT1 = np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT3 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4 = np.zeros(0)
+            outputVectorANN_chargingPowerBAT_BT5 = np.zeros(0)
+            outputVectorANN_disChargingPowerEV_BT5 = np.zeros(0)
+
+            #Reshape outputdata of the ANN (:=input data for the internal controller)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2 = outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+            outputVectorANN_heatGenerationCoefficientDHW_BT2 = outputVectorANN_heatGenerationCoefficientDHW_BT2.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+
+
+            #Call the internal controller with the schedules
+            overruleActions = False
+            simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, negativeScore_total_overall = ICSimulation.simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, overruleActions, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2, outputVectorANN_chargingPowerEV_BT3, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4, outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerEV_BT5, pathForCreatingTheResultData_SupervisedML)
+
+        if SetUpScenarios.numberOfBuildings_BT3 == 1:
+            #Choose training and test days
+            daySelectionMethod = 'Random'    # Options: ['Random'] ['Clustering_kMeans'] ['Clustering_Wards']
+            numberOfTrainingDays = 80
+            numberOfBuildingsForTrainingData_Overall = 2
+            numberOfTestDays_Oveall = 20
+            numberOfBuildingsForTestData_Overall = 1
+            trainingDaysForSupervisedLearning, testDaysForSupvervisedControl = chooseTrainingAndTestDays_Random(numberOfTrainingDays, numberOfBuildingsForTrainingData_Overall , numberOfTestDays_Oveall ,numberOfBuildingsForTestData_Overall, numberOfBuildingDataOverall)
+
+            #Train the supvervised learning model
+            usedMLMethod = ML_METHOD_RANDOM_FOREST  # Options: [ML_METHOD_MULTI_LAYER_PERCEPTRON], [ML_METHOD_RANDOM_FOREST], [ML_METHOD_GRADIENT_BOOSTING], [ML_METHOD_RNN], [ML_METHOD_RNN]
+            objective = OPT_OBJECTIVE_MIN_COSTS   # Options: [OPT_OBJECTIVE_MIN_SURPLUS], [OPT_OBJECTIVE_MIN_PEAK], [OPT_OBJECTIVE_MIN_COSTS]
+            useNormalizedData = False
+            useStandardizedData = True
+            dayClusterName = 'ClusterAllDays'
+            practiseModeWithTestPredictions = True
+            perfectForecastForSequencePredictions = False
+
+
+            #Call method for training the supervised ML
+            if usedMLMethod == ML_METHOD_MULTI_LAYER_PERCEPTRON or usedMLMethod == ML_METHOD_RANDOM_FOREST or usedMLMethod == ML_METHOD_GRADIENT_BOOSTING:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainSupervisedML_SingleTimeslot_SingleBuildingOptScenario (trainingDaysForSupervisedLearning, objective ,useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName,pathForTheTrainedModels, practiseModeWithTestPredictions)
+
+                #Call method for the simulation of one day by generating and taking actions for single time slots
+                outputVectorANN_chargingPowerEV_BT3, outputVectorANN_SOC_BT3 = ANN.generateActionsForSingleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            if usedMLMethod == ML_METHOD_LSTM or usedMLMethod == ML_METHOD_RNN:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainRNN_MultipleTimeslot_SingleBuildingOptScenario(trainingDaysForSupervisedLearning, objective, useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName, practiseModeWithTestPredictions, perfectForecastForSequencePredictions)
+
+                # Call method for the simulation of one day by generating and taking actions for multiple time slots
+                outputVectorANN_chargingPowerEV_BT3 = ANN.generateActionsForMutipleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT1 = np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT2 =np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4 = np.zeros(0)
+            outputVectorANN_chargingPowerBAT_BT5 = np.zeros(0)
+            outputVectorANN_disChargingPowerEV_BT5 = np.zeros(0)
+
+            #Reshape outputdata of the ANN (:=input data for the internal controller)
+            outputVectorANN_chargingPowerEV_BT3 = outputVectorANN_chargingPowerEV_BT3.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+
+            #Call the internal controller with the schedules
+            overruleActions = False
+            simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, negativeScore_total_overall = ICSimulation.simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, overruleActions, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2, outputVectorANN_chargingPowerEV_BT3, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4, outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerEV_BT5, pathForCreatingTheResultData_SupervisedML)
+
+        if SetUpScenarios.numberOfBuildings_BT4 == 1:
+            #Choose training and test days
+            daySelectionMethod = 'Random'    # Options: ['Random'] ['Clustering_kMeans'] ['Clustering_Wards']
+            numberOfTrainingDays = 80
+            numberOfBuildingsForTrainingData_Overall = 2
+            numberOfTestDays_Oveall = 20
+            numberOfBuildingsForTestData_Overall = 1
+            trainingDaysForSupervisedLearning, testDaysForSupvervisedControl = chooseTrainingAndTestDays_Random(numberOfTrainingDays, numberOfBuildingsForTrainingData_Overall , numberOfTestDays_Oveall ,numberOfBuildingsForTestData_Overall, numberOfBuildingDataOverall)
+
+            #Train the supvervised learning model
+            usedMLMethod = ML_METHOD_RANDOM_FOREST  # Options: [ML_METHOD_MULTI_LAYER_PERCEPTRON], [ML_METHOD_RANDOM_FOREST], [ML_METHOD_GRADIENT_BOOSTING], [ML_METHOD_RNN], [ML_METHOD_RNN]
+            objective = OPT_OBJECTIVE_MIN_SURPLUS   # Options: [OPT_OBJECTIVE_MIN_SURPLUS], [OPT_OBJECTIVE_MIN_PEAK], [OPT_OBJECTIVE_MIN_COSTS]
+            useNormalizedData = False
+            useStandardizedData = True
+            dayClusterName = 'ClusterAllDays'
+            practiseModeWithTestPredictions = True
+            perfectForecastForSequencePredictions = False
+
+
+            #Call method for training the supervised ML
+            if usedMLMethod == ML_METHOD_MULTI_LAYER_PERCEPTRON or usedMLMethod == ML_METHOD_RANDOM_FOREST or usedMLMethod == ML_METHOD_GRADIENT_BOOSTING:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainSupervisedML_SingleTimeslot_SingleBuildingOptScenario (trainingDaysForSupervisedLearning, objective ,useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName,pathForTheTrainedModels, practiseModeWithTestPredictions)
+
+                #Call method for the simulation of one day by generating and taking actions for single time slots
+                outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4, outputVectorANN_temperatureBufferStorage_BT4 = ANN.generateActionsForSingleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            if usedMLMethod == ML_METHOD_LSTM or usedMLMethod == ML_METHOD_RNN:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainRNN_MultipleTimeslot_SingleBuildingOptScenario(trainingDaysForSupervisedLearning, objective, useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName, practiseModeWithTestPredictions, perfectForecastForSequencePredictions)
+
+                # Call method for the simulation of one day by generating and taking actions for multiple time slots
+                outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4 = ANN.generateActionsForMutipleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT1 = np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT2 =np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT3 = np.zeros(0)
+            outputVectorANN_chargingPowerBAT_BT5 = np.zeros(0)
+            outputVectorANN_disChargingPowerEV_BT5 = np.zeros(0)
+
+
+            #Reshape outputdata of the ANN (:=input data for the internal controller)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4 = outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+
+            #Call the internal controller with the schedules
+            overruleActions = False
+            simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, negativeScore_total_overall = ICSimulation.simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, overruleActions, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2, outputVectorANN_chargingPowerEV_BT3, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4, outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerEV_BT5, pathForCreatingTheResultData_SupervisedML)
+
+        if SetUpScenarios.numberOfBuildings_BT5 == 1:
+            #Choose training and test days
+            daySelectionMethod = 'Random'    # Options: ['Random'] ['Clustering_kMeans'] ['Clustering_Wards']
+            numberOfTrainingDays = 80
+            numberOfBuildingsForTrainingData_Overall = 2
+            numberOfTestDays_Oveall = 20
+            numberOfBuildingsForTestData_Overall = 1
+            trainingDaysForSupervisedLearning, testDaysForSupvervisedControl = chooseTrainingAndTestDays_Random(numberOfTrainingDays, numberOfBuildingsForTrainingData_Overall , numberOfTestDays_Oveall ,numberOfBuildingsForTestData_Overall, numberOfBuildingDataOverall)
+
+            #Train the supvervised learning model
+            usedMLMethod = ML_METHOD_GRADIENT_BOOSTING  # Options: [ML_METHOD_MULTI_LAYER_PERCEPTRON], [ML_METHOD_RANDOM_FOREST], [ML_METHOD_GRADIENT_BOOSTING], [ML_METHOD_RNN], [ML_METHOD_RNN]
+            objective = OPT_OBJECTIVE_MIN_COSTS   # Options: [OPT_OBJECTIVE_MIN_SURPLUS], [OPT_OBJECTIVE_MIN_PEAK], [OPT_OBJECTIVE_MIN_COSTS]
+            useNormalizedData = False
+            useStandardizedData = True
+            dayClusterName = 'ClusterAllDays'
+            practiseModeWithTestPredictions = True
+            perfectForecastForSequencePredictions = False
+
+            #Call method for training the supervised ML
+            if usedMLMethod == ML_METHOD_MULTI_LAYER_PERCEPTRON or usedMLMethod == ML_METHOD_RANDOM_FOREST or usedMLMethod == ML_METHOD_GRADIENT_BOOSTING:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainSupervisedML_SingleTimeslot_SingleBuildingOptScenario (trainingDaysForSupervisedLearning, objective ,useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName,pathForTheTrainedModels, practiseModeWithTestPredictions)
+
+                #Call method for the simulation of one day by generating and taking actions for single time slots
+                outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerBAT_BT5, outputVectorANN_SOC_BAT_BT5 = ANN.generateActionsForSingleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            if usedMLMethod == ML_METHOD_LSTM or usedMLMethod == ML_METHOD_RNN:
+                dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel = ANN.trainRNN_MultipleTimeslot_SingleBuildingOptScenario(trainingDaysForSupervisedLearning, objective, useNormalizedData, useStandardizedData, usedMLMethod, dayClusterName, practiseModeWithTestPredictions, perfectForecastForSequencePredictions)
+
+                # Call method for the simulation of one day by generating and taking actions for multiple time slots
+                outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerBAT_BT5 = ANN.generateActionsForMutipleTimeslotWithANN_SingleBuildingOptScenario(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData_SupervisedML,objective, daySelectionMethod, dataScaler_InputFeatures, dataScaler_OutputLabels, trainedModel)
+
+
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT1 = np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT1 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientDHW_BT2 =np.zeros(0)
+            outputVectorANN_chargingPowerEV_BT3 = np.zeros(0)
+            outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4 = np.zeros(0)
+
+            #Reshape outputdata of the ANN (:=input data for the internal controller)
+            outputVectorANN_chargingPowerBAT_BT5 = outputVectorANN_chargingPowerBAT_BT5.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+            outputVectorANN_disChargingPowerBAT_BT5 = outputVectorANN_disChargingPowerBAT_BT5.reshape((1, SetUpScenarios.numberOfTimeSlotsPerDay), order='F')
+
+            #Call the internal controller with the schedules
+            overruleActions = False
+            simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, negativeScore_total_overall = ICSimulation.simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, overruleActions, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT1, outputVectorANN_heatGenerationCoefficientDHW_BT1, outputVectorANN_chargingPowerEV_BT1, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT2, outputVectorANN_heatGenerationCoefficientDHW_BT2, outputVectorANN_chargingPowerEV_BT3, outputVectorANN_heatGenerationCoefficientSpaceHeating_BT4, outputVectorANN_chargingPowerBAT_BT5, outputVectorANN_disChargingPowerBAT_BT5, pathForCreatingTheResultData_SupervisedML)
+
+
+
+    
+    # RL methods
+    if useReinforcementLearning == True:
+        print("RL Control")     
+      
+        
     # Conventional Control
     if useConventionalControl == True:
         print("\n--------------Conventional Control------------\n")

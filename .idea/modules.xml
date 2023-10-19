@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Instance_Battery.iml" filepath="$PROJECT_DIR$/.idea/Instance_Battery.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MultiOpt_RL_Project.iml" filepath="$PROJECT_DIR$/.idea/MultiOpt_RL_Project.iml" />
     </modules>
   </component>
 </project>

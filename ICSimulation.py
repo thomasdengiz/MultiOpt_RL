@@ -3521,11 +3521,2559 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
 
 
+def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, inputVector_BT1_heatGenerationCoefficientSpaceHeating, inputVector_BT1_heatGenerationCoefficientDHW, inputVector_BT1_chargingPowerEV, inputVector_BT2_heatGenerationCoefficientSpaceHeating, inputVector_BT2_heatGenerationCoefficientDHW, inputVector_BT3_chargingPowerEV, inputVector_BT4_heatGenerationCoefficientSpaceHeating, inputVector_BT5_chargingPowerBAT, inputVector_BT5_disChargingPowerBAT,  inputVector_heatGenerationCoefficient_GasBoiler_BT6, inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, inputVector_heatTransferCoefficient_StorageToRoom_BT6, inputVector_heatGenerationCoefficient_GasBoiler_BT7, inputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, use_local_search):
+    #Variables of the simulation for all buildings combined
+    import sys
+    f = open('C:/Users/wi9632/Desktop/Ergebnisse/output.txt', 'a')
+    sys.stdout = f
+
+    simulationResult_electricalLoad_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusEnergy_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_gasConsumptionkWh_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationObjective_surplusEnergy_kWh_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_costs_Euro_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_maximumLoad_kW_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_thermalDiscomfort_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_CO2Emissions_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_gasConsumptionkWh_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_combinedScore_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+
+
+    #Variables of the simulation for BT1
+
+    simulationResult_electricalLoad_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_BufferStorageTemperature_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_UsableVolumeDHW_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SOCofEV_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_energyLevelOfEV_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationResult_numberOfStartsBufferStorage_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationResult_numberOfStartsDHWTank_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationResult_numberOfStartsCombined_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationResult_numberOfStartsHP_PerTimeslot_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfRunningSlotsHP_PerTimeslot_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStandbySlotsHP_PerTimeslot_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_isHPRunning_PerTimeslot_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+    simulationObjective_surplusEnergyKWH_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_costs_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_maximumLoad_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_thermalDiscomfort_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_gasConsumptionkWh_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_CO2Emissions_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+
+
+    #Variables of the simulation for BT2
+
+    simulationResult_electricalLoad_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_BufferStorageTemperature_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_UsableVolumeDHW_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStartsBufferStorage_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationResult_numberOfStartsDHWTank_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationResult_numberOfStartsCombined_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationResult_numberOfStartsHP_PerTimeslot_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfRunningSlotsHP_PerTimeslot_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStandbySlotsHP_PerTimeslot_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_isHPRunning_PerTimeslot_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+    simulationObjective_surplusEnergyKWH_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_costs_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_maximumLoad_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_thermalDiscomfort_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_gasConsumptionkWh_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_CO2Emissions_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+
+
+    #Variables of the simulation for BT3
+
+    simulationResult_electricalLoad_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SOCofEV_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_energyLevelOfEV_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationObjective_surplusEnergyKWH_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_costs_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_maximumLoad_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_thermalDiscomfort_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_gasConsumptionkWh_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_CO2Emissions_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+
+
+    #Variables of the simulation for BT4
+
+    simulationResult_electricalLoad_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_BufferStorageTemperature_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStartsBufferStorage_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationResult_numberOfStartsHP_PerTimeslot_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfRunningSlotsHP_PerTimeslot_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStandbySlotsHP_PerTimeslot_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_isHPRunning_PerTimeslot_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+    simulationObjective_surplusEnergyKWH_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_costs_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_maximumLoad_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_thermalDiscomfort_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_gasConsumptionkWh_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_CO2Emissions_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+
+
+    #Variables of the simulation for BT5
+
+    simulationResult_electricalLoad_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SOCofBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_energyLevelOfBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationObjective_surplusEnergyKWH_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_costs_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_maximumLoad_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_thermalDiscomfort_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_gasConsumptionkWh_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_CO2Emissions_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+
+
+    #Variables of the simulation for BT6
+    simulationResult_electricalLoad_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_gasConsumptionkWh_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStartsGasBoiler_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+
+    simulationResult_temperatureBuilding_BT6  = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_energyLevelCombinedStorage_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationObjective_surplusEnergyKWH_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_costs_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_maximumLoad_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_thermalDiscomfort_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_gasConsumptionkWh_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_CO2Emissions_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+
+
+
+    #Variables of the simulation for BT7
+    simulationResult_electricalLoad_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_gasConsumptionkWh_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStartsGasBoiler_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationResult_temperatureBuilding_BT7  = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationObjective_surplusEnergyKWH_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_costs_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_maximumLoad_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_thermalDiscomfort_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_gasConsumptionkWh_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_CO2Emissions_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+
+
+    simulationResult_thermalDiscomfort_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    thermal_discomfort_space_heating_BT1 = np.zeros((SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    thermal_discomfort_dhw_BT1 = np.zeros((SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    thermal_discomfort_space_heating_BT2 = np.zeros((SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    thermal_discomfort_dhw_BT2 = np.zeros((SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    thermal_discomfort_space_heating_BT4 = np.zeros((SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    # Define the correcting vectors
+
+    outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected = np.zeros(( SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT1_heatGenerationCoefficientDHW_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT1_chargingPowerEV_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT2_heatGenerationCoefficientDHW_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    outputVector_BT3_chargingPowerEV_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    outputVector_BT5_chargingPowerBAT_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT5_disChargingPowerBAT_corrected = np.zeros((SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    outputVector_BT6_heatGenerationCoefficient_GasBoiler =  np.zeros((SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement = np.zeros((SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT6_heatTransferCoefficient_StorageToRoom = np.zeros((SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    outputVector_BT7_heatGenerationCoefficient_GasBoiler  = np.zeros((SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    outputVector_BT7_electricalPowerFanHeater = np.zeros((SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+    #Simulate one day with the additional controller
+    for index_day in range (0, 1):
+
+        #Define the statistic variables for the correcting actions
+        correctingStats_BT1_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+        correctingStats_BT1_heatGenerationCoefficientSpaceHeating_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+        correctingStats_BT1_heatGenerationCoefficientDHW_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+        correctingStats_BT1_heatGenerationCoefficientDHW_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+        correctingStats_BT1_chargingPowerEV_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+        correctingStats_BT1_chargingPowerEV_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+        correctingStats_BT1_heatGenerationCoefficientSpaceHeating_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+        correctingStats_BT1_heatGenerationCoefficientDHW_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+        correctingStats_BT1_chargingPowerEV_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        correctingStats_BT2_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+        correctingStats_BT2_heatGenerationCoefficientSpaceHeating_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+        correctingStats_BT2_heatGenerationCoefficientDHW_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+        correctingStats_BT2_heatGenerationCoefficientDHW_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+        correctingStats_BT2_heatGenerationCoefficientSpaceHeating_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+        correctingStats_BT2_heatGenerationCoefficientDHW_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        correctingStats_BT3_chargingPowerEV_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+        correctingStats_BT3_chargingPowerEV_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+        correctingStats_BT3_chargingPowerEV_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        correctingStats_BT4_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+        correctingStats_BT4_heatGenerationCoefficientSpaceHeating_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+        correctingStats_BT4_heatGenerationCoefficientSpaceHeating_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        correctingStats_BT5_chargingPowerBAT_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+        correctingStats_BT5_chargingPowerBAT_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+        correctingStats_BT5_chargingPowerBAT_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+        correctingStats_BT5_disChargingPowerBAT_numberOfTimeSlots = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+        correctingStats_BT5_disChargingPowerBAT_sumOfCorrections = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+        correctingStats_BT5_disChargingPowerBAT_profile = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+
+        simulationInput_BT1_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_DHW = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_availabilityPattern = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_energyConsumptionOfTheEV = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT2_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT2_DHW = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT2_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT3_availabilityPattern = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT3_energyConsumptionOfTheEV = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT3_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT4_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT4), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT4_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT4), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT5_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT5), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT6_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT6), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT6_DHW = np.zeros((len(indexOfBuildingsOverall_BT6), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT6_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT6), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT7_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT7), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT7_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT7), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+        #Building Type 1
+        for index_BT1 in range (0, len(indexOfBuildingsOverall_BT1) ):
+
+            #Reading of the data
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT1_mHP_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            for i in range (0, len(df_buildingData['Availability of the EV'])):
+                if df_buildingData['Availability of the EV'] [i] > 0.1:
+                    df_buildingData['Availability of the EV'] [i] = 1.0
+                if df_buildingData['Availability of the EV'] [i] < 0.1 and df_buildingData['Availability of the EV'] [i] >0.01:
+                    df_buildingData['Availability of the EV'] [i] = 0.0
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Create availability array for the EV
+            availabilityOfTheEV = np.zeros(( SetUpScenarios.numberOfTimeSlotsPerDay))
+            for index_timeslot_for_Availability in range (0,  SetUpScenarios.numberOfTimeSlotsPerDay):
+                availabilityOfTheEV [index_timeslot_for_Availability] = df_buildingData['Availability of the EV'] [index_timeslot_for_Availability +1]
+            indexOfTheEV = index_BT1
+            energyConsumptionOfEVs_Joule = SetUpScenarios.generateEVEnergyConsumptionPatterns(availabilityOfTheEV, indexOfTheEV)
+
+
+            df_availabilityPatternEV = pd.DataFrame({'Timeslot': df_buildingData.index, 'Availability of the EV':df_buildingData['Availability of the EV'] })
+            del df_availabilityPatternEV['Timeslot']
+
+            df_energyConsumptionEV_Joule = pd.DataFrame({'Timeslot': df_buildingData.index, 'Energy':energyConsumptionOfEVs_Joule  })
+            del df_energyConsumptionEV_Joule['Timeslot']
+            df_energyConsumptionEV_Joule.index +=1
+
+
+            #Wind generation
+            indexBuildingForWindPowerAssignment = index_BT1
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+
+            # Set up inital values for the simulation
+            simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, 0] = SetUpScenarios.initialBufferStorageTemperature
+            simulationResult_UsableVolumeDHW_BT1[index_day, index_BT1, 0] = SetUpScenarios.initialUsableVolumeDHWTank
+            simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, 0]= (SetUpScenarios.initialSOC_EV/100) * SetUpScenarios.capacityMaximal_EV
+            simulationResult_SOCofEV_BT1 [index_day, index_BT1, 0]= SetUpScenarios.initialSOC_EV
+
+
+            simulationResult_PVGeneration_BT1 [index_day, index_BT1, 0] = df_buildingData ['PV [nominal]'][1]  * SetUpScenarios.determinePVPeakOfBuildings (index_BT1)
+            simulationResult_RESGeneration_BT1 [index_day, index_BT1, 0] = df_buildingData ['PV [nominal]'] [1]  * SetUpScenarios.determinePVPeakOfBuildings (index_BT1) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1] * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT1 [index_day, index_BT1, 0] = (inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, 0] +  inputVector_BT1_heatGenerationCoefficientDHW[ index_BT1, 0]) * SetUpScenarios.electricalPower_HP + inputVector_BT1_chargingPowerEV[index_BT1, 0] + df_buildingData['Electricity [W]'] [1]
+            simulationResult_SurplusPower_BT1 [index_day, index_BT1, 0] = simulationResult_RESGeneration_BT1 [index_day, index_BT1, 0] - simulationResult_electricalLoad_BT1 [index_day, index_BT1, 0]
+            simulationResult_costs_BT1 [index_day, index_BT1, 0] = (simulationResult_electricalLoad_BT1 [index_day, index_BT1, 0] - simulationResult_PVGeneration_BT1 [index_day, index_BT1, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+
+            #Pre-Corrections of the whole schedule:
+
+            #Pre-Corrections of the whole schedule: Set small heating values to 0 and consider minimal modulation degree
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > 0 and inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] = 0
+
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] > 0 and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = 0
+
+                # Pre-Corrections of input values: minimal modulation
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > 0.001 and inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100 and inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] > 0.001 and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100  and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                #Correct too high modulation degrees
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > 1 :
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] = 1
+                if inputVector_BT1_heatGenerationCoefficientDHW[index_BT1, index_timeslot] > 1:
+                    inputVector_BT1_heatGenerationCoefficientDHW[index_BT1, index_timeslot] = 1
+
+            #Pre-Corrections of the whole schedule for only heating up 1 storage at a time
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] > 0.1 and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] > 0.1:
+                    if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] + 0.1:
+                        inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = 0
+                    else:
+                        inputVector_BT1_heatGenerationCoefficientSpaceHeating  [index_BT1, index_timeslot] = 0
+
+
+
+            #Pre-Corrections of the whole schedule: avoiding too frequent starts and stops
+            if preCorrectSchedules_AvoidingFrequentStarts ==  True:
+                helpCounterNumberOfRunningSlots = 0
+                helpCounterNumberOfStandbySlots = 0
+                deviceWasRunningLastTimeSlot = False
+                for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                    if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] > 0.1 or inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] > 0.1:
+
+
+                        if deviceWasRunningLastTimeSlot == False:
+                            if helpCounterNumberOfStandbySlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                # Continue not heating if current standby-time is smaller than the minimal run time
+                                inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = 0
+                                inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] = 0
+                            else:
+                                #Count number of planned time slots in which the HP is running
+                                helpCounterTimeSlotsDeviceIsPlannedToRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot ] > 0.1 or inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_helpTimeslot] > 0.1:
+                                        helpCounterTimeSlotsDeviceIsPlannedToRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] = 0
+                                        inputVector_BT1_heatGenerationCoefficientDHW[index_BT1, index_helpTimeslot2] = 0
+
+                                else:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] < 0.1  and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_helpTimeslot2] <0.1:
+                                            inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] == SetUpScenarios.minimalModulationdDegree_HP/100
+
+                    else :
+                        if deviceWasRunningLastTimeSlot == True:
+                            # Continue heating if current run time is smaller than the minimal run time
+                            if helpCounterNumberOfRunningSlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP/100
+                            else:
+                                # Count number of running slot until the next stop
+                                helpCounterTimeSlotsDeviceIsPlannedToNotRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot ] < 0.01 and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_helpTimeslot] < 0.01:
+                                        helpCounterTimeSlotsDeviceIsPlannedToNotRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToNotRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfRunningSlots + 1):
+                                        if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] < 0.1  and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_helpTimeslot2] <0.1:
+                                            inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] = SetUpScenarios.minimalModulationdDegree_HP/100
+
+                                else:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] > 0.1  or inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_helpTimeslot2] >0.1:
+                                            inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_helpTimeslot2] = 0
+                                            inputVector_BT1_heatGenerationCoefficientDHW[index_BT1, index_helpTimeslot2] = 0
+
+                    if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] > 0.1  or inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] >0.1:
+                        deviceWasRunningLastTimeSlot = True
+                        helpCounterNumberOfRunningSlots +=1
+                        helpCounterNumberOfStandbySlots = 0
+                    else:
+                        deviceWasRunningLastTimeSlot = False
+                        helpCounterNumberOfRunningSlots = 0
+                        helpCounterNumberOfStandbySlots +=1
+
+
+            #Initialize the output vectors of the simulation
+            if inputVector_BT1_heatGenerationCoefficientSpaceHeating.size != 0:
+                outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected[index_BT1] = inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1].copy()
+                outputVector_BT1_heatGenerationCoefficientDHW_corrected[index_BT1] = inputVector_BT1_heatGenerationCoefficientDHW[index_BT1].copy()
+                outputVector_BT1_chargingPowerEV_corrected [index_BT1] = inputVector_BT1_chargingPowerEV[ index_BT1].copy()
+
+            else:
+                outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected = -1
+                outputVector_BT1_heatGenerationCoefficientDHW_corrected = -1
+                outputVector_BT1_chargingPowerEV_corrected = -1
+
+
+
+
+            #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+                # Post-Corrections of input values: too high or low input values
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot]  > 1:
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot]  =1
+                    outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot]  =1
+                    print("Pre-Corrections too high value Space Heating. Time: " +  str(index_timeslot) + "\n")
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot]  > 1:
+                    inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] =1
+                    outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot]  =1
+                    print("Pre-Corrections too high value DHW. Time:"+  str(index_timeslot)  + "\n")
+                if inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] > SetUpScenarios.chargingPowerMaximal_EV:
+                    inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV
+                    outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV
+
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot]  < 0:
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot]  =0
+                    outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot]  =0
+
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot]  < 0:
+                    inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] =0
+                    outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot]  =0
+
+                if inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] < 0:
+                    inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] = 0
+                    outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] = 0
+
+
+                # Post-Corrections: Set small heating values to 0
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > 0 and inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] < 0.1:
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] = 0
+
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] > 0 and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] < 0.1:
+                    inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = 0
+
+                # Post-Corrections of input values: minimal modulation
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > 0.001 and inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100:
+                    print("Post_Correction: Min Modulation. Time: " + str( index_timeslot) + "; ANN value SpaceHeating: " + str(inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot]) + "\n")
+                    inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] > 0.001 and inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100:
+                    print("Post_Correction: Min Modulation. Time: " + str(index_timeslot) + "; ANN value DHW: " + str(inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot]) + "\n")
+                    inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+
+
+
+
+
+                #Calculate the hypothetical simulation values if the corrected actions (so far) were applied
+                cop_heatPump_SpaceHeating, cop_heatPump_DHW = SetUpScenarios.calculateCOP(df_outsideTemperatureData ["Temperature [C]"])
+                if index_timeslot >=1:
+                    simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot - 1]  + ((inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_UsableVolumeDHW_BT1[index_day, index_BT1, index_timeslot-1] + ((inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+                    simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot]  =simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot - 1] + ( inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot]  = (simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+                if index_timeslot ==0:
+                    simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((inputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] = SetUpScenarios.initialUsableVolumeDHWTank + ((inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+                    simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot]  = SetUpScenarios.initialSOC_EV/100 * SetUpScenarios.capacityMaximal_EV + ( inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot]  = (simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT1_SpaceHeating [index_BT1, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT1_DHW [index_BT1, index_timeslot] = df_buildingData ['DHW [W]'] [index_timeslot + 1]
+                simulationInput_BT1_availabilityPattern [index_BT1, index_timeslot] = df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1]
+                simulationInput_BT1_energyConsumptionOfTheEV [index_BT1, index_timeslot] = df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1]
+                simulationInput_BT1_electricityDemand [index_BT1, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+                #Corrections for the violations of the physical limits of the storage systems
+                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] < SetUpScenarios.minimumBufferStorageTemperature_PhysicalLimit:
+                    outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected[index_BT1, index_timeslot] = 1
+                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] > SetUpScenarios.maximumBufferStorageTemperature_PhysicalLimit:
+                    outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected[index_BT1, index_timeslot] = 0
+                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < SetUpScenarios.minimumUsableVolumeDHWTank_PhysicalLimit:
+                    outputVector_BT1_heatGenerationCoefficientDHW_corrected[index_BT1, index_timeslot] = 1
+                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_PhysicalLimit:
+                    outputVector_BT1_heatGenerationCoefficientDHW_corrected[index_BT1, index_timeslot] = 0
+
+
+
+                #Corrections for the SOC of the EV
+                if simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] >  100:
+                   outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] = 0
+                   print("Correction of the EV. SOC too high. Time: " +  str(index_timeslot))
+                if simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] <  SetUpScenarios.initialSOC_EV and simulationInput_BT1_availabilityPattern [index_BT1, index_timeslot] >0 and index_timeslot > SetUpScenarios.timeslotInMinutesForForcedChargingOfTheEV/SetUpScenarios.timeResolution_InMinutes:
+                   outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV * 0.5
+                if simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] <  SetUpScenarios.socThresholdForForcedCharging and simulationInput_BT1_availabilityPattern [index_BT1, index_timeslot] >0:
+                   outputVector_BT1_chargingPowerEV_corrected[index_BT1, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV * 0.5
+
+
+                # Post_Corrections for the availability of the EV (charging is only possible if the EV is available at the charging station of the building)
+                if inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] > 0.001 and  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] ==0:
+                    inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] =0
+                    outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] =0
+                    print("Post_Correction EV is not available for charging: " +  str(index_timeslot))
+
+   
+
+
+
+                # Post-Corrections of input values: heating up only one storage at one time
+                if outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] > 0.001 and outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot]  > 0.001:
+                    print("Post_Correction Only one storage. Time: " +  str(index_timeslot) + "; ANN value SpaceHeating: " + str(inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot]) + ", ANN value DHW: "+ str(inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot])  + "\n")
+                    if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] > inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] + 0.1:
+                        inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] = 0
+                        outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot]  =0
+                    else:
+                        inputVector_BT1_heatGenerationCoefficientSpaceHeating  [index_BT1, index_timeslot] = 0
+                        outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] = 0
+
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot - 1]  + ((outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_UsableVolumeDHW_BT1[index_day, index_BT1, index_timeslot-1] + ((outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+                    help_1 =(outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60)
+                    help_2 = df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1]
+                    simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot]  =simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot - 1] + (outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+
+                    simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot]  = (simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+
+                if index_timeslot ==0:
+                    simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] = SetUpScenarios.initialUsableVolumeDHWTank + ((outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+                    simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot]  = SetUpScenarios.initialSOC_EV/100 * SetUpScenarios.capacityMaximal_EV + (outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot]  = (simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+
+
+
+                simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT1)
+                simulationResult_RESGeneration_BT1 [index_day, index_BT1, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT1) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot] = (outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] + outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] ) * SetUpScenarios.electricalPower_HP + outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_RESGeneration_BT1 [index_day, index_BT1, index_timeslot] - simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot]
+
+                if simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot] > simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]:
+                    simulationResult_costs_BT1 [index_day, index_BT1, index_timeslot] = (simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot] - simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot] <= simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]:
+                    simulationResult_costs_BT1 [index_day, index_BT1, index_timeslot] = (simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot] - simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+
+
+
+                # Calculate number and degree of corrections (for statistical purposes)
+                if inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] != outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot]:
+                   correctingStats_BT1_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots [index_day, index_BT1] +=1
+                   correctingStats_BT1_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day, index_BT1] = correctingStats_BT1_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day, index_BT1] + abs(inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] - outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] )
+                   correctingStats_BT1_heatGenerationCoefficientSpaceHeating_profile [index_day, index_BT1, index_timeslot] = outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot]  - inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot]
+                if inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] != outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot]:
+                   correctingStats_BT1_heatGenerationCoefficientDHW_numberOfTimeSlots [index_day, index_BT1] +=1
+                   correctingStats_BT1_heatGenerationCoefficientDHW_sumOfCorrections [index_day, index_BT1] = correctingStats_BT1_heatGenerationCoefficientDHW_sumOfCorrections [index_day, index_BT1] + abs(inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot] - outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] )
+                   correctingStats_BT1_heatGenerationCoefficientDHW_profile [index_day, index_BT1, index_timeslot] = outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] - inputVector_BT1_heatGenerationCoefficientDHW [index_BT1, index_timeslot]
+                if inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] != outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot]:
+                   correctingStats_BT1_chargingPowerEV_numberOfTimeSlots [index_day, index_BT1] +=1
+                   correctingStats_BT1_chargingPowerEV_sumOfCorrections [index_day, index_BT1] = correctingStats_BT1_chargingPowerEV_sumOfCorrections [index_day, index_BT1] + abs(inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot] - outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot] )
+                   correctingStats_BT1_chargingPowerEV_profile [index_day, index_BT1, index_timeslot] = outputVector_BT1_chargingPowerEV_corrected [index_BT1, index_timeslot]  - inputVector_BT1_chargingPowerEV [index_BT1, index_timeslot]
+
+
+
+            #Count number of starts of the heat pump
+                if index_timeslot >= 1:
+                    if  outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot - 1] == 0 and outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsBufferStorage_BT1 [index_day, index_BT1] += 1
+                    if outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot - 1] == 0 and outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsDHWTank_BT1 [index_day, index_BT1] += 1
+                    if  (outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot - 1] == 0 and outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot - 1] == 0) and (outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected [index_BT1, index_timeslot] >0.001 or outputVector_BT1_heatGenerationCoefficientDHW_corrected [index_BT1, index_timeslot] >0.001):
+                        simulationResult_numberOfStartsCombined_BT1 [index_day, index_BT1] += 1
+
+
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT1  [index_day, index_BT1, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT1  [index_day, index_BT1] = simulationObjective_surplusEnergyKWH_BT1  [index_day, index_BT1] + ((simulationResult_SurplusPower_BT1  [index_day, index_BT1, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot] - simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]) > simulationObjective_maximumLoad_BT1 [index_day, index_BT1]:
+                    simulationObjective_maximumLoad_BT1 [index_day, index_BT1] = simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot] -  simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]
+                if (simulationResult_PVGeneration_BT1  [index_day, index_BT1, index_timeslot] -  simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot]) > simulationObjective_maximumLoad_BT1 [index_day, index_BT1]:
+                    simulationObjective_maximumLoad_BT1 [index_day, index_BT1] = simulationResult_PVGeneration_BT1  [index_day, index_BT1, index_timeslot] -   simulationResult_electricalLoad_BT1[index_day, index_BT1, index_timeslot]
+                simulationObjective_costs_BT1  [index_day, index_BT1]  = simulationObjective_costs_BT1  [index_day, index_BT1] +  simulationResult_costs_BT1 [index_day, index_BT1, index_timeslot]
+
+                simulationObjective_gasConsumptionkWh_BT1 [index_day, index_BT1] = 0
+                simulationObjective_CO2Emissions_BT1 [index_day, index_BT1] = 0
+                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                    thermal_discomfort_space_heating_BT1  [index_BT1, index_timeslot] =  simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot]
+                    thermal_discomfort_space_heating_BT1[index_BT1, index_timeslot] = ((SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot]) * (-1)
+                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_CorrectionNecessary:
+                    simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] =  5
+                    thermal_discomfort_dhw_BT1 [index_BT1, index_timeslot] = 5
+                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < 0:
+                    simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] =  10
+                    thermal_discomfort_dhw_BT1[index_BT1, index_timeslot] = -10
+
+                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
+                    if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] >  (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3): 
+                        simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] = 30 * (simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3))
+                        thermal_discomfort_space_heating_BT1[index_BT1, index_timeslot] = 30 * (simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3))
+                    if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] <  (SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue): 
+                        simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] = 30 * ((SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot])
+                        thermal_discomfort_space_heating_BT1  [index_BT1, index_timeslot] = (-1) * 30 * ((SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot])
+                    if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_CorrectionNecessary - 50:
+                        simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = 5
+                        thermal_discomfort_dhw_BT1[index_BT1, index_timeslot] = 5
+                    if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
+                        simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = 20
+                        thermal_discomfort_dhw_BT1[index_BT1, index_timeslot] = -20
+
+                simulationObjective_thermalDiscomfort_BT1[index_day, index_BT1] = simulationObjective_thermalDiscomfort_BT1 [index_day, index_BT1] + simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot]
+
+
+        #Building Type 2
+
+        for index_BT2 in range (0, len(indexOfBuildingsOverall_BT2)):
+
+
+            #Reading of the data
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT2_mHP_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Wind generation
+
+            indexBuildingForWindPowerAssignment = SetUpScenarios.numberOfBuildings_BT1 + index_BT2
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+            # Set up inital values for the simulation
+            simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, 0] = SetUpScenarios.initialBufferStorageTemperature
+            simulationResult_UsableVolumeDHW_BT2[index_day, index_BT2, 0] = SetUpScenarios.initialUsableVolumeDHWTank
+            simulationResult_PVGeneration_BT2 [index_day, index_BT2, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + index_BT2)
+            simulationResult_RESGeneration_BT2 [index_day, index_BT2, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + index_BT2)  + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1]  * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT2 [index_day, index_BT2, 0] = (inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, 0] +  inputVector_BT2_heatGenerationCoefficientDHW[index_BT2, 0]) * SetUpScenarios.electricalPower_HP   + df_buildingData['Electricity [W]'] [1]
+            simulationResult_SurplusPower_BT2 [index_day, index_BT2, 0] = simulationResult_RESGeneration_BT2 [index_day, index_BT2, 0] - simulationResult_electricalLoad_BT2 [index_day, index_BT2, 0]
+            simulationResult_costs_BT2 [index_day, index_BT2, 0] = (simulationResult_electricalLoad_BT2 [index_day, index_BT2, 0] - simulationResult_PVGeneration_BT2 [index_day, index_BT2, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+
+             #Pre-Corrections of the whole schedule:
+
+            #Pre-Corrections of the whole schedule: Set small heating values to 0 and consider minimal modulation degree
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > 0 and inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] = 0
+
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] > 0 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = 0
+
+                # Pre-Corrections of input values: minimal modulation
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > 0.001 and inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100 and inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] > 0.001 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                #Correct too high modulation degrees
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > 1 :
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] = 1
+                if inputVector_BT2_heatGenerationCoefficientDHW[index_BT2, index_timeslot] > 1:
+                    inputVector_BT2_heatGenerationCoefficientDHW[index_BT2, index_timeslot] = 1
+
+            #Pre-Corrections of the whole schedule for only heating up 1 storage at a time
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] > 0.1 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] > 0.1:
+                    if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] + 0.1:
+                        inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = 0
+                    else:
+                        inputVector_BT2_heatGenerationCoefficientSpaceHeating  [index_BT2, index_timeslot] = 0
+
+
+
+            #Pre-Corrections of the whole schedule: avoiding too frequent starts and stops
+            if preCorrectSchedules_AvoidingFrequentStarts ==  True:
+                helpCounterNumberOfRunningSlots = 0
+                helpCounterNumberOfStandbySlots = 0
+                deviceWasRunningLastTimeSlot = False
+                for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                    if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] > 0.1 or inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] > 0.1:
+
+
+                        if deviceWasRunningLastTimeSlot == False:
+                            if helpCounterNumberOfStandbySlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                # Continue not heating if current standby-time is smaller than the minimal run time
+                                inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = 0
+                                inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] = 0
+                            else:
+                                #Count number of planned time slots in which the HP is running
+                                helpCounterTimeSlotsDeviceIsPlannedToRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot ] > 0.1 or inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_helpTimeslot] > 0.1:
+                                        helpCounterTimeSlotsDeviceIsPlannedToRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] = 0
+                                        inputVector_BT2_heatGenerationCoefficientDHW[index_BT2, index_helpTimeslot2] = 0
+
+                                else:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] < 0.1  and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_helpTimeslot2] <0.1:
+                                            inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] == SetUpScenarios.minimalModulationdDegree_HP/100
+
+                    else :
+                        if deviceWasRunningLastTimeSlot == True:
+                            # Continue heating if current run time is smaller than the minimal run time
+                            if helpCounterNumberOfRunningSlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP/100
+                            else:
+                                # Count number of running slot until the next stop
+                                helpCounterTimeSlotsDeviceIsPlannedToNotRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot ] < 0.01 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_helpTimeslot] < 0.01:
+                                        helpCounterTimeSlotsDeviceIsPlannedToNotRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToNotRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfRunningSlots + 1):
+                                        if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] < 0.1  and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_helpTimeslot2] <0.1:
+                                            inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] = SetUpScenarios.minimalModulationdDegree_HP/100
+
+                                else:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] > 0.1  or inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_helpTimeslot2] >0.1:
+                                            inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_helpTimeslot2] = 0
+                                            inputVector_BT2_heatGenerationCoefficientDHW[index_BT2, index_helpTimeslot2] = 0
+
+                    if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] > 0.1  or inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] >0.1:
+                        deviceWasRunningLastTimeSlot = True
+                        helpCounterNumberOfRunningSlots +=1
+                        helpCounterNumberOfStandbySlots = 0
+                    else:
+                        deviceWasRunningLastTimeSlot = False
+                        helpCounterNumberOfRunningSlots = 0
+                        helpCounterNumberOfStandbySlots +=1
+
+
+            #Initialize the output vectors of the simulation
+            if inputVector_BT2_heatGenerationCoefficientSpaceHeating.size != 0:
+                outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2] = inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2].copy()
+                outputVector_BT2_heatGenerationCoefficientDHW_corrected  [index_BT2] = inputVector_BT2_heatGenerationCoefficientDHW [index_BT2].copy()
+            else:
+                outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected = -1
+                outputVector_BT2_heatGenerationCoefficientDHW_corrected = -1
+
+
+            #Calculate the simulation steps
+
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+                # Post-Corrections of input values: too high or low input values
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot]  > 1:
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot]  =1
+                    outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot]  =1
+                    print("Pre-Corrections too high value Space Heating. Time: " +  str(index_timeslot) + "\n")
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot]  > 1:
+                    inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] =1
+                    outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot]  =1
+                    print("Pre-Corrections too high value DHW. Time:"+  str(index_timeslot)  + "\n")
+
+
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot]  < 0:
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot]  =0
+                    outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot]  =0
+
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot]  < 0:
+                    inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] =0
+                    outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot]  =0
+
+                # Post-Corrections: Set small heating values to 0
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > 0 and inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] < 0.1:
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] = 0
+
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] > 0 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] < 0.1:
+                    inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = 0
+
+                # Post-Corrections of input values: minimal modulation
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > 0.001 and inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100:
+                    print("Post_Correction: Min Modulation. Time: " + str( index_timeslot) + "; ANN value SpaceHeating: " + str(inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot]) + "\n")
+                    inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] > 0.001 and inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100:
+                    print("Post_Correction: Min Modulation. Time: " + str(index_timeslot) + "; ANN value DHW: " + str(inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot]) + "\n")
+                    inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+
+                #Calculate the hypothetical simulation values if the corrected actions (so far) were applied
+                cop_heatPump_SpaceHeating, cop_heatPump_DHW = SetUpScenarios.calculateCOP(df_outsideTemperatureData ["Temperature [C]"])
+                if index_timeslot >=1:
+                    simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot - 1]  + ((inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_UsableVolumeDHW_BT2[index_day, index_BT2, index_timeslot-1] + ((inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+
+                if index_timeslot ==0:
+                    simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((inputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] = SetUpScenarios.initialUsableVolumeDHWTank + ((inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT2_SpaceHeating [index_BT2, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT2_DHW [index_BT2, index_timeslot] = df_buildingData ['DHW [W]'] [index_timeslot + 1]
+                simulationInput_BT2_electricityDemand [index_BT2, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+                #Corrections for the violations of the physical limits of the storage systems
+                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] < SetUpScenarios.minimumBufferStorageTemperature_PhysicalLimit:
+                    outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected[index_BT2, index_timeslot] = 1
+                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] > SetUpScenarios.maximumBufferStorageTemperature_PhysicalLimit:
+                    outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected[index_BT2, index_timeslot] = 0
+                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < SetUpScenarios.minimumUsableVolumeDHWTank_PhysicalLimit:
+                    outputVector_BT2_heatGenerationCoefficientDHW_corrected[index_BT2, index_timeslot] = 1
+                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_PhysicalLimit:
+                    outputVector_BT2_heatGenerationCoefficientDHW_corrected[index_BT2, index_timeslot] = 0
+
+
+                # Post-Corrections of input values: heating up only one storage at one time
+                if outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] > 0.001 and outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot]  > 0.001:
+                    print("Post_Correction Only one storage. Time: " +  str(index_timeslot) + "; ANN value SpaceHeating: " + str(inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot]) + ", ANN value DHW: "+ str(inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot])  + "\n")
+                    if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] > inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] + 0.1:
+                        inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] = 0
+                        outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot]  =0
+                    else:
+                        inputVector_BT2_heatGenerationCoefficientSpaceHeating  [index_BT2, index_timeslot] = 0
+                        outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] = 0
+
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot - 1]  + ((outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_UsableVolumeDHW_BT2[index_day, index_BT2, index_timeslot-1] + ((outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+
+                if index_timeslot ==0:
+                    simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                    simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] = SetUpScenarios.initialUsableVolumeDHWTank + ((outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
+
+                simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT2)
+                simulationResult_RESGeneration_BT2 [index_day, index_BT2, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT2) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] = (outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] + outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] ) * SetUpScenarios.electricalPower_HP  + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_RESGeneration_BT2 [index_day, index_BT2, index_timeslot] - simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot]
+
+                if simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] > simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]:
+                    simulationResult_costs_BT2 [index_day, index_BT2, index_timeslot] = (simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] - simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] <= simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]:
+                    simulationResult_costs_BT2 [index_day, index_BT2, index_timeslot] = (simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot] - simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+
+
+
+                # Calculate number and degree of corrections (for statistical purposes)
+                if inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] != outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot]:
+                   correctingStats_BT2_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots [index_day, index_BT2] +=1
+                   correctingStats_BT2_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day, index_BT2] = correctingStats_BT2_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day, index_BT2] + abs(inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot] - outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] )
+                   correctingStats_BT2_heatGenerationCoefficientSpaceHeating_profile [index_day, index_BT2, index_timeslot] = outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot]  - inputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2, index_timeslot]
+                if inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] != outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot]:
+                   correctingStats_BT2_heatGenerationCoefficientDHW_numberOfTimeSlots [index_day, index_BT2] +=1
+                   correctingStats_BT2_heatGenerationCoefficientDHW_sumOfCorrections [index_day, index_BT2] = correctingStats_BT2_heatGenerationCoefficientDHW_sumOfCorrections [index_day, index_BT2] + abs(inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot] - outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] )
+                   correctingStats_BT2_heatGenerationCoefficientDHW_profile [index_day, index_BT2, index_timeslot] = outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] - inputVector_BT2_heatGenerationCoefficientDHW [index_BT2, index_timeslot]
+
+
+            #Count number of starts of the heat pump
+
+                if index_timeslot >= 1:
+                    if  outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot - 1] == 0 and outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsBufferStorage_BT2 [index_day, index_BT2] += 1
+                    if outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot - 1] == 0 and outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsDHWTank_BT2 [index_day, index_BT2] += 1
+                    if  (outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot - 1] == 0 and outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot - 1] == 0) and (outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected [index_BT2, index_timeslot] >0.001 or outputVector_BT2_heatGenerationCoefficientDHW_corrected [index_BT2, index_timeslot] >0.001):
+                        simulationResult_numberOfStartsCombined_BT2 [index_day, index_BT2] += 1
+
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT2  [index_day, index_BT2, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT2  [index_day, index_BT2] = simulationObjective_surplusEnergyKWH_BT2  [index_day, index_BT2] + ((simulationResult_SurplusPower_BT2  [index_day, index_BT2, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] - simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]) > simulationObjective_maximumLoad_BT2 [index_day, index_BT2]:
+                    simulationObjective_maximumLoad_BT2 [index_day, index_BT2] = simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] -  simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]
+                if (simulationResult_PVGeneration_BT2  [index_day, index_BT2, index_timeslot] -  simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot]) > simulationObjective_maximumLoad_BT2 [index_day, index_BT2]:
+                    simulationObjective_maximumLoad_BT2 [index_day, index_BT2] = simulationResult_PVGeneration_BT2  [index_day, index_BT2, index_timeslot] -   simulationResult_electricalLoad_BT2[index_day, index_BT2, index_timeslot]
+                simulationObjective_costs_BT2  [index_day, index_BT2]  = simulationObjective_costs_BT2  [index_day, index_BT2] +  simulationResult_costs_BT2 [index_day, index_BT2, index_timeslot]
+
+                simulationObjective_gasConsumptionkWh_BT2 [index_day, index_BT2] = 0
+                simulationObjective_CO2Emissions_BT2 [index_day, index_BT2] = 0
+                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                    thermal_discomfort_space_heating_BT2  [index_BT2, index_timeslot] =  simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot]
+                    thermal_discomfort_space_heating_BT2[index_BT2, index_timeslot] = ((SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot]) * (-1)
+                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_CorrectionNecessary:
+                    simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] =  5
+                    thermal_discomfort_dhw_BT2 [index_BT2, index_timeslot] = 5
+                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < 0:
+                    simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] =  10
+                    thermal_discomfort_dhw_BT2[index_BT2, index_timeslot] = -10
+
+                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
+                    if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] >  (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3): 
+                        simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] = 30 * (simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3))
+                        thermal_discomfort_space_heating_BT2[index_BT2, index_timeslot] = 30 * (simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3))
+                    if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] <  (SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue): 
+                        simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] = 30 * ((SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot])
+                        thermal_discomfort_space_heating_BT2  [index_BT2, index_timeslot] = (-1) * 30 * ((SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot])
+                    if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_CorrectionNecessary - 50:
+                        simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = 5
+                        thermal_discomfort_dhw_BT2[index_BT2, index_timeslot] = 5
+                    if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
+                        simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = 20
+                        thermal_discomfort_dhw_BT2[index_BT2, index_timeslot] = -20
+
+                simulationObjective_thermalDiscomfort_BT2[index_day, index_BT2] = simulationObjective_thermalDiscomfort_BT2 [index_day, index_BT2] + simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot]
+
+
+        #Building Type 3
+        for index_BT3 in range (0, len(indexOfBuildingsOverall_BT3)):
+
+            #Reading of the data
+
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT3_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            for i in range (0, len(df_buildingData['Availability of the EV'])):
+                if df_buildingData['Availability of the EV'] [i] > 0.1:
+                    df_buildingData['Availability of the EV'] [i] = 1.0
+                if df_buildingData['Availability of the EV'] [i] < 0.1 and df_buildingData['Availability of the EV'] [i] >0.01:
+                    df_buildingData['Availability of the EV'] [i] = 0.0
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Create availability array for the EV
+
+            availabilityOfTheEV = np.zeros(( SetUpScenarios.numberOfTimeSlotsPerDay))
+            for index_timeslot_for_Availability in range (0,  SetUpScenarios.numberOfTimeSlotsPerDay):
+                availabilityOfTheEV [index_timeslot_for_Availability] = df_buildingData['Availability of the EV'] [index_timeslot_for_Availability +1]
+            indexOfTheEV = SetUpScenarios.numberOfBuildings_BT1 +  index_BT3
+            energyConsumptionOfEVs_Joule = SetUpScenarios.generateEVEnergyConsumptionPatterns(availabilityOfTheEV, indexOfTheEV)
+
+
+            df_availabilityPatternEV = pd.DataFrame({'Timeslot': df_buildingData.index, 'Availability of the EV':df_buildingData['Availability of the EV'] })
+            del df_availabilityPatternEV['Timeslot']
+
+            df_energyConsumptionEV_Joule = pd.DataFrame({'Timeslot': df_buildingData.index, 'Energy':energyConsumptionOfEVs_Joule  })
+            del df_energyConsumptionEV_Joule['Timeslot']
+            df_energyConsumptionEV_Joule.index +=1
+
+
+            #Wind generation
+
+            indexBuildingForWindPowerAssignment = SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT3
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+            #Round column and rename it
+            df_buildingData['Electricity [W]'] = df_buildingData['Electricity [W]'].apply(lambda x: round(x, 2))
+
+
+            # Set up inital values for the simulation
+            simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, 0]= (SetUpScenarios.initialSOC_EV/100) * SetUpScenarios.capacityMaximal_EV
+            simulationResult_SOCofEV_BT3 [index_day, index_BT3, 0]= SetUpScenarios.initialSOC_EV
+            simulationResult_PVGeneration_BT3 [index_day, index_BT3, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT3)
+            simulationResult_RESGeneration_BT3 [index_day, index_BT3, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT3)  + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1] * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT3 [index_day, index_BT3, 0] =  inputVector_BT3_chargingPowerEV[index_BT3, 0] + df_buildingData['Electricity [W]'] [1]
+            simulationResult_SurplusPower_BT3 [index_day, index_BT3, 0] = simulationResult_RESGeneration_BT3 [index_day, index_BT3, 0] - simulationResult_electricalLoad_BT3 [index_day, index_BT3, 0]
+            simulationResult_costs_BT3 [index_day, index_BT3, 0] = (simulationResult_electricalLoad_BT3 [index_day, index_BT3, 0] - simulationResult_PVGeneration_BT3 [index_day, index_BT3, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+            helpCurrentPeakLoadOfTheDay =0
+
+            #Initialize the output vectors of the simulation
+            if inputVector_BT3_chargingPowerEV.size != 0:
+                outputVector_BT3_chargingPowerEV_corrected  [index_BT3]= inputVector_BT3_chargingPowerEV [index_BT3].copy()
+            else:
+                outputVector_BT3_chargingPowerEV_corrected = -1
+
+
+            #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+                # Pre-Corrections for the availability of the EV (charging is only possible if the EV is available at the charging station of the building)
+                if inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] > 0.001 and  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] ==0:
+                    inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] =0
+                    outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] =0
+                    print("Pre_Correction EV is not available for charging: " +  str(index_timeslot))
+
+                # Pre-Corrections too high values or too low
+                if inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] > SetUpScenarios.chargingPowerMaximal_EV:
+                    inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV
+                    outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV
+
+
+                if inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] < 0:
+                    inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] = 0
+                    outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] = 0
+
+
+
+
+                #Calculate the hypothetical simulation values if the non-corrected actions were applied
+                if index_timeslot >=1:
+                    simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot]  =simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot - 1] + ( inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot]  = (simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+                if index_timeslot ==0:
+                    simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot]  = SetUpScenarios.initialSOC_EV/100 * SetUpScenarios.capacityMaximal_EV + ( inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot]  = (simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+
+
+               # Calculate the maximum power of the heat pump and the EV for not creating a new peak load
+                if index_timeslot >=1:
+                    if (simulationResult_electricalLoad_BT3  [index_day, index_BT3, index_timeslot - 1] - simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot - 1]) > helpCurrentPeakLoadOfTheDay:
+                        helpCurrentPeakLoadOfTheDay = simulationResult_electricalLoad_BT3  [index_day, index_BT3, index_timeslot - 1] - simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot - 1]
+                    if (simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot - 1] - simulationResult_electricalLoad_BT3  [index_day, index_BT3, index_timeslot - 1]) > helpCurrentPeakLoadOfTheDay:
+                        helpCurrentPeakLoadOfTheDay = simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot - 1] - simulationResult_electricalLoad_BT3  [index_day, index_BT3, index_timeslot - 1]
+
+                maximumPowerEVChargingForNotCreatingANewPeak = SetUpScenarios.chargingPowerMaximal_EV
+
+                if inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] + df_buildingData ['Electricity [W]'] [index_timeslot + 1] > simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]:
+                    maximumPowerEVChargingForNotCreatingANewPeak = helpCurrentPeakLoadOfTheDay  - df_buildingData ['Electricity [W]'] [index_timeslot + 1]  + simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]
+
+
+
+                if  maximumPowerEVChargingForNotCreatingANewPeak >  SetUpScenarios.chargingPowerMaximal_EV:
+                    maximumPowerEVChargingForNotCreatingANewPeak = SetUpScenarios.chargingPowerMaximal_EV
+
+                if  maximumPowerEVChargingForNotCreatingANewPeak < Run_Simulations.minimalModulationDegreeOfTheMaximumPowerInCaseOfANecessaryCorrection *  SetUpScenarios.chargingPowerMaximal_EV:
+                    maximumPowerEVChargingForNotCreatingANewPeak = Run_Simulations.minimalModulationDegreeOfTheMaximumPowerInCaseOfANecessaryCorrection * SetUpScenarios.chargingPowerMaximal_EV
+
+
+
+                #Corrections for the SOC of the EV
+                if simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot] >  100:
+                   outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] = 0
+                   print("Correction of the EV. SOC too high. Time: " +  str(index_timeslot))
+                if simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot] <  SetUpScenarios.initialSOC_EV and simulationInput_BT3_availabilityPattern [index_BT3, index_timeslot] >0 and index_timeslot > SetUpScenarios.timeslotInMinutesForForcedChargingOfTheEV/SetUpScenarios.timeResolution_InMinutes:
+                   outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV
+                if simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot] <  SetUpScenarios.socThresholdForForcedCharging and simulationInput_BT3_availabilityPattern [index_BT3, index_timeslot] >0:
+                   outputVector_BT3_chargingPowerEV_corrected[index_BT3, index_timeslot] = SetUpScenarios.chargingPowerMaximal_EV
+
+                # Post_Corrections for the availability of the EV (charging is only possible if the EV is available at the charging station of the building)
+                if inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] > 0.001 and  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] ==0:
+                    inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] =0
+                    outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] =0
+                    print("Post_Correction EV is not available for charging: " +  str(index_timeslot))
+                    
+                    
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot]  =simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot - 1] + (outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot]  = (simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+
+                if index_timeslot ==0:
+                    simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot]  = SetUpScenarios.initialSOC_EV/100 * SetUpScenarios.capacityMaximal_EV + (outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1] * (SetUpScenarios.chargingEfficiency_EV/100) * SetUpScenarios.timeResolution_InMinutes * 60 - df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1])
+                    simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot]  = (simulationResult_energyLevelOfEV_BT3 [index_day, index_BT3, index_timeslot] / SetUpScenarios.capacityMaximal_EV)*100
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT3_availabilityPattern [index_BT3, index_timeslot] = df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1]
+                simulationInput_BT3_energyConsumptionOfTheEV [index_BT3, index_timeslot] = df_energyConsumptionEV_Joule["Energy"] [index_timeslot + 1]
+                simulationInput_BT3_electricityDemand [index_BT3, index_timeslot] =  df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+
+                simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT3)
+                simulationResult_RESGeneration_BT3 [index_day, index_BT3, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT3) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] =  outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT3 [index_day, index_BT3, index_timeslot] = simulationResult_RESGeneration_BT3 [index_day, index_BT3, index_timeslot] - simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]
+
+                if simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] > simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]:
+                    simulationResult_costs_BT3 [index_day, index_BT3, index_timeslot] = (simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] - simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] <= simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]:
+                    simulationResult_costs_BT3 [index_day, index_BT3, index_timeslot] = (simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot] - simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+
+
+
+                # Calculate number and degree of corrections (for statistical purposes)
+                if inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] != outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot]:
+                   correctingStats_BT3_chargingPowerEV_numberOfTimeSlots [index_day, index_BT3] +=1
+                   correctingStats_BT3_chargingPowerEV_sumOfCorrections [index_day, index_BT3] = correctingStats_BT3_chargingPowerEV_sumOfCorrections [index_day, index_BT3] + abs(inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot] - outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot] )
+                   correctingStats_BT3_chargingPowerEV_profile [index_day, index_BT3, index_timeslot] = outputVector_BT3_chargingPowerEV_corrected [index_BT3, index_timeslot]  - inputVector_BT3_chargingPowerEV [index_BT3, index_timeslot]
+
+
+
+
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT3  [index_day, index_BT3, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT3  [index_day, index_BT3] = simulationObjective_surplusEnergyKWH_BT3  [index_day, index_BT3] + ((simulationResult_SurplusPower_BT3  [index_day, index_BT3, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] - simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]) > simulationObjective_maximumLoad_BT3 [index_day, index_BT3]:
+                    simulationObjective_maximumLoad_BT3 [index_day, index_BT3] = simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] -  simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]
+                if (simulationResult_PVGeneration_BT3  [index_day, index_BT3, index_timeslot] -  simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]) > simulationObjective_maximumLoad_BT3 [index_day, index_BT3]:
+                    simulationObjective_maximumLoad_BT3 [index_day, index_BT3] = simulationResult_PVGeneration_BT3  [index_day, index_BT3, index_timeslot] -   simulationResult_electricalLoad_BT3[index_day, index_BT3, index_timeslot]
+                simulationObjective_costs_BT3  [index_day, index_BT3]  = simulationObjective_costs_BT3  [index_day, index_BT3] +  simulationResult_costs_BT3 [index_day, index_BT3, index_timeslot]
+
+
+        #Building Type 4
+        for index_BT4 in range (0, len(indexOfBuildingsOverall_BT4)):
+
+            #Reading of the data
+
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT4_mHP_MFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+
+            #Round column
+            df_buildingData['Electricity [W]'] = df_buildingData['Electricity [W]'].apply(lambda x: round(x, 2))
+
+            #Wind generation
+            indexBuildingForWindPowerAssignment =  SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + index_BT4
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+            # Set up inital values for the simulation
+            simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, 0] = SetUpScenarios.initialBufferStorageTemperature
+            simulationResult_PVGeneration_BT4 [index_day, index_BT4, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + index_BT4)
+            simulationResult_RESGeneration_BT4 [index_day, index_BT4, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + SetUpScenarios.numberOfBuildings_BT3 + index_BT4) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1]  * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT4 [index_day, index_BT4, 0] = (inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, 0] ) * SetUpScenarios.electricalPower_HP_BT4_MFH + df_buildingData['Electricity [W]'] [1]
+            simulationResult_SurplusPower_BT4 [index_day, index_BT4, 0] = simulationResult_RESGeneration_BT4 [index_day, index_BT4, 0] - simulationResult_electricalLoad_BT4 [index_day, index_BT4, 0]
+            simulationResult_costs_BT4 [index_day, index_BT4, 0] = (simulationResult_electricalLoad_BT4 [index_day, index_BT4, 0] - simulationResult_PVGeneration_BT4 [index_day, index_BT4, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+
+             #Pre-Corrections of the whole schedule:
+
+            #Pre-Corrections of the whole schedule: Set small heating values to 0 and consider minimal modulation degree
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] > 0 and inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] = 0
+
+                # Pre-Corrections of input values: minimal modulation
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] > 0.001 and inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100 and inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_HP / 100)/2:
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+                #Correct too high modulation degrees
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] > 1 :
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot] = 1
+
+
+
+            #Pre-Corrections of the whole schedule: avoiding too frequent starts and stops
+            if preCorrectSchedules_AvoidingFrequentStarts ==  True:
+                helpCounterNumberOfRunningSlots = 0
+                helpCounterNumberOfStandbySlots = 0
+                deviceWasRunningLastTimeSlot = False
+                for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                    if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot] > 0.1 :
+
+
+                        if deviceWasRunningLastTimeSlot == False:
+                            if helpCounterNumberOfStandbySlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                # Continue not heating if current standby-time is smaller than the minimal run time
+                                inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot] = 0
+                            else:
+                                #Count number of planned time slots in which the HP is running
+                                helpCounterTimeSlotsDeviceIsPlannedToRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot ] > 0.1 :
+                                        helpCounterTimeSlotsDeviceIsPlannedToRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] = 0
+
+                                else:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] < 0.1 :
+                                            inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] == SetUpScenarios.minimalModulationdDegree_HP/100
+
+                    else :
+                        if deviceWasRunningLastTimeSlot == True:
+                            # Continue heating if current run time is smaller than the minimal run time
+                            if helpCounterNumberOfRunningSlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                inputVector_BT4_heatGenerationCoefficientSpaceHeating[ index_BT4, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+                            else:
+                                # Count number of running slot until the next stop
+                                helpCounterTimeSlotsDeviceIsPlannedToNotRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot ] < 0.01:
+                                        helpCounterTimeSlotsDeviceIsPlannedToNotRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToNotRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfRunningSlots + 1):
+                                        if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] < 0.1 :
+                                            inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] = SetUpScenarios.minimalModulationdDegree_HP/100
+
+                                else:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] > 0.1  :
+                                            inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_helpTimeslot2] = 0
+
+                    if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot] > 0.1 :
+                        deviceWasRunningLastTimeSlot = True
+                        helpCounterNumberOfRunningSlots +=1
+                        helpCounterNumberOfStandbySlots = 0
+                    else:
+                        deviceWasRunningLastTimeSlot = False
+                        helpCounterNumberOfRunningSlots = 0
+                        helpCounterNumberOfStandbySlots +=1
+
+
+            #Initialize the output vectors of the simulation
+            if inputVector_BT4_heatGenerationCoefficientSpaceHeating.size != 0:
+                outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4] = inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4].copy()
+            else:
+                outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected = -1
+
+
+            #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+                # Post-Corrections of input values: too high or low input values
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot]  > 1:
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot]  =1
+                    outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot]  =1
+                    print("Pre-Corrections too high value Space Heating. Time: " +  str(index_timeslot) + "\n")
+
+
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot]  < 0:
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot]  =0
+                    outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot]  =0
+
+                # Post-Corrections: Set small heating values to 0
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] > 0 and inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] < 0.1:
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] = 0
+
+
+                # Post-Corrections of input values: minimal modulation
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] > 0.001 and inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] < SetUpScenarios.minimalModulationdDegree_HP / 100:
+                    print("Post_Correction: Min Modulation. Time: " + str( index_timeslot) + "; ANN value SpaceHeating: " + str(inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot]) + "\n")
+                    inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+
+
+                #Calculate the hypothetical simulation values if the corrected actions (so far) were applied
+                cop_heatPump_SpaceHeating, cop_heatPump_DHW = SetUpScenarios.calculateCOP(df_outsideTemperatureData ["Temperature [C]"])
+                if index_timeslot >=1:
+                    simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot - 1]  + ((inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage_BT4_MFH * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+                if index_timeslot ==0:
+                    simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((inputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage_BT4_MFH * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT4_SpaceHeating [index_BT4, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT4_electricityDemand [index_BT4, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+                #Corrections for the violations of the physical limits of the storage systems
+                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] < SetUpScenarios.minimumBufferStorageTemperature_PhysicalLimit:
+                    outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected[index_BT4, index_timeslot] = 1
+                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] > SetUpScenarios.maximumBufferStorageTemperature_PhysicalLimit:
+                    outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected[index_BT4, index_timeslot] = 0
+
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot - 1]  + ((outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage_BT4_MFH * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+
+                if index_timeslot ==0:
+                    simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot] * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage_BT4_MFH * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
+
+                simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT4)
+                simulationResult_RESGeneration_BT4 [index_day, index_BT4, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT4) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] = (outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot]) * SetUpScenarios.electricalPower_HP_BT4_MFH  + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT4 [index_day, index_BT4, index_timeslot] = simulationResult_RESGeneration_BT4 [index_day, index_BT4, index_timeslot] - simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]
+
+                if simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] > simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]:
+                    simulationResult_costs_BT4 [index_day, index_BT4, index_timeslot] = (simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] - simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] <= simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]:
+                    simulationResult_costs_BT4 [index_day, index_BT4, index_timeslot] = (simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot] - simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+
+
+
+                # Calculate number and degree of corrections (for statistical purposes)
+                if inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] != outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot]:
+                   correctingStats_BT4_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots [index_day, index_BT4] +=1
+                   correctingStats_BT4_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day, index_BT4] = correctingStats_BT4_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day, index_BT4] + abs(inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot] - outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot] )
+                   correctingStats_BT4_heatGenerationCoefficientSpaceHeating_profile [index_day, index_BT4, index_timeslot] = outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot]  - inputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4, index_timeslot]
+
+
+            #Count number of starts of the heat pump
+
+                if index_timeslot >= 1:
+                    if  outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot - 1] == 0 and outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected [index_BT4, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsBufferStorage_BT4 [index_day, index_BT4] += 1
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT4  [index_day, index_BT4, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT4  [index_day, index_BT4] = simulationObjective_surplusEnergyKWH_BT4  [index_day, index_BT4] + ((simulationResult_SurplusPower_BT4  [index_day, index_BT4, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] - simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]) > simulationObjective_maximumLoad_BT4 [index_day, index_BT4]:
+                    simulationObjective_maximumLoad_BT4 [index_day, index_BT4] = simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] -  simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]
+                if (simulationResult_PVGeneration_BT4  [index_day, index_BT4, index_timeslot] -  simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]) > simulationObjective_maximumLoad_BT4 [index_day, index_BT4]:
+                    simulationObjective_maximumLoad_BT4 [index_day, index_BT4] = simulationResult_PVGeneration_BT4  [index_day, index_BT4, index_timeslot] -   simulationResult_electricalLoad_BT4[index_day, index_BT4, index_timeslot]
+                simulationObjective_costs_BT4  [index_day, index_BT4]  = simulationObjective_costs_BT4  [index_day, index_BT4] +  simulationResult_costs_BT4 [index_day, index_BT4, index_timeslot]
+
+                simulationObjective_gasConsumptionkWh_BT4 [index_day, index_BT4] = 0
+                simulationObjective_CO2Emissions_BT4 [index_day, index_BT4] = 0
+
+                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT4 [index_day, index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                    thermal_discomfort_space_heating_BT4 [ index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT4[index_day, index_BT4, index_timeslot] = (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot]
+                    thermal_discomfort_space_heating_BT4[index_BT4, index_timeslot] = ((SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot]) * (-1)
+
+                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
+                    if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] >  (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3): 
+                        simulationResult_thermalDiscomfort_BT4 [index_day, index_BT4, index_timeslot] = 30 * (simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3))
+                        thermal_discomfort_space_heating_BT4[index_BT4, index_timeslot] = 30 * (simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue + 0.3))
+                    if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] <  (SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue): 
+                        simulationResult_thermalDiscomfort_BT4 [index_day, index_BT4, index_timeslot] = 30 * ((SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot])
+                        thermal_discomfort_space_heating_BT4  [index_BT4, index_timeslot] = (-1) * 30 * ((SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot])
+
+                
+                simulationObjective_thermalDiscomfort_BT4[index_day, index_BT4] = simulationObjective_thermalDiscomfort_BT4 [index_day, index_BT4] + simulationResult_thermalDiscomfort_BT4 [index_day, index_BT4, index_timeslot]
+
+
+        #Building Type 5
+        for index_BT5 in range (0, len(indexOfBuildingsOverall_BT5)):
+
+            #Reading of the data
+
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT5_BAT_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+
+
+            #Wind generation
+
+            indexBuildingForWindPowerAssignment = SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT5
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+            #Round column and rename it
+            df_buildingData['Electricity [W]'] = df_buildingData['Electricity [W]'].apply(lambda x: round(x, 2))
+
+
+            # Set up inital values for the simulation
+            simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, 0]= (SetUpScenarios.initialSOC_BAT/100) * SetUpScenarios.capacityMaximal_BAT
+            simulationResult_SOCofBAT_BT5 [index_day, index_BT5, 0]= SetUpScenarios.initialSOC_BAT
+            simulationResult_PVGeneration_BT5 [index_day, index_BT5, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT5)
+            simulationResult_RESGeneration_BT5 [index_day, index_BT5, 0] = df_buildingData ['PV [nominal]'] [1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT5)  + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1] * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT5 [index_day, index_BT5, 0] =  inputVector_BT5_chargingPowerBAT[index_BT5, 0] - inputVector_BT5_disChargingPowerBAT[index_BT5, 0] + df_buildingData['Electricity [W]'] [1]
+            simulationResult_SurplusPower_BT5 [index_day, index_BT5, 0] = simulationResult_RESGeneration_BT5 [index_day, index_BT5, 0] - simulationResult_electricalLoad_BT5 [index_day, index_BT5, 0]
+            simulationResult_costs_BT5 [index_day, index_BT5, 0] = (simulationResult_electricalLoad_BT5 [index_day, index_BT5, 0] - simulationResult_PVGeneration_BT5 [index_day, index_BT5, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+
+
+            helpCurrentPeakLoadOfTheDay =0
+
+            if inputVector_BT5_chargingPowerBAT.size != 0:
+                outputVector_BT5_chargingPowerBAT_corrected  [index_BT5] = inputVector_BT5_chargingPowerBAT[index_BT5].copy()
+                outputVector_BT5_disChargingPowerBAT_corrected [index_BT5]= inputVector_BT5_disChargingPowerBAT[index_BT5].copy()
+            else:
+                outputVector_BT5_chargingPowerBAT_corrected = -1
+                outputVector_BT5_disChargingPowerBAT_corrected = -1
+
+
+            #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+
+                # Pre-Corrections too high values or too low
+                if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] > SetUpScenarios.chargingPowerMaximal_BAT:
+                    inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] = SetUpScenarios.chargingPowerMaximal_BAT
+                    outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] = SetUpScenarios.chargingPowerMaximal_BAT
+
+                if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] < 0:
+                    inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] = 0
+                    outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] = 0
+
+
+                if inputVector_BT5_disChargingPowerBAT[index_BT5, index_timeslot] >  df_buildingData['Electricity [W]'] [index_timeslot + 1]:
+                    inputVector_BT5_disChargingPowerBAT[index_BT5, index_timeslot] = df_buildingData['Electricity [W]'] [index_timeslot+ 1]
+                    outputVector_BT5_disChargingPowerBAT_corrected[index_BT5, index_timeslot] = df_buildingData['Electricity [W]'] [index_timeslot + 1]
+
+                if inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] > SetUpScenarios.chargingPowerMaximal_BAT:
+                    testValue = inputVector_BT5_disChargingPowerBAT[index_BT5, index_timeslot]
+                    inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] = SetUpScenarios.chargingPowerMaximal_BAT
+                    outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot] = SetUpScenarios.chargingPowerMaximal_BAT
+
+
+                if inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] < -0.1:
+                    inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] = 0
+                    outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot] = 0
+
+                # Pre-Corrections: No charging and discharging of the BAT at the same timeslot
+                if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] > 0.01 and inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] >0.01:
+                    if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] >inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot]:
+                            inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] = 0
+
+                    if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] <=inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot]:
+                        inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] = 0
+
+
+                #Calculate the hypothetical simulation values if the non-corrected actions were applied
+                if index_timeslot >=1:
+                    simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot]  =simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot - 1] + ((inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] * (SetUpScenarios.chargingEfficiency_BAT) - inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] *(1 /SetUpScenarios.dischargingEfficiency_BAT)) * SetUpScenarios.timeResolution_InMinutes * 60 )
+                    simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot]  = (simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot] / SetUpScenarios.capacityMaximal_BAT)*100
+                if index_timeslot ==0:
+                    simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot]  =(SetUpScenarios.initialSOC_BAT/100) * SetUpScenarios.capacityMaximal_BAT + ((inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] * (SetUpScenarios.chargingEfficiency_BAT) - inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] *(1 /SetUpScenarios.dischargingEfficiency_BAT)) * SetUpScenarios.timeResolution_InMinutes * 60 )
+                    simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot]  = (simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot] / SetUpScenarios.capacityMaximal_BAT)*100
+
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT5_electricityDemand [index_BT5, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+               # Calculate the maximum power of the BAT for not creating a new peak load
+                if index_timeslot >=1:
+                    if (simulationResult_electricalLoad_BT5  [index_day, index_BT5, index_timeslot - 1] - simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot - 1]) > helpCurrentPeakLoadOfTheDay:
+                        helpCurrentPeakLoadOfTheDay = simulationResult_electricalLoad_BT5  [index_day, index_BT5, index_timeslot - 1] - simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot - 1]
+                    if (simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot - 1] - simulationResult_electricalLoad_BT5  [index_day, index_BT5, index_timeslot - 1]) > helpCurrentPeakLoadOfTheDay:
+                        helpCurrentPeakLoadOfTheDay = simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot - 1] - simulationResult_electricalLoad_BT5  [index_day, index_BT5, index_timeslot - 1]
+
+                maximumPowerBATChargingForNotCreatingANewPeak = SetUpScenarios.chargingPowerMaximal_BAT
+
+                if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] + df_buildingData ['Electricity [W]'] [index_timeslot + 1] > simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]:
+                    maximumPowerBATChargingForNotCreatingANewPeak = helpCurrentPeakLoadOfTheDay  - df_buildingData ['Electricity [W]'] [index_timeslot + 1]  + simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]
+
+
+
+                if  maximumPowerBATChargingForNotCreatingANewPeak >  SetUpScenarios.chargingPowerMaximal_BAT:
+                    maximumPowerBATChargingForNotCreatingANewPeak = SetUpScenarios.chargingPowerMaximal_BAT
+
+                if  maximumPowerBATChargingForNotCreatingANewPeak < Run_Simulations.minimalModulationDegreeOfTheMaximumPowerInCaseOfANecessaryCorrection *  SetUpScenarios.chargingPowerMaximal_BAT:
+                    maximumPowerBATChargingForNotCreatingANewPeak = Run_Simulations.minimalModulationDegreeOfTheMaximumPowerInCaseOfANecessaryCorrection * SetUpScenarios.chargingPowerMaximal_BAT
+
+
+                #Corrections for the SOC of the BAT
+                if simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot] >  100.01:
+                   outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] = 0
+                   print("Correction of the BAT. SOC too high. Time: " +  str(index_timeslot))
+                if simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot] <  -0.01:
+                   outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] = maximumPowerBATChargingForNotCreatingANewPeak
+                   print("Correction of the BAT. SOC too low. Time: " +  str(index_timeslot))
+
+
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot]  =simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot - 1] + ((outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot]  * (SetUpScenarios.chargingEfficiency_BAT) - outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot] *(1 /SetUpScenarios.dischargingEfficiency_BAT)) * SetUpScenarios.timeResolution_InMinutes * 60 )
+                    simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot]  = (simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot] / SetUpScenarios.capacityMaximal_BAT)*100
+
+                if index_timeslot ==0:
+                    simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot]  =(SetUpScenarios.initialSOC_BAT/100) * SetUpScenarios.capacityMaximal_BAT + ((outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] * (SetUpScenarios.chargingEfficiency_BAT) - outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot] *(1 /SetUpScenarios.dischargingEfficiency_BAT)) * SetUpScenarios.timeResolution_InMinutes * 60 )
+                    simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot]  = (simulationResult_energyLevelOfBAT_BT5 [index_day, index_BT5, index_timeslot] / SetUpScenarios.capacityMaximal_BAT)*100
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT5_electricityDemand [index_BT5, index_timeslot] =  df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+
+                simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT5)
+                simulationResult_RESGeneration_BT5 [index_day, index_BT5, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings(SetUpScenarios.numberOfBuildings_BT1 + SetUpScenarios.numberOfBuildings_BT2 + index_BT5) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot] =  outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] - outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot] + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT5 [index_day, index_BT5, index_timeslot] = simulationResult_RESGeneration_BT5 [index_day, index_BT5, index_timeslot] - simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot]
+
+                if simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot] > simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]:
+                    simulationResult_costs_BT5 [index_day, index_BT5, index_timeslot] = (simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot] - simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot] <= simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]:
+                    simulationResult_costs_BT5 [index_day, index_BT5, index_timeslot] = (simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot] - simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+
+
+
+                # Calculate number and degree of corrections (for statistical purposes)
+                if inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] != outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot]:
+                   correctingStats_BT5_chargingPowerBAT_numberOfTimeSlots [index_day, index_BT5] +=1
+                   correctingStats_BT5_chargingPowerBAT_sumOfCorrections [index_day, index_BT5] = correctingStats_BT5_chargingPowerBAT_sumOfCorrections [index_day, index_BT5] + abs(inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot] - outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot] )
+                   correctingStats_BT5_chargingPowerBAT_profile [index_day, index_BT5, index_timeslot] = outputVector_BT5_chargingPowerBAT_corrected [index_BT5, index_timeslot]  - inputVector_BT5_chargingPowerBAT [index_BT5, index_timeslot]
+
+                if inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] != outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot]:
+                   correctingStats_BT5_disChargingPowerBAT_numberOfTimeSlots [index_day, index_BT5] +=1
+                   correctingStats_BT5_disChargingPowerBAT_sumOfCorrections [index_day, index_BT5] = correctingStats_BT5_disChargingPowerBAT_sumOfCorrections [index_day, index_BT5] + abs(inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot] - outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot] )
+                   correctingStats_BT5_disChargingPowerBAT_profile [index_day, index_BT5, index_timeslot] = outputVector_BT5_disChargingPowerBAT_corrected [index_BT5, index_timeslot]  - inputVector_BT5_disChargingPowerBAT [index_BT5, index_timeslot]
+
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT5  [index_day, index_BT5, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT5  [index_day, index_BT5] = simulationObjective_surplusEnergyKWH_BT5  [index_day, index_BT5] + ((simulationResult_SurplusPower_BT5  [index_day, index_BT5, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot] - simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]) > simulationObjective_maximumLoad_BT5 [index_day, index_BT5]:
+                    simulationObjective_maximumLoad_BT5 [index_day, index_BT5] = simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot] -  simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]
+                if (simulationResult_PVGeneration_BT5  [index_day, index_BT5, index_timeslot] -  simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot]) > simulationObjective_maximumLoad_BT5 [index_day, index_BT5]:
+                    simulationObjective_maximumLoad_BT5 [index_day, index_BT5] = simulationResult_PVGeneration_BT5  [index_day, index_BT5, index_timeslot] -   simulationResult_electricalLoad_BT5[index_day, index_BT5, index_timeslot]
+                simulationObjective_costs_BT5  [index_day, index_BT5]  = simulationObjective_costs_BT5  [index_day, index_BT5] +  simulationResult_costs_BT5 [index_day, index_BT5, index_timeslot]
+
+            simulationObjective_gasConsumptionkWh_BT5 [index_day, index_BT5] = 0
+            simulationObjective_CO2Emissions_BT5 [index_day, index_BT5] = 0
+
+        #Building Type 6
+        for index_BT6 in range (0, len(indexOfBuildingsOverall_BT6) ):
+
+            #Reading of the data
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Wind generation
+            indexBuildingForWindPowerAssignment = index_BT6
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+
+            # Set up inital values for the simulation
+            simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, 0] = SetUpScenarios.initialEnergyContentCombinedStorage
+            simulationResult_temperatureBuilding_BT6[index_day, index_BT6, 0] = SetUpScenarios.initialTemperatureBuilding
+
+
+            simulationResult_PVGeneration_BT6 [index_day, index_BT6, 0] = df_buildingData ['PV [nominal]'][1]  * SetUpScenarios.determinePVPeakOfBuildings (index_BT6)
+            simulationResult_RESGeneration_BT6 [index_day, index_BT6, 0] = df_buildingData ['PV [nominal]'] [1]  * SetUpScenarios.determinePVPeakOfBuildings (index_BT6) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1] * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT6 [index_day, index_BT6, 0] = (inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6[index_BT6, 0] ) * SetUpScenarios.maximalPowerElectricalHeatingElement  + df_buildingData['Electricity [W]'] [1]
+            simulationResult_SurplusPower_BT6 [index_day, index_BT6, 0] = simulationResult_RESGeneration_BT6 [index_day, index_BT6, 0] - simulationResult_electricalLoad_BT6 [index_day, index_BT6, 0]
+            simulationResult_costs_BT6 [index_day, index_BT6, 0] = (simulationResult_electricalLoad_BT6 [index_day, index_BT6, 0] - simulationResult_PVGeneration_BT6 [index_day, index_BT6, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+
+            #Pre-Corrections of the whole schedule:
+
+            #Pre-Corrections of the whole schedule: Set small heating values to 0 and consider minimal modulation degree of the gas boiler
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] > 0 and inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_GasBoiler/100)/2:
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] = 0
+
+                # Pre-Corrections of input values: minimal modulation
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] > 0.001 and inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] < SetUpScenarios.minimalModulationdDegree_GasBoiler/100 and inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_GasBoiler/100)/2:
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] = SetUpScenarios.minimalModulationdDegree_GasBoiler / 100
+
+                #Correct too high modulation degrees
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] > 1 :
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_timeslot] = 1
+
+                #Correct too low modulation degrees
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] < 0 :
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_timeslot] = 0
+
+
+                #Correct too high or low values of the electrical heating element
+                if inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 [index_BT6, index_timeslot] > SetUpScenarios.maximalPowerElectricalHeatingElement :
+                    inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6[index_BT6, index_timeslot] = SetUpScenarios.maximalPowerElectricalHeatingElement
+                if inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 [index_BT6, index_timeslot] < 0:
+                    inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6[index_BT6, index_timeslot] = 0
+
+                #Correct too high or low values of the heat transfer coefficient from storage to room
+                if inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] > SetUpScenarios.maximalPowerHeatingSystem:
+                    inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] = SetUpScenarios.maximalPowerHeatingSystem
+                if inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] < 0:
+                    inputVector_heatTransferCoefficient_StorageToRoom_BT6[index_BT6, index_timeslot] =0
+
+
+            #Pre-Corrections of the whole schedule: avoiding too frequent starts and stops
+            if preCorrectSchedules_AvoidingFrequentStarts ==  True:
+                helpCounterNumberOfRunningSlots = 0
+                helpCounterNumberOfStandbySlots = 0
+                deviceWasRunningLastTimeSlot = False
+                for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                    if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_timeslot] > 0.1 :
+
+                        if deviceWasRunningLastTimeSlot == False:
+                            if helpCounterNumberOfStandbySlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                # Continue not heating if current standby-time is smaller than the minimal run time
+                                inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_timeslot] = 0
+                            else:
+                                #Count number of planned time slots in which the HP is running
+                                helpCounterTimeSlotsDeviceIsPlannedToRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot ] > 0.1 :
+                                        helpCounterTimeSlotsDeviceIsPlannedToRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot2] = 0
+
+                                else:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot2] < 0.1 :
+                                            inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot2] == SetUpScenarios.minimalModulationdDegree_HP/100
+
+                    else :
+                        if deviceWasRunningLastTimeSlot == True:
+                            # Continue heating if current run time is smaller than the minimal run time
+                            if helpCounterNumberOfRunningSlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                inputVector_heatGenerationCoefficient_GasBoiler_BT6[ index_BT6, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+                            else:
+                                # Count number of running slot until the next stop
+                                helpCounterTimeSlotsDeviceIsPlannedToNotRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot ] < 0.01:
+                                        helpCounterTimeSlotsDeviceIsPlannedToNotRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToNotRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfRunningSlots + 1):
+                                        if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot2] < 0.1 :
+                                            inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot2] = SetUpScenarios.minimalModulationdDegree_HP/100
+
+                                else:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_helpTimeslot2] > 0.1  :
+                                            inputVector_BT6_heatGenerationCoefficientSpaceHeating[index_BT6, index_helpTimeslot2] = 0
+
+                    if inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6, index_timeslot] > 0.1:
+                        deviceWasRunningLastTimeSlot = True
+                        helpCounterNumberOfRunningSlots += 1
+                        helpCounterNumberOfStandbySlots = 0
+                    else:
+                        deviceWasRunningLastTimeSlot = False
+                        helpCounterNumberOfRunningSlots = 0
+                        helpCounterNumberOfStandbySlots += 1
+
+
+            #Initialize the output vectors of the simulation
+            if inputVector_heatGenerationCoefficient_GasBoiler_BT6.size != 0:
+                outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_BT6] = inputVector_heatGenerationCoefficient_GasBoiler_BT6[index_BT6].copy()
+                outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement[index_BT6] = inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6[index_BT6].copy()
+                outputVector_BT6_heatTransferCoefficient_StorageToRoom[index_BT6] = inputVector_heatTransferCoefficient_StorageToRoom_BT6[index_BT6].copy()
+            else:
+                outputVector_BT6_heatGenerationCoefficient_GasBoiler = -1
+                outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement = -1
+                outputVector_BT6_heatTransferCoefficient_StorageToRoom = -1
+
+        
+            #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+                #Calculate the hypothetical simulation values if the corrected actions (so far) were applied
+                if index_timeslot >=1:
+                    simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot] = simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot - 1]  + (inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage )  * (SetUpScenarios.timeResolution_InMinutes * 60)
+                    simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] = simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot - 1] + ((inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+                if index_timeslot ==0:
+                    simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot] = SetUpScenarios.initialEnergyContentCombinedStorage + (inputVector_heatGenerationCoefficient_GasBoiler_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage)  * (SetUpScenarios.timeResolution_InMinutes * 60)
+                    simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] = SetUpScenarios.initialTemperatureBuilding + ((inputVector_heatTransferCoefficient_StorageToRoom_BT6 [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT6_SpaceHeating [index_BT6, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT6_DHW [index_BT6, index_timeslot] = df_buildingData ['DHW [W]'] [index_timeslot + 1]
+                simulationInput_BT6_electricityDemand [index_BT6, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+                #Corrections for the violations of the physical limits of the storage system
+                if simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot] < 0:
+                    outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_BT6, index_timeslot] = 1
+                if simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot] > SetUpScenarios.maximumEnergyContentCombinedStorage:
+                    outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_BT6, index_timeslot] = 0
+                    outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_BT6, index_timeslot] = 0
+
+                #Corrections for the violations of the physical limits of the building temperature
+                if simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] > SetUpScenarios.maximumPhysicalTemperatureBuilding:
+                    outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] = 0
+                if simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] < SetUpScenarios.minimumPhysicalTemperatureBuilding:
+                    outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] = 1
+
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot] = simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot - 1]  + (outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage )  * (SetUpScenarios.timeResolution_InMinutes * 60)
+                    simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] = simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot - 1] + ((outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+                if index_timeslot ==0:
+                    simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot] = SetUpScenarios.initialEnergyContentCombinedStorage + (outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage)  * (SetUpScenarios.timeResolution_InMinutes * 60)
+                    simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] = SetUpScenarios.initialTemperatureBuilding + ((outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+
+                simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT6)
+                simulationResult_RESGeneration_BT6 [index_day, index_BT6, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT6) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] = (outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_BT6, index_timeslot]) * SetUpScenarios.maximalPowerElectricalHeatingElement  + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT6 [index_day, index_BT6, index_timeslot] = simulationResult_RESGeneration_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_gasConsumptionkWh_BT6 [index_day, index_BT6, index_timeslot] =  outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.timeResolution_InMinutes * 60 / 3600000
+
+                if simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] > simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]:
+                    simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot] = (simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] <= simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]:
+                    simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot] = (simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+                simulationResult_costs_BT6[index_day, index_BT6, index_timeslot] = simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot] + (simulationResult_gasConsumptionkWh_BT6 [index_day, index_BT6, index_timeslot]) * SetUpScenarios.priceForGasInCentPerKWH
+            
+
+
+                #Count number of starts of the gas boiler
+                if index_timeslot >= 1:
+                    if  outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_BT6, index_timeslot - 1] == 0 and outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_BT6, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsGasBoiler_BT6 [index_day, index_BT6] += 1
+
+            # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT6  [index_day, index_BT6, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT6  [index_day, index_BT6] = simulationObjective_surplusEnergyKWH_BT6  [index_day, index_BT6] + ((simulationResult_SurplusPower_BT6  [index_day, index_BT6, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]) > simulationObjective_maximumLoad_BT6 [index_day, index_BT6]:
+                    simulationObjective_maximumLoad_BT6 [index_day, index_BT6] = simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] -  simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]
+                if (simulationResult_PVGeneration_BT6  [index_day, index_BT6, index_timeslot] -  simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]) > simulationObjective_maximumLoad_BT6 [index_day, index_BT6]:
+                    simulationObjective_maximumLoad_BT6 [index_day, index_BT6] = simulationResult_PVGeneration_BT6  [index_day, index_BT6, index_timeslot] -   simulationResult_electricalLoad_BT6[index_day, index_BT6, index_timeslot]
+                simulationObjective_costs_BT6  [index_day, index_BT6]  = simulationObjective_costs_BT6  [index_day, index_BT6] +  simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot]
+
+                simulationObjective_CO2Emissions_BT6 [index_day, index_BT6] = 0
+                if simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT6 [index_day, index_BT6, index_timeslot]  = simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT6 [index_day, index_BT6, index_timeslot] =  (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot]
+                if simulationResult_energyLevelCombinedStorage_BT6  [index_day, index_BT6, index_timeslot] < 0:
+                    simulationResult_thermalDiscomfort_BT6[index_day, index_BT6, index_timeslot] = 3
+                if simulationResult_energyLevelCombinedStorage_BT6  [index_day, index_BT6, index_timeslot] > SetUpScenarios.maximumEnergyContentCombinedStorage:
+                    simulationResult_thermalDiscomfort_BT6[index_day, index_BT6, index_timeslot] = 3
+                    
+
+
+                simulationObjective_thermalDiscomfort_BT6[index_day, index_BT6] = simulationObjective_thermalDiscomfort_BT6 [index_day, index_BT6] + simulationResult_thermalDiscomfort_BT6 [index_day, index_BT6, index_timeslot]
+
+
+        # Building Type 7
+        for index_BT7 in range (0, len(indexOfBuildingsOverall_BT7) ):
+
+            #Reading of the data
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Wind generation
+            indexBuildingForWindPowerAssignment = index_BT7
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+
+            simulationResult_PVGeneration_BT7 [index_day, index_BT7, 0] = df_buildingData ['PV [nominal]'][1]  * SetUpScenarios.determinePVPeakOfBuildings (index_BT7)
+            simulationResult_RESGeneration_BT7 [index_day, index_BT7, 0] = df_buildingData ['PV [nominal]'] [1]  * SetUpScenarios.determinePVPeakOfBuildings (index_BT7) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [1] * SetUpScenarios.maximalPowerOfWindTurbine
+            simulationResult_electricalLoad_BT7 [index_day, index_BT7, 0] =  df_buildingData['Electricity [W]'] [1] + inputVector_electricalPowerFanHeater_BT7 [index_BT7, 1]
+            simulationResult_SurplusPower_BT7 [index_day, index_BT7, 0] = simulationResult_RESGeneration_BT7 [index_day, index_BT7, 0] - simulationResult_electricalLoad_BT7 [index_day, index_BT7, 0]
+            simulationResult_costs_BT7 [index_day, index_BT7, 0] = (simulationResult_electricalLoad_BT7 [index_day, index_BT7, 0] - simulationResult_PVGeneration_BT7 [index_day, index_BT7, 0]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [1]/3600000)
+
+
+
+            #Pre-Corrections of the whole schedule:
+
+            #Pre-Corrections of the whole schedule: Set small heating values to 0 and consider minimal modulation degree of the gas boiler
+            for index_timeslot in range(0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] > 0 and inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] < (SetUpScenarios.minimalModulationdDegree_GasBoiler/100)/2:
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] = 0
+
+                # Pre-Corrections of input values: minimal modulation
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] > 0.001 and inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] < SetUpScenarios.minimalModulationdDegree_GasBoiler/100 and inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] >= (SetUpScenarios.minimalModulationdDegree_GasBoiler/100)/2:
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] = SetUpScenarios.minimalModulationdDegree_GasBoiler / 100
+
+                #Correct too high modulation degrees
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] > 1 :
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_timeslot] = 1
+
+                #Correct too low modulation degrees
+                if inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] < 0 :
+                    inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_timeslot] = 0
+
+
+                #Correct discrete values of the electrical Fan heater (the heuristic should put out only valid discrete power values)
+                if inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] > SetUpScenarios.electricalPowerFanHeater_Stage3:
+                    inputVector_electricalPowerFanHeater_BT7[index_BT7, index_timeslot] = SetUpScenarios.electricalPowerFanHeater_Stage3
+                if inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] < SetUpScenarios.electricalPowerFanHeater_Stage3 and inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] > SetUpScenarios.electricalPowerFanHeater_Stage2:
+                    inputVector_electricalPowerFanHeater_BT7[index_BT7, index_timeslot] = SetUpScenarios.electricalPowerFanHeater_Stage3
+                if inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] < SetUpScenarios.electricalPowerFanHeater_Stage2 and inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] > SetUpScenarios.electricalPowerFanHeater_Stage1:
+                    inputVector_electricalPowerFanHeater_BT7[index_BT7, index_timeslot] = SetUpScenarios.electricalPowerFanHeater_Stage2
+                if inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] < SetUpScenarios.electricalPowerFanHeater_Stage1 and inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] > 0:
+                    inputVector_electricalPowerFanHeater_BT7[index_BT7, index_timeslot] = SetUpScenarios.electricalPowerFanHeater_Stage1
+                if inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] < 0:
+                    inputVector_electricalPowerFanHeater_BT7[index_BT7, index_timeslot] = 0
+
+
+
+            #Pre-Corrections of the whole schedule: avoiding too frequent starts and stops of the gas boiler
+            if preCorrectSchedules_AvoidingFrequentStarts ==  True:
+                helpCounterNumberOfRunningSlots = 0
+                helpCounterNumberOfStandbySlots = 0
+                deviceWasRunningLastTimeSlot = False
+                for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+                    if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_timeslot] > 0.1 :
+
+                        if deviceWasRunningLastTimeSlot == False:
+                            if helpCounterNumberOfStandbySlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                # Continue not heating if current standby-time is smaller than the minimal run time
+                                inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_timeslot] = 0
+                            else:
+                                #Count number of planned time slots in which the HP is running
+                                helpCounterTimeSlotsDeviceIsPlannedToRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot ] > 0.1 :
+                                        helpCounterTimeSlotsDeviceIsPlannedToRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot2] = 0
+
+                                else:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfStandbySlots):
+                                        if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot2] < 0.1 :
+                                            inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot2] == SetUpScenarios.minimalModulationdDegree_HP/100
+
+                    else :
+                        if deviceWasRunningLastTimeSlot == True:
+                            # Continue heating if current run time is smaller than the minimal run time
+                            if helpCounterNumberOfRunningSlots < Run_Simulations.minimalRunTimeHeatPump and index_timeslot >Run_Simulations.minimalRunTimeHeatPump:
+                                inputVector_heatGenerationCoefficient_GasBoiler_BT7[ index_BT7, index_timeslot] = SetUpScenarios.minimalModulationdDegree_HP / 100
+                            else:
+                                # Count number of running slot until the next stop
+                                helpCounterTimeSlotsDeviceIsPlannedToNotRun = 0
+                                for index_helpTimeslot in range (index_timeslot,index_timeslot +  Run_Simulations.minimalRunTimeHeatPump):
+                                    if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot ] < 0.01:
+                                        helpCounterTimeSlotsDeviceIsPlannedToNotRun +=1
+                                    else:
+                                        break
+
+                                if helpCounterTimeSlotsDeviceIsPlannedToNotRun < Run_Simulations.minimalRunTimeHeatPump / 2:
+                                    #Keep heat pump switched on for the minimal runtime
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump - helpCounterNumberOfRunningSlots + 1):
+                                        if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot2] < 0.1 :
+                                            inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot2] = SetUpScenarios.minimalModulationdDegree_HP/100
+
+                                else:
+                                    #Switch off heat pump during the next minimalRunTime period
+                                    for index_helpTimeslot2 in range(index_timeslot, index_timeslot + Run_Simulations.minimalRunTimeHeatPump):
+                                        if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_helpTimeslot2] > 0.1  :
+                                            inputVector_BT7_heatGenerationCoefficientSpaceHeating[index_BT7, index_helpTimeslot2] = 0
+
+                    if inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7, index_timeslot] > 0.1:
+                        deviceWasRunningLastTimeSlot = True
+                        helpCounterNumberOfRunningSlots += 1
+                        helpCounterNumberOfStandbySlots = 0
+                    else:
+                        deviceWasRunningLastTimeSlot = False
+                        helpCounterNumberOfRunningSlots = 0
+                        helpCounterNumberOfStandbySlots += 1
+
+
+            #Initialize the output vectors of the simulation
+            if inputVector_heatGenerationCoefficient_GasBoiler_BT7.size != 0:
+                outputVector_BT7_heatGenerationCoefficient_GasBoiler[index_BT7] = inputVector_heatGenerationCoefficient_GasBoiler_BT7[index_BT7].copy()
+                outputVector_BT7_electricalPowerFanHeater[index_BT7] = inputVector_electricalPowerFanHeater_BT7[index_BT7].copy()
+            else:
+                outputVector_BT7_heatGenerationCoefficient_GasBoiler = -1
+                outputVector_BT7_electricalPowerFanHeater = -1
+
+         #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+                simulationResult_temperatureBuilding_BT7[index_day, index_BT7, 0] = SetUpScenarios.initialTemperatureBuilding
+
+                #Calculate the hypothetical simulation values if the corrected actions (so far) were applied
+                if index_timeslot >=1:
+                    simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] = simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot - 1] + ((inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.efficiency_GasBoiler  + inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] * SetUpScenarios.efficiency_ElectricalFanHeater  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+                if index_timeslot ==0:
+                    simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] = SetUpScenarios.initialTemperatureBuilding + ((inputVector_heatGenerationCoefficient_GasBoiler_BT7 [index_BT7, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.efficiency_GasBoiler  + inputVector_electricalPowerFanHeater_BT7 [index_BT7, index_timeslot] * SetUpScenarios.efficiency_ElectricalFanHeater  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+                #Corrections for the violations of the physical limits of the building temperature
+                if simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] > SetUpScenarios.maximumPhysicalTemperatureBuilding:
+                    outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day, index_BT7, index_timeslot] = 0
+                if simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] < SetUpScenarios.minimumPhysicalTemperatureBuilding:
+                    outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day, index_BT7, index_timeslot] = 1
+                    
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] = simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot - 1] + ((outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_BT7, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.efficiency_GasBoiler  + outputVector_BT7_electricalPowerFanHeater [index_BT7, index_timeslot] * SetUpScenarios.efficiency_ElectricalFanHeater  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+                if index_timeslot ==0:
+                    simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] = SetUpScenarios.initialTemperatureBuilding + ((outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_BT7, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.efficiency_GasBoiler  + outputVector_BT7_electricalPowerFanHeater [index_BT7, index_timeslot] * SetUpScenarios.efficiency_ElectricalFanHeater  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT7_SpaceHeating [index_BT7, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT7_electricityDemand [index_BT7, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+                simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT7)
+                simulationResult_RESGeneration_BT7 [index_day, index_BT7, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT7) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] = (outputVector_BT7_electricalPowerFanHeater [index_BT7, index_timeslot])  + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT7 [index_day, index_BT7, index_timeslot] = simulationResult_RESGeneration_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_gasConsumptionkWh_BT7 [index_day, index_BT7, index_timeslot] =  outputVector_BT7_heatGenerationCoefficient_GasBoiler[index_BT7, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler  * SetUpScenarios.timeResolution_InMinutes * 60 / 3600000
+
+                if simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] > simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]:
+                    simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot] = (simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] <= simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]:
+                    simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot] = (simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+                simulationResult_costs_BT7[index_day, index_BT7, index_timeslot] = simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot] + (simulationResult_gasConsumptionkWh_BT7 [index_day, index_BT7, index_timeslot]) * SetUpScenarios.priceForGasInCentPerKWH
+
+
+
+            #Count number of starts of the gas boiler
+
+                if index_timeslot >= 1:
+                    if  outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_BT7, index_timeslot - 1] == 0 and outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_BT7, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsGasBoiler_BT7 [index_day, index_BT7] += 1
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT7  [index_day, index_BT7, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT7  [index_day, index_BT7] = simulationObjective_surplusEnergyKWH_BT7  [index_day, index_BT7] + ((simulationResult_SurplusPower_BT7  [index_day, index_BT7, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]) > simulationObjective_maximumLoad_BT7 [index_day, index_BT7]:
+                    simulationObjective_maximumLoad_BT7 [index_day, index_BT7] = simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] -  simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]
+                if (simulationResult_PVGeneration_BT7  [index_day, index_BT7, index_timeslot] -  simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]) > simulationObjective_maximumLoad_BT7 [index_day, index_BT7]:
+                    simulationObjective_maximumLoad_BT7 [index_day, index_BT7] = simulationResult_PVGeneration_BT7  [index_day, index_BT7, index_timeslot] -   simulationResult_electricalLoad_BT7[index_day, index_BT7, index_timeslot]
+                simulationObjective_costs_BT7  [index_day, index_BT7]  = simulationObjective_costs_BT7  [index_day, index_BT7] +  simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot]
+
+                simulationObjective_CO2Emissions_BT7 [index_day, index_BT7] = 0
+                
+                if simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT7 [index_day, index_BT7, index_timeslot]  = simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT7 [index_day, index_BT7, index_timeslot] =  (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot]
+
+                simulationObjective_thermalDiscomfort_BT7[index_day, index_BT7] = simulationObjective_thermalDiscomfort_BT7 [index_day, index_BT7] + simulationResult_thermalDiscomfort_BT7 [index_day, index_BT7, index_timeslot]
+                
+
+
+
+        # Calculate values for all buildings combined
+        for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+            for index_BT1 in range (0, len(indexOfBuildingsOverall_BT1)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT1 [index_day, index_BT1, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT1[index_day, index_BT1]
+            for index_BT2 in range (0, len(indexOfBuildingsOverall_BT2)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT2 [index_day, index_BT2, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT2[index_day, index_BT2]
+            for index_BT3 in range (0, len(indexOfBuildingsOverall_BT3)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT3 [index_day, index_BT3, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]
+            for index_BT4 in range (0, len(indexOfBuildingsOverall_BT4)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT4 [index_day, index_BT4, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT4[index_day, index_BT4]
+            for index_BT5 in range (0, len(indexOfBuildingsOverall_BT5)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT5 [index_day, index_BT5, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]
+            for index_BT6 in range (0, len(indexOfBuildingsOverall_BT6)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] = simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] + simulationResult_gasConsumptionkWh_BT6 [index_day, index_BT6, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT6[index_day, index_BT6]
+            for index_BT7 in range (0, len(indexOfBuildingsOverall_BT7)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] = simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] + simulationResult_gasConsumptionkWh_BT7 [index_day, index_BT7, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT7[index_day, index_BT7]
+
+            if simulationResult_electricalLoad_combined [index_day,index_timeslot] > simulationResult_PVGeneration_combined [index_day, index_timeslot]:
+               simulationResult_costs_combined [index_day, index_timeslot] = (simulationResult_electricalLoad_combined [index_day, index_timeslot] - simulationResult_PVGeneration_combined [index_day, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+            if simulationResult_electricalLoad_combined [index_day, index_timeslot] <= simulationResult_PVGeneration_combined [index_day, index_timeslot]:
+               simulationResult_costs_combined [index_day, index_timeslot] = (simulationResult_PVGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+
+
+            #Calculate the objectives for all buidlings combined
+            if simulationResult_RESGeneration_combined [index_day, index_timeslot] > simulationResult_electricalLoad_combined [index_day,index_timeslot]:
+                simulationObjective_surplusEnergy_kWh_combined [index_day] =  simulationObjective_surplusEnergy_kWh_combined [index_day] +  (simulationResult_RESGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day,index_timeslot]) * ((SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                simulationResult_SurplusEnergy_combined [index_day, index_timeslot] = (simulationResult_RESGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day,index_timeslot]) * ((SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+            simulationObjective_costs_Euro_combined [index_day] =simulationObjective_costs_Euro_combined [index_day] + simulationResult_costs_combined [index_day, index_timeslot]
+            if (simulationResult_electricalLoad_combined [index_day, index_timeslot]  > simulationResult_PVGeneration_combined [index_day, index_timeslot]) and (simulationResult_electricalLoad_combined [index_day, index_timeslot]  - simulationResult_PVGeneration_combined [index_day, index_timeslot])> simulationObjective_maximumLoad_kW_combined [index_day]:
+                simulationObjective_maximumLoad_kW_combined [index_day] = simulationResult_electricalLoad_combined [index_day, index_timeslot]  - simulationResult_PVGeneration_combined [index_day, index_timeslot]
+            if (simulationResult_electricalLoad_combined [index_day, index_timeslot]  <= simulationResult_PVGeneration_combined [index_day, index_timeslot]) and ( simulationResult_PVGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day, index_timeslot])> simulationObjective_maximumLoad_kW_combined [index_day]:
+                simulationObjective_maximumLoad_kW_combined [index_day] = simulationResult_PVGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day, index_timeslot]
+            simulationObjective_gasConsumptionkWh_combined [index_day] = simulationObjective_gasConsumptionkWh_combined [index_day] + simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot]
+
+        #Scale the results for thermal discomfort
+        simulationObjective_thermalDiscomfort_combined [index_day]  = simulationObjective_thermalDiscomfort_combined [index_day] / (SetUpScenarios.numberOfTimeSlotsPerDay * SetUpScenarios.numberOfBuildings_Total)
+
+       #Calculate the combined score
+        if optParameters['optimization_1Objective'] == True:
+
+           if optParameters['optimizationGoal_minimizeSurplusEnergy'] == True:
+                simulationObjective_combinedScore_combined[index_day] = simulationObjective_surplusEnergy_kWh_combined [index_day]
+           if optParameters['optimizationGoal_minimizeGas'] == True:
+               simulationObjective_combinedScore_combined [index_day] = simulationObjective_gasConsumptionkWh_combined [index_day]
+           if optParameters['optimizationGoal_minimizePeakLoad'] == True:
+               simulationObjective_combinedScore_combined [index_day] = simulationObjective_maximumLoad_kW_combined [index_day]
+           if optParameters['optimizationGoal_minimizeCosts'] == True:
+              simulationObjective_combinedScore_combined [index_day] = simulationObjective_costs_Euro_combined [index_day]
+           if optParameters['optimizationGoal_minimizeThermalDiscomfort'] == True:
+               simulationObjective_combinedScore_combined[index_day] = simulationObjective_thermalDiscomfort_combined [index_day]
+
+
+        if optParameters['optimization_2Objective']== True:
+
+           if (optParameters['optimizationGoal_minimizeSurplusEnergy'] == True and optParameters['optimizationGoal_minimizePeakLoad'] == True):
+               simulationObjective_combinedScore_combined [index_day] = optParameters['objective_minimizePeakLoad_weight']*(simulationObjective_maximumLoad_kW_combined [index_day]/optParameters['objective_minimizePeakLoad_normalizationValue']) + optParameters['objective_minimizeSurplusEnergy_weight'] * (simulationObjective_surplusEnergy_kWh_combined/optParameters['objective_minimizeSurplusEnergy_normalizationValue'])
+           if (optParameters['optimizationGoal_minimizeSurplusEnergy'] == True and optParameters['optimizationGoal_minimizeCosts'] == True):
+               simulationObjective_combinedScore_combined [index_day] = optParameters['objective_minimizeCosts_weight'] *(simulationObjective_costs_Euro_combined [index_day]/optParameters['objective_minimizeCosts_normalizationValue']) + optParameters['objective_minimizeSurplusEnergy_weight'] * (simulationObjective_surplusEnergy_kWh_combined/optParameters['objective_minimizeSurplusEnergy_normalizationValue'])
+           if (optParameters['optimizationGoal_minimizePeakLoad'] == True and optParameters['optimizationGoal_minimizeCosts'] == True):
+               simulationObjective_combinedScore_combined [index_day] = optParameters['objective_minimizeCosts_weight'] *(simulationObjective_costs_Euro_combined [index_day]/optParameters['objective_minimizeCosts_normalizationValue']) +  optParameters['objective_minimizeCosts_weight'] *(simulationObjective_costs_Euro_combined [index_day]/optParameters['objective_minimizeCosts_normalizationValue'])
+
+        if optParameters['optimization_3Objectives'] == True:
+            simulationObjective_combinedScore_combined [index_day] = optParameters['objective_minimizePeakLoad_weight']*(simulationObjective_maximumLoad_kW_combined [index_day]/optParameters['objective_minimizePeakLoad_normalizationValue']) + optParameters['objective_minimizeSurplusEnergy_weight'] * (simulationObjective_surplusEnergy_kWh_combined/optParameters['objective_minimizeSurplusEnergy_normalizationValue']) + optParameters['objective_minimizeCosts_weight'] *(simulationObjective_costs_Euro_combined [index_day]/optParameters['objective_minimizeCosts_normalizationValue'])
+
+    #Convert and round values of the objectives
+    simulationObjective_maximumLoad_kW_combined [index_day] = simulationObjective_maximumLoad_kW_combined [index_day]  /1000
+    simulationObjective_maximumLoad_kW_combined [index_day]  = round(simulationObjective_maximumLoad_kW_combined [index_day],2)
+    simulationObjective_costs_Euro_combined [index_day] =  simulationObjective_costs_Euro_combined [index_day] /100
+    simulationObjective_costs_Euro_combined [index_day] =  round(simulationObjective_costs_Euro_combined [index_day],2)
+    simulationObjective_surplusEnergy_kWh_combined [index_day] =  round(simulationObjective_surplusEnergy_kWh_combined [index_day],2)
+    simulationObjective_thermalDiscomfort_combined [index_day] = round(simulationObjective_thermalDiscomfort_combined [index_day], 2)
+    simulationObjective_gasConsumptionkWh_combined  [index_day] = round(simulationObjective_gasConsumptionkWh_combined [index_day], 2)
+
+   #Print results (constraint violations and objectives)
+    print("")
+    print("Results for Day " + str(currentDay) )
+
+    print("")
+    print("Objectives" + "\n" + "\n")
+    print("Consider objective Surplus Energy: " + str(optParameters['optimizationGoal_minimizeSurplusEnergy']))
+    print("Consider objective Peak Load: " + str(optParameters['optimizationGoal_minimizePeakLoad']))
+    print("Consider objective Costs: " + str(optParameters['optimizationGoal_minimizeCosts']))
+    print("Consider objective Gas Consumption: " + str(optParameters['optimizationGoal_minimizeGas']))
+    print("Consider objective Thermal Discomfort: " + str(optParameters['optimizationGoal_minimizeThermalDiscomfort']) + "\n")
+    print("Objective Surplus Energy [kWh]: " + str(round(simulationObjective_surplusEnergy_kWh_combined [index_day], 2)) )
+    print("Objective Peak Load [kW]: " + str(round(simulationObjective_maximumLoad_kW_combined [index_day], 2)))
+    print("Objective Costs [Euro]: " + str(round(simulationObjective_costs_Euro_combined [index_day], 2)) )
+    print("Objective Thermal Discomfort: " + str(round(simulationObjective_thermalDiscomfort_combined [index_day], 2)) )
+    print("Objective Gas Consumption: " + str(round(simulationObjective_gasConsumptionkWh_combined [index_day], 2)) )
+    print("")
+
+
+
+    #Write result data into files
+
+    #Create folder for the day
+    pathForCreatingTheResultDataWithDay = pathForCreatingTheResultData + "/Day" + str(currentDay)
+
+    try:
+        os.makedirs(pathForCreatingTheResultDataWithDay)
+    except OSError:
+        print ("Creation of the directory %s failed" % pathForCreatingTheResultDataWithDay)
+
+
+    #BT1
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT1):
+        df_resultingProfiles_BT1 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected[i, :],'heatGenerationCoefficientDHW': outputVector_BT1_heatGenerationCoefficientDHW_corrected[i, :],'chargingPowerEV': outputVector_BT1_chargingPowerEV_corrected[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT1[0,i, :], 'usableVolumeDHWTank': simulationResult_UsableVolumeDHW_BT1[0,i, :], 'simulationResult_SOCofEV': simulationResult_SOCofEV_BT1[0,i, :], 'simulationResult_energyLevelOfEV': simulationResult_energyLevelOfEV_BT1[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT1[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT1[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT1[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT1[0,i, :], 'simulationResult_costs': simulationResult_costs_BT1[0,i, :], 'Space Heating [W]': simulationInput_BT1_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT1_DHW [i, :], 'Electricity [W]': simulationInput_BT1_electricityDemand [i, :], 'Availability of the EV': simulationInput_BT1_availabilityPattern [i, :],'Energy Consumption of the EV':simulationInput_BT1_energyConsumptionOfTheEV [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT1 [0, i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'COP (Space Heating)': cop_heatPump_SpaceHeating [:], 'COP (DHW)': cop_heatPump_DHW [:], 'numberOfStarts_HP': simulationResult_numberOfStartsHP_PerTimeslot_BT1[0,i, :],  'HP_isRunning': simulationResult_isHPRunning_PerTimeslot_BT1 [0,i, :]})
+
+        #Round values
+        df_resultingProfiles_BT1 ['heatGenerationCoefficientSpaceHeating'] = df_resultingProfiles_BT1 ['heatGenerationCoefficientSpaceHeating'].round(2)
+        df_resultingProfiles_BT1 ['heatGenerationCoefficientDHW'] = df_resultingProfiles_BT1 ['heatGenerationCoefficientDHW'].round(2)
+        df_resultingProfiles_BT1 ['chargingPowerEV'] = df_resultingProfiles_BT1 ['chargingPowerEV'].round(2)
+        df_resultingProfiles_BT1 ['temperatureBufferStorage'] = df_resultingProfiles_BT1 ['temperatureBufferStorage'].round(2)
+        df_resultingProfiles_BT1 ['usableVolumeDHWTank'] = df_resultingProfiles_BT1 ['usableVolumeDHWTank'].round(2)
+        df_resultingProfiles_BT1 ['simulationResult_SOCofEV'] = df_resultingProfiles_BT1 ['simulationResult_SOCofEV'].round(2)
+        df_resultingProfiles_BT1 ['simulationResult_energyLevelOfEV'] = (df_resultingProfiles_BT1 ['simulationResult_energyLevelOfEV']/3600000).round(2)
+        df_resultingProfiles_BT1 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT1 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT1 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT1 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT1 ['simulationResult_costs'] = df_resultingProfiles_BT1 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT1 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT1 ['simulationResult_RESGeneration'].round(2)
+        df_resultingProfiles_BT1 ['thermalDiscomfort'] = df_resultingProfiles_BT1 ['thermalDiscomfort'].round(2)
+
+        df_resultingProfiles_BT1 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT1 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT1 ['Space Heating [W]'] = df_resultingProfiles_BT1 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT1 ['DHW [W]'] = df_resultingProfiles_BT1 ['DHW [W]'].round(1)
+        df_resultingProfiles_BT1 ['Electricity [W]'] = df_resultingProfiles_BT1 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT1 ['Outside Temperature [C]'] = df_resultingProfiles_BT1 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT1 ['Price [Cent/kWh]'] = df_resultingProfiles_BT1 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT1 ['COP (Space Heating)'] = df_resultingProfiles_BT1 ['COP (Space Heating)'].round(2)
+        df_resultingProfiles_BT1 ['COP (DHW)'] = df_resultingProfiles_BT1 ['COP (DHW)'].round(2)
+        price_array = df_resultingProfiles_BT1 ['Price [Cent/kWh]'].values
+
+
+        df_resultingProfiles_BT1.index.name = 'timeslot'
+        df_resultingProfiles_BT1.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT1), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT1.to_csv(pathForCreatingTheResultDataWithDay + "/BT1_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+
+
+    #BT2
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT2):
+        df_resultingProfiles_BT2 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected[i, :],'heatGenerationCoefficientDHW': outputVector_BT2_heatGenerationCoefficientDHW_corrected[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT2[0,i, :], 'usableVolumeDHWTank': simulationResult_UsableVolumeDHW_BT2[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT2[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT2[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT2[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT2[0,i, :], 'simulationResult_costs': simulationResult_costs_BT2[0,i, :], 'Space Heating [W]': simulationInput_BT2_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT2_DHW [i, :], 'Electricity [W]': simulationInput_BT2_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT2 [0, i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'COP (Space Heating)': cop_heatPump_SpaceHeating [:], 'COP (DHW)': cop_heatPump_DHW [:], 'numberOfStarts_HP': simulationResult_numberOfStartsHP_PerTimeslot_BT2[0,i, :],  'HP_isRunning': simulationResult_isHPRunning_PerTimeslot_BT2 [0,i, :]})
+
+        #Round values
+        df_resultingProfiles_BT2 ['heatGenerationCoefficientSpaceHeating'] = df_resultingProfiles_BT2 ['heatGenerationCoefficientSpaceHeating'].round(2)
+        df_resultingProfiles_BT2 ['heatGenerationCoefficientDHW'] = df_resultingProfiles_BT2 ['heatGenerationCoefficientDHW'].round(2)
+        df_resultingProfiles_BT2 ['temperatureBufferStorage'] = df_resultingProfiles_BT2 ['temperatureBufferStorage'].round(2)
+        df_resultingProfiles_BT2 ['usableVolumeDHWTank'] = df_resultingProfiles_BT2 ['usableVolumeDHWTank'].round(2)
+        df_resultingProfiles_BT2 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT2 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT2 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT2 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT2 ['simulationResult_costs'] = df_resultingProfiles_BT2 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT2 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT2 ['simulationResult_RESGeneration'].round(2)
+        df_resultingProfiles_BT2 ['thermalDiscomfort'] = df_resultingProfiles_BT2 ['thermalDiscomfort'].round(2)
+
+        df_resultingProfiles_BT2 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT2 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT2 ['Space Heating [W]'] = df_resultingProfiles_BT2 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT2 ['DHW [W]'] = df_resultingProfiles_BT2 ['DHW [W]'].round(1)
+        df_resultingProfiles_BT2 ['Electricity [W]'] = df_resultingProfiles_BT2 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT2 ['Outside Temperature [C]'] = df_resultingProfiles_BT2 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT2 ['Price [Cent/kWh]'] = df_resultingProfiles_BT2 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT2 ['COP (Space Heating)'] = df_resultingProfiles_BT2 ['COP (Space Heating)'].round(2)
+        df_resultingProfiles_BT2 ['COP (DHW)'] = df_resultingProfiles_BT2 ['COP (DHW)'].round(2)
+
+        df_resultingProfiles_BT2.index.name = 'timeslot'
+        df_resultingProfiles_BT2.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT2), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT2.to_csv(pathForCreatingTheResultDataWithDay + "/BT2_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        price_array = df_resultingProfiles_BT2['Price [Cent/kWh]'].values
+    #BT3
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT3):
+        df_resultingProfiles_BT3 = pd.DataFrame({'chargingPowerEV': outputVector_BT3_chargingPowerEV_corrected[i, :],  'simulationResult_SOCofEV': simulationResult_SOCofEV_BT3[0,i, :], 'simulationResult_energyLevelOfEV': simulationResult_energyLevelOfEV_BT3[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT3[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT3[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT3[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT3[0,i, :], 'simulationResult_costs': simulationResult_costs_BT3[0,i, :], 'Electricity [W]': simulationInput_BT3_electricityDemand [i, :], 'Availability of the EV': simulationInput_BT3_availabilityPattern [i, :],'Energy Consumption of the EV':simulationInput_BT3_energyConsumptionOfTheEV [i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]']})
+        #Round values
+        df_resultingProfiles_BT3 ['chargingPowerEV'] = df_resultingProfiles_BT3 ['chargingPowerEV'].round(2)
+        df_resultingProfiles_BT3 ['simulationResult_SOCofEV'] = df_resultingProfiles_BT3 ['simulationResult_SOCofEV'].round(2)
+        df_resultingProfiles_BT3 ['simulationResult_energyLevelOfEV'] = (df_resultingProfiles_BT3 ['simulationResult_energyLevelOfEV']/3600000).round(2)
+        df_resultingProfiles_BT3 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT3 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT3 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT3 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT3 ['simulationResult_costs'] = df_resultingProfiles_BT3 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT3 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT3 ['simulationResult_RESGeneration'].round(2)
+
+        df_resultingProfiles_BT3 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT3 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT3 ['Electricity [W]'] = df_resultingProfiles_BT3 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT3 ['Outside Temperature [C]'] = df_resultingProfiles_BT3 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT3 ['Price [Cent/kWh]'] = df_resultingProfiles_BT3 ['Price [Cent/kWh]'].round(2)
+
+
+        df_resultingProfiles_BT3.index.name = 'timeslot'
+        df_resultingProfiles_BT3.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT3), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT3.to_csv(pathForCreatingTheResultDataWithDay + "/BT3_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        price_array = df_resultingProfiles_BT3['Price [Cent/kWh]'].values
+
+    #BT4
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT4):
+        df_resultingProfiles_BT4 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT4[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT4[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT4[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT4[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT4[0,i, :], 'simulationResult_costs': simulationResult_costs_BT4[0,i, :], 'Space Heating [W]': simulationInput_BT4_SpaceHeating [i, :],  'Electricity [W]': simulationInput_BT4_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT4 [0, i, :],  'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'COP (Space Heating)': cop_heatPump_SpaceHeating [:], 'numberOfStarts_HP': simulationResult_numberOfStartsHP_PerTimeslot_BT4[0,i, :],  'HP_isRunning': simulationResult_isHPRunning_PerTimeslot_BT4 [0,i, :]})
+        #Round values
+
+        df_resultingProfiles_BT4 ['heatGenerationCoefficientSpaceHeating'] = df_resultingProfiles_BT4 ['heatGenerationCoefficientSpaceHeating'].round(2)
+        df_resultingProfiles_BT4 ['temperatureBufferStorage'] = df_resultingProfiles_BT4 ['temperatureBufferStorage'].round(2)
+        df_resultingProfiles_BT4 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT4 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT4 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT4 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT4 ['simulationResult_costs'] = df_resultingProfiles_BT4 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT4 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT4 ['simulationResult_RESGeneration'].round(2)
+        df_resultingProfiles_BT4 ['thermalDiscomfort'] = df_resultingProfiles_BT4 ['thermalDiscomfort'].round(2)
+
+        df_resultingProfiles_BT4 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT4 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT4 ['Space Heating [W]'] = df_resultingProfiles_BT4 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT4 ['Electricity [W]'] = df_resultingProfiles_BT4 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT4 ['Outside Temperature [C]'] = df_resultingProfiles_BT4 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT4 ['Price [Cent/kWh]'] = df_resultingProfiles_BT4 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT4 ['COP (Space Heating)'] = df_resultingProfiles_BT4 ['COP (Space Heating)'].round(2)
+
+
+        df_resultingProfiles_BT4.index.name = 'timeslot'
+        df_resultingProfiles_BT4.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT4), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT4.to_csv(pathForCreatingTheResultDataWithDay + "/BT4_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        price_array = df_resultingProfiles_BT4['Price [Cent/kWh]'].values
+
+    #BT5
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT5):
+        df_resultingProfiles_BT5 = pd.DataFrame({'chargingPowerBAT': outputVector_BT5_chargingPowerBAT_corrected[i, :], 'disChargingPowerBAT': outputVector_BT5_disChargingPowerBAT_corrected[i, :],  'simulationResult_SOCofBAT': simulationResult_SOCofBAT_BT5[0,i, :], 'simulationResult_energyLevelOfBAT': simulationResult_energyLevelOfBAT_BT5[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT5[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT5[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT5[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT5[0,i, :], 'simulationResult_costs': simulationResult_costs_BT5[0,i, :], 'Electricity [W]': simulationInput_BT5_electricityDemand [i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]']})
+        #Round values
+        df_resultingProfiles_BT5 ['chargingPowerBAT'] = df_resultingProfiles_BT5 ['chargingPowerBAT'].round(2)
+        df_resultingProfiles_BT5 ['disChargingPowerBAT'] = df_resultingProfiles_BT5 ['disChargingPowerBAT'].round(2)
+        df_resultingProfiles_BT5 ['simulationResult_SOCofBAT'] = df_resultingProfiles_BT5 ['simulationResult_SOCofBAT'].round(2)
+        df_resultingProfiles_BT5 ['simulationResult_energyLevelOfBAT'] = (df_resultingProfiles_BT5 ['simulationResult_energyLevelOfBAT']/3600000).round(2)
+        df_resultingProfiles_BT5 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT5 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT5 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT5 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT5 ['simulationResult_costs'] = df_resultingProfiles_BT5 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT5 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT5 ['simulationResult_RESGeneration'].round(2)
+
+        df_resultingProfiles_BT5 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT5 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT5 ['Electricity [W]'] = df_resultingProfiles_BT5 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT5 ['Outside Temperature [C]'] = df_resultingProfiles_BT5 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT5 ['Price [Cent/kWh]'] = df_resultingProfiles_BT5 ['Price [Cent/kWh]'].round(2)
+
+
+        df_resultingProfiles_BT5.index.name = 'timeslot'
+        df_resultingProfiles_BT5.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT5), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT5.to_csv(pathForCreatingTheResultDataWithDay + "/BT5_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        price_array = df_resultingProfiles_BT5['Price [Cent/kWh]'].values
+
+    #BT6
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT6):
+        df_resultingProfiles_BT6 = pd.DataFrame({'heatGenerationCoefficient_GasBoiler': outputVector_BT6_heatGenerationCoefficient_GasBoiler[i, :],'heatGenerationCoefficient_ElectricalHeatingElement': outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement[i, :],'heatTransferCoefficient_StorageToRoom': outputVector_BT6_heatTransferCoefficient_StorageToRoom[i, :], 'temperatureBuilding': simulationResult_temperatureBuilding_BT6[0,i, :], 'energyLevelCombinedStorage': simulationResult_energyLevelCombinedStorage_BT6[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT6[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT6[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT6[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT6[0,i, :], 'simulationResult_costs': simulationResult_costs_BT6[0,i, :], 'Space Heating [W]': simulationInput_BT6_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT6_DHW [i, :], 'Electricity [W]': simulationInput_BT6_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT6 [0, i, :] ,  'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'gasConsumptionkWh': simulationResult_gasConsumptionkWh_BT6[0, i, :]})
+
+        #Round values
+        df_resultingProfiles_BT6 ['heatGenerationCoefficient_GasBoiler'] = df_resultingProfiles_BT6 ['heatGenerationCoefficient_GasBoiler'].round(2)
+        df_resultingProfiles_BT6 ['heatGenerationCoefficient_ElectricalHeatingElement'] = df_resultingProfiles_BT6 ['heatGenerationCoefficient_ElectricalHeatingElement'].round(2)
+        df_resultingProfiles_BT6 ['heatTransferCoefficient_StorageToRoom'] = df_resultingProfiles_BT6 ['heatTransferCoefficient_StorageToRoom'].round(2)
+        df_resultingProfiles_BT6 ['temperatureBuilding'] = df_resultingProfiles_BT6 ['temperatureBuilding'].round(2)
+        df_resultingProfiles_BT6 ['energyLevelCombinedStorage'] = df_resultingProfiles_BT6 ['energyLevelCombinedStorage'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT6 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT6 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_costs'] = df_resultingProfiles_BT6 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT6 ['simulationResult_RESGeneration'].round(2)
+
+        df_resultingProfiles_BT6 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT6 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT6 ['Space Heating [W]'] = df_resultingProfiles_BT6 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT6 ['DHW [W]'] = df_resultingProfiles_BT6 ['DHW [W]'].round(1)
+        df_resultingProfiles_BT6 ['Electricity [W]'] = df_resultingProfiles_BT6 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT6 ['Outside Temperature [C]'] = df_resultingProfiles_BT6 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT6 ['Price [Cent/kWh]'] = df_resultingProfiles_BT6 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT6 ['thermalDiscomfort'] = df_resultingProfiles_BT6 ['thermalDiscomfort'].round(2)
+        df_resultingProfiles_BT6 ['gasConsumptionkWh'] = df_resultingProfiles_BT6 ['gasConsumptionkWh'].round(2)
+
+        df_resultingProfiles_BT6.index.name = 'timeslot'
+        df_resultingProfiles_BT6.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT6), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT6.to_csv(pathForCreatingTheResultDataWithDay + "/BT6_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        price_array = df_resultingProfiles_BT6['Price [Cent/kWh]'].values
+
+    #BT7
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT7):
+        df_resultingProfiles_BT7 = pd.DataFrame({'heatGenerationCoefficient_GasBoiler': outputVector_BT7_heatGenerationCoefficient_GasBoiler[i, :],'heatGenerationCoefficient_ElectricalFanHeater': outputVector_BT7_electricalPowerFanHeater[i, :], 'temperatureBuilding': simulationResult_temperatureBuilding_BT7[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT7[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT7[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT7[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT7[0,i, :], 'simulationResult_costs': simulationResult_costs_BT7[0,i, :], 'Space Heating [W]': simulationInput_BT7_SpaceHeating [i, :],  'Electricity [W]': simulationInput_BT7_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT7 [0, i, :] ,  'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'gasConsumptionkWh': simulationResult_gasConsumptionkWh_BT7[0, i, :]})
+
+        #Round values
+        df_resultingProfiles_BT7 ['heatGenerationCoefficient_GasBoiler'] = df_resultingProfiles_BT7 ['heatGenerationCoefficient_GasBoiler'].round(2)
+        df_resultingProfiles_BT7 ['heatGenerationCoefficient_ElectricalFanHeater'] = df_resultingProfiles_BT7 ['heatGenerationCoefficient_ElectricalFanHeater'].round(2)
+        df_resultingProfiles_BT7 ['temperatureBuilding'] = df_resultingProfiles_BT7 ['temperatureBuilding'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT7 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT7 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_costs'] = df_resultingProfiles_BT7 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT7 ['simulationResult_RESGeneration'].round(2)
+
+        df_resultingProfiles_BT7 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT7 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT7 ['Space Heating [W]'] = df_resultingProfiles_BT7 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT7 ['Electricity [W]'] = df_resultingProfiles_BT7 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT7 ['Outside Temperature [C]'] = df_resultingProfiles_BT7 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT7 ['Price [Cent/kWh]'] = df_resultingProfiles_BT7 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT7 ['thermalDiscomfort'] = df_resultingProfiles_BT7 ['thermalDiscomfort'].round(2)
+        df_resultingProfiles_BT7 ['gasConsumptionkWh'] = df_resultingProfiles_BT7 ['gasConsumptionkWh'].round(2)
+
+        df_resultingProfiles_BT7.index.name = 'timeslot'
+        df_resultingProfiles_BT7.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT7), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT7.to_csv(pathForCreatingTheResultDataWithDay + "/BT7_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        price_array = df_resultingProfiles_BT7['Price [Cent/kWh]'].values
+
+    #Combined results for the whole residential area
+    df_resultingProfiles_combined = pd.DataFrame({'simulationResult_electricalLoad_combined': simulationResult_electricalLoad_combined[0, :],'simulationResult_RESGeneration_combined': simulationResult_RESGeneration_combined[0, :],'simulationResult_PVGeneration_combined': simulationResult_PVGeneration_combined[0, :], 'simulationResult_SurplusEnergy_combined': simulationResult_SurplusEnergy_combined[0, :], 'simulationResult_costs_combined': simulationResult_costs_combined[0, :]})
+    df_resultingProfiles_combined ['simulationResult_electricalLoad_combined'] =df_resultingProfiles_combined ['simulationResult_electricalLoad_combined'].round(2)
+    df_resultingProfiles_combined ['simulationResult_RESGeneration_combined'] =df_resultingProfiles_combined ['simulationResult_RESGeneration_combined'].round(2)
+    df_resultingProfiles_combined ['simulationResult_PVGeneration_combined'] =df_resultingProfiles_combined ['simulationResult_PVGeneration_combined'].round(2)
+    df_resultingProfiles_combined ['simulationResult_SurplusEnergy_combined'] =df_resultingProfiles_combined ['simulationResult_SurplusEnergy_combined'].round(2)
+    df_resultingProfiles_combined ['simulationResult_costs_combined'] =df_resultingProfiles_combined ['simulationResult_costs_combined'].round(2)
+
+
+
+    df_resultingProfiles_combined.index.name = 'timeslot'
+    df_resultingProfiles_combined.index +=1
+    df_resultingProfiles_combined.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_combined), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+    df_resultingProfiles_combined.to_csv (pathForCreatingTheResultDataWithDay + "/wholeResidentialArea.csv", index=True,  sep =";")
+
+    combined_array_thermal_discomfort = np.concatenate([simulationResult_thermalDiscomfort_BT1, simulationResult_thermalDiscomfort_BT2, simulationResult_thermalDiscomfort_BT3, simulationResult_thermalDiscomfort_BT4, simulationResult_thermalDiscomfort_BT5, simulationResult_thermalDiscomfort_BT6, simulationResult_thermalDiscomfort_BT7], axis=1)
+    combined_array_thermal_discomfort = np.sum(combined_array_thermal_discomfort, axis=1)
+    combined_array_thermal_discomfort = np.squeeze(combined_array_thermal_discomfort)
+
+
+    #Print results into file
+    filename = pathForCreatingTheResultDataWithDay + "/Results.txt"
+    with open(filename, 'w') as f:
+        print("Objectives" + "\n" + "\n")
+        print("Consider objective Surplus Energy: " + str(optParameters['optimizationGoal_minimizeSurplusEnergy']), file = f)
+        print("Consider objective Peak Load: " + str(optParameters['optimizationGoal_minimizePeakLoad']), file = f)
+        print("Consider objective Costs: " + str(optParameters['optimizationGoal_minimizeCosts']) + "\n", file = f)
+        print("Objective Surplus Energy [kWh]: " + str(round(simulationObjective_surplusEnergy_kWh_combined [index_day], 2)) , file = f)
+        print("Objective Peak Load [kW]: " + str(round(simulationObjective_maximumLoad_kW_combined [index_day], 2)), file = f)
+        print("Objective Costs [Euro]: " + str(round(simulationObjective_costs_Euro_combined [index_day], 2)), file = f)
+        print("Objective Thermal  Discomfort [°C]: " + str(round(simulationObjective_thermalDiscomfort_combined[index_day], 2)), file=f)
+        print("Objective Score: " + str(round(simulationObjective_combinedScore_combined [index_day], 2)), file = f)
+        print("", file = f)
+        print("", file = f)
+        print("Correction stats", file = f)
+        print("", file = f)
+        print("", file = f)
+        print("correctingStats_BT1_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots", correctingStats_BT1_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT1_heatGenerationCoefficientSpaceHeating_sumOfCorrections", correctingStats_BT1_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day],file = f)
+        print("correctingStats_BT1_heatGenerationCoefficientDHW_numberOfTimeSlots", correctingStats_BT1_heatGenerationCoefficientDHW_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT1_heatGenerationCoefficientDHW_sumOfCorrections", correctingStats_BT1_heatGenerationCoefficientDHW_sumOfCorrections [index_day],file = f)
+        print("correctingStats_BT1_chargingPowerEV_numberOfTimeSlots", correctingStats_BT1_chargingPowerEV_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT1_chargingPowerEV_sumOfCorrections", correctingStats_BT1_chargingPowerEV_sumOfCorrections [index_day],file = f)
+        print("", file = f)
+        print("correctingStats_BT2_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots", correctingStats_BT2_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT2_heatGenerationCoefficientSpaceHeating_sumOfCorrections", correctingStats_BT2_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day],file = f)
+        print("correctingStats_BT2_heatGenerationCoefficientDHW_numberOfTimeSlots", correctingStats_BT2_heatGenerationCoefficientDHW_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT2_heatGenerationCoefficientDHW_sumOfCorrections", correctingStats_BT2_heatGenerationCoefficientDHW_sumOfCorrections [index_day],file = f)
+        print("", file = f)
+        print("correctingStats_BT3_chargingPowerEV_numberOfTimeSlots", correctingStats_BT3_chargingPowerEV_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT3_chargingPowerEV_sumOfCorrections", correctingStats_BT3_chargingPowerEV_sumOfCorrections [index_day],file = f)
+        print("", file = f)
+        print("correctingStats_BT4_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots", correctingStats_BT4_heatGenerationCoefficientSpaceHeating_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT4_heatGenerationCoefficientSpaceHeating_sumOfCorrections", correctingStats_BT4_heatGenerationCoefficientSpaceHeating_sumOfCorrections [index_day],file = f)
+        print("", file = f)
+        print("correctingStats_BT5_chargingPowerBAT_numberOfTimeSlots", correctingStats_BT5_chargingPowerBAT_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT5_chargingPowerBAT_sumOfCorrections", correctingStats_BT5_chargingPowerBAT_sumOfCorrections [index_day],file = f)
+        print("", file = f)
+        print("correctingStats_BT5_chargingPowerBAT_numberOfTimeSlots", correctingStats_BT5_chargingPowerBAT_numberOfTimeSlots [index_day],file = f)
+        print("correctingStats_BT5_chargingPowerBAT_sumOfCorrections", correctingStats_BT5_chargingPowerBAT_sumOfCorrections [index_day],file = f)
+        print("", file = f)
+
+    sys.stdout = sys.__stdout__
+    f.close()
+
+    if use_local_search == True:
+        return simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, simulationResult_electricalLoad_combined [0], price_array, simulationInput_BT1_availabilityPattern, combined_array_thermal_discomfort, outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected, outputVector_BT1_heatGenerationCoefficientDHW_corrected, outputVector_BT1_chargingPowerEV_corrected, outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected, outputVector_BT2_heatGenerationCoefficientDHW_corrected, outputVector_BT3_chargingPowerEV_corrected, outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected, outputVector_BT5_chargingPowerBAT_corrected, outputVector_BT5_disChargingPowerBAT_corrected, outputVector_BT6_heatGenerationCoefficient_GasBoiler, outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement, outputVector_BT6_heatTransferCoefficient_StorageToRoom, outputVector_BT7_heatGenerationCoefficient_GasBoiler, outputVector_BT7_electricalPowerFanHeater, combined_array_thermal_discomfort, thermal_discomfort_space_heating_BT1, thermal_discomfort_dhw_BT1, thermal_discomfort_space_heating_BT2, thermal_discomfort_dhw_BT2, thermal_discomfort_space_heating_BT4
+    else:
+        return simulationObjective_surplusEnergy_kWh_combined, simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined
+
+
+
+
+
+
+
 #Simulation method for the conventional control strategy
 
-
-
-def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, pathForCreatingTheResultData):
+def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6,indexOfBuildingsOverall_BT7, currentDay, pathForCreatingTheResultData, use_local_search):
 
 
     #Variables of the simulation for all buildings combined
@@ -3535,10 +6083,14 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationResult_RESGeneration_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
     simulationResult_PVGeneration_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
     simulationResult_SurplusEnergy_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_gasConsumptionkWh_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
 
     simulationObjective_surplusEnergy_kWh_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
     simulationObjective_costs_Euro_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
     simulationObjective_maximumLoad_kW_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_thermalDiscomfort_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_CO2Emissions_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    simulationObjective_gasConsumptionkWh_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
     simulationObjective_combinedScore_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
 
     total_ConstraintViolation_BufferStorageTemperatureRange_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
@@ -3593,25 +6145,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationObjective_surplusEnergyKWH_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
     simulationObjective_costs_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
     simulationObjective_maximumLoad_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-
-    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_DHWTankRange_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_OnlyOneStorage_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_MinimalModulationDegree_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_SOCRangeOfTheEV_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_ChargingPowerOfTheEV_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
-
-    total_ConstraintViolation_BufferStorageTemperatureRange_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_DHWTankRange_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_BufferStorageTemperatureLastValue_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_DHWTankLastValue_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_OnlyOneStorage_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_MinimalModulationDegree_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_SOCRangeOfTheEV_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_SOCOfTheEVLastValue_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_ChargingPowerOfTheEV_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_numberOfStarts_Individual_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
-    total_ConstraintViolation_numberOfStarts_Combined_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_thermalDiscomfort_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_gasConsumptionkWh_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
+    simulationObjective_CO2Emissions_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1))
 
 
     #Variables of the simulation for BT2
@@ -3630,21 +6166,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationObjective_surplusEnergyKWH_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
     simulationObjective_costs_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
     simulationObjective_maximumLoad_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-
-    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_DHWTankRange_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_OnlyOneStorage_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_MinimalModulationDegree_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
-
-    total_ConstraintViolation_BufferStorageTemperatureRange_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_DHWTankRange_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_BufferStorageTemperatureLastValue_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_DHWTankLastValue_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_OnlyOneStorage_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_MinimalModulationDegree_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_numberOfStarts_Individual_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-    total_ConstraintViolation_numberOfStarts_Combined_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
-
+    simulationObjective_thermalDiscomfort_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_gasConsumptionkWh_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
+    simulationObjective_CO2Emissions_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2))
 
 
     #Variables of the simulation for BT3
@@ -3661,14 +6185,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationObjective_surplusEnergyKWH_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
     simulationObjective_costs_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
     simulationObjective_maximumLoad_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
-
-    simulation_ConstraintViolation_SOCRangeOfTheEV_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_ChargingPowerOfTheEV_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
-
-    total_ConstraintViolation_SOCRangeOfTheEV_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
-    total_ConstraintViolation_SOCOfTheEVLastValue_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
-    total_ConstraintViolation_ChargingPowerOfTheEV_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
-
+    simulationObjective_CO2Emissions_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_gasConsumptionkWh_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
+    simulationObjective_CO2Emissions_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3))
 
     #Variables of the simulation for BT4
 
@@ -3683,15 +6202,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationObjective_surplusEnergyKWH_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
     simulationObjective_costs_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
     simulationObjective_maximumLoad_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
-
-    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_MinimalModulationDegree_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
-
-    total_ConstraintViolation_BufferStorageTemperatureRange_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
-    total_ConstraintViolation_BufferStorageTemperatureLastValue_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
-    total_ConstraintViolation_MinimalModulationDegree_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
-    total_ConstraintViolation_numberOfStarts_Individual_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
-
+    simulationObjective_thermalDiscomfort_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_gasConsumptionkWh_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
+    simulationObjective_CO2Emissions_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4))
 
     # Variables of the simulation for BT5
 
@@ -3706,48 +6219,56 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationObjective_surplusEnergyKWH_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
     simulationObjective_costs_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
     simulationObjective_maximumLoad_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_CO2Emissions_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_gasConsumptionkWh_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationObjective_CO2Emissions_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
 
-    simulation_ConstraintViolation_SOCRangeOfTheBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_ChargingPowerOfTheBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulation_ConstraintViolation_disChargingPowerOfTheBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    #Variables of the simulation for BT6
+    simulationResult_electricalLoad_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_gasConsumptionkWh_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStartsGasBoiler_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
 
-    total_ConstraintViolation_SOCRangeOfTheBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
-    total_ConstraintViolation_SOCOfTheBATLastValue_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
-    total_ConstraintViolation_ChargingPowerOfTheBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
-    total_ConstraintViolation_disChargingPowerOfTheBAT_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5))
+    simulationResult_temperatureBuilding_BT6  = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_energyLevelCombinedStorage_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+    simulationObjective_surplusEnergyKWH_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_costs_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_maximumLoad_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_thermalDiscomfort_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_gasConsumptionkWh_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
+    simulationObjective_CO2Emissions_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6))
 
 
-    # Additional constraint violation variables for the internal controller
 
-    negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_CorrectionLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_DHWTankRange_CorrectionLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_PhysicalLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_DHWTankRange_PhysicalLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_CorrectionLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_DHWTankLastValue_CorrectionLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_CorrectionLimit_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_ConstraintViolation_numberOfStarts_CorrectionLimit_Combined_Combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
-    negativeScore_total_overall = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing)))
+    #Variables of the simulation for BT7
+    simulationResult_electricalLoad_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_costs_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_SurplusPower_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_PVGeneration_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_RESGeneration_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_gasConsumptionkWh_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_numberOfStartsGasBoiler_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationResult_temperatureBuilding_BT7  = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
 
-    #Define the variables for the simulation input (are only used for the output csv file)
-    simulationInput_BT1_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT1_DHW = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT1_availabilityPattern = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT1_energyConsumptionOfTheEV = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT1_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationObjective_surplusEnergyKWH_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_costs_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_maximumLoad_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_thermalDiscomfort_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_gasConsumptionkWh_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
+    simulationObjective_CO2Emissions_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7))
 
-    simulationInput_BT2_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT2_DHW = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT2_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
 
-    simulationInput_BT3_availabilityPattern = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT3_energyConsumptionOfTheEV = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT3_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
-
-    simulationInput_BT4_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT4), SetUpScenarios.numberOfTimeSlotsPerDay))
-    simulationInput_BT4_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT4), SetUpScenarios.numberOfTimeSlotsPerDay))
-
-    simulationInput_BT5_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT5), SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT1 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT2 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT2, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT3 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT3, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT4 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT4, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT5 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT6 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+    simulationResult_thermalDiscomfort_BT7 = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
 
 
     for index_day in range (0, len(Run_Simulations.daysOfTheYearForSimulation_Testing)):
@@ -3767,11 +6288,44 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         outputVector_BT5_chargingPowerBAT_Conventional = np.zeros((SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
         outputVector_BT5_disChargingPowerBAT_Conventional = np.zeros((SetUpScenarios.numberOfBuildings_BT5, SetUpScenarios.numberOfTimeSlotsPerDay))
 
+        outputVector_BT6_heatGenerationCoefficient_GasBoiler =  np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+        outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+        outputVector_BT6_heatTransferCoefficient_StorageToRoom = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT6, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        outputVector_BT7_heatGenerationCoefficient_GasBoiler  = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+        outputVector_BT7_electricalPowerFanHeater = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing),SetUpScenarios.numberOfBuildings_BT7, SetUpScenarios.numberOfTimeSlotsPerDay))
+
+
+        simulationInput_BT1_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_DHW = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_availabilityPattern = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_energyConsumptionOfTheEV = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT1_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT1), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT2_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT2_DHW = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT2_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT2), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT3_availabilityPattern = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT3_energyConsumptionOfTheEV = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT3_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT3), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT4_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT4), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT4_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT4), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT5_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT5), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT6_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT6), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT6_DHW = np.zeros((len(indexOfBuildingsOverall_BT6), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT6_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT6), SetUpScenarios.numberOfTimeSlotsPerDay))
+
+        simulationInput_BT7_SpaceHeating = np.zeros((len(indexOfBuildingsOverall_BT7), SetUpScenarios.numberOfTimeSlotsPerDay))
+        simulationInput_BT7_electricityDemand = np.zeros((len(indexOfBuildingsOverall_BT7), SetUpScenarios.numberOfTimeSlotsPerDay))
 
         #Building Type 1
         for index_BT1 in range (0, len(indexOfBuildingsOverall_BT1)):
-            #Reading of the data
 
+            #Reading of the data
             df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT1_mHP_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) +".csv", sep =";")
             df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
             df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
@@ -3954,9 +6508,12 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
 
 
 
-                # Adjust the charging Power of the EV if SOC is too high
-                if hypothetical_SOCofEV_BT1 >= SetUpScenarios.initialSOC_EV:
+                # Adjust the charging Power of the EV if SOC is too high or low
+                if index_timeslot > 0 and (simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot - 1] / SetUpScenarios.capacityMaximal_EV)*100 >= SetUpScenarios.initialSOC_EV:
                     intendedPowerEVCharging = 0
+                    
+                if index_timeslot > 0 and (simulationResult_energyLevelOfEV_BT1 [index_day, index_BT1, index_timeslot - 1] / SetUpScenarios.capacityMaximal_EV)*100 < SetUpScenarios.socThresholdForForcedCharging:
+                    intendedPowerEVCharging = SetUpScenarios.chargingPowerMaximal_EV * (SetUpScenarios.modulationDegreeCharging_ConventionalControl/100) *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1]
 
 
 
@@ -4012,85 +6569,6 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 simulationInput_BT1_electricityDemand [index_BT1, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
 
 
-
-                #Calculate the constraint violation
-                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] >SetUpScenarios.maximalBufferStorageTemperature:
-                    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] -SetUpScenarios.maximalBufferStorageTemperature
-                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] <SetUpScenarios.minimalBufferStorageTemperature:
-                    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - SetUpScenarios.minimalBufferStorageTemperature
-
-                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] > SetUpScenarios.maximumCapacityDHWTankOptimization:
-                    simulation_ConstraintViolation_DHWTankRange_BT1  [index_day, index_BT1, index_timeslot] = simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] - SetUpScenarios.maximumCapacityDHWTankOptimization
-                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < SetUpScenarios.minimumCapacityDHWTankOptimization:
-                    simulation_ConstraintViolation_DHWTankRange_BT1  [index_day, index_BT1, index_timeslot] =  simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] - SetUpScenarios.minimumCapacityDHWTankOptimization
-
-
-                if intendedModulationDegreeForSpaceHeating > 0 and intendedModulationDegreeDHW >0:
-                    simulation_ConstraintViolation_OnlyOneStorage_BT1 [index_day, index_BT1, index_timeslot] =1
-
-                if (intendedModulationDegreeForSpaceHeating/100 < SetUpScenarios.minimalModulationdDegree_HP/100) and (intendedModulationDegreeForSpaceHeating/100>0.0001):
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] = (SetUpScenarios.minimalModulationdDegree_HP/100) - intendedModulationDegreeForSpaceHeating
-
-                if intendedModulationDegreeForSpaceHeating/100 > 1:
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] + intendedModulationDegreeForSpaceHeating/100 -1
-                if (intendedModulationDegreeDHW/100 < (SetUpScenarios.minimalModulationdDegree_HP/100)) and (intendedModulationDegreeDHW/100 > 0.0001):
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] +  (SetUpScenarios.minimalModulationdDegree_HP/100) - intendedModulationDegreeDHW/100
-                if intendedModulationDegreeDHW/100 > 1:
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot] + intendedModulationDegreeDHW/100 - 1
-
-                if  simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] < 0:
-                    simulation_ConstraintViolation_SOCRangeOfTheEV_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot]
-                if simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] >100:
-                    simulation_ConstraintViolation_SOCRangeOfTheEV_BT1 [index_day, index_BT1, index_timeslot] =simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] - 100
-
-                if intendedPowerEVCharging < 0:
-                    simulation_ConstraintViolation_ChargingPowerOfTheEV_BT1 [index_day, index_BT1, index_timeslot] = intendedPowerEVCharging
-                if intendedPowerEVCharging > SetUpScenarios.chargingPowerMaximal_EV:
-                    simulation_ConstraintViolation_ChargingPowerOfTheEV_BT1 [index_day, index_BT1, index_timeslot] = intendedPowerEVCharging - SetUpScenarios.chargingPowerMaximal_EV
-
-
-                if index_timeslot >= 1:
-                    if  outputVector_BT1_heatGenerationCoefficientSpaceHeating_Conventional [index_BT1, index_timeslot - 1] == 0 and intendedModulationDegreeForSpaceHeating/100 >0.001 :
-                        simulationResult_numberOfStartsBufferStorage_BT1 [index_day, index_BT1] += 1
-                    if outputVector_BT1_heatGenerationCoefficientDHW_Conventional [index_BT1, index_timeslot - 1] == 0 and intendedModulationDegreeDHW/100 >0.001 :
-                        simulationResult_numberOfStartsDHWTank_BT1 [index_day, index_BT1] += 1
-
-
-
-        #Calculate the total constraint violations
-            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
-                total_ConstraintViolation_BufferStorageTemperatureRange_BT1 [index_day, index_BT1] = total_ConstraintViolation_BufferStorageTemperatureRange_BT1 [index_day, index_BT1] + abs(simulation_ConstraintViolation_BufferStorageTemperatureRange_BT1 [index_day, index_BT1, index_timeslot])
-                total_ConstraintViolation_DHWTankRange_BT1 [index_day, index_BT1] = total_ConstraintViolation_DHWTankRange_BT1 [index_day, index_BT1] + abs(simulation_ConstraintViolation_DHWTankRange_BT1 [index_day, index_BT1, index_timeslot])
-                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
-                    if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] > SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue :
-                        total_ConstraintViolation_BufferStorageTemperatureLastValue_BT1 [index_day, index_BT1] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue)
-                    if  simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] < SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue :
-                        total_ConstraintViolation_BufferStorageTemperatureLastValue_BT1 [index_day, index_BT1] =  (SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot]
-                    if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] > SetUpScenarios.initialUsableVolumeDHWTank + SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
-                        total_ConstraintViolation_DHWTankLastValue_BT1 [index_day, index_BT1] = simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] - ( SetUpScenarios.initialUsableVolumeDHWTank + SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue)
-                    if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
-                        total_ConstraintViolation_DHWTankLastValue_BT1 [index_day, index_BT1] = (SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue) - simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot]
-
-                    if simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] > (SetUpScenarios.initialSOC_EV + SetUpScenarios.endSOC_EVAllowedDeviationFromInitalValue):
-                        total_ConstraintViolation_SOCOfTheEVLastValue_BT1  [index_day, index_BT1] =  simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] - ((SetUpScenarios.initialSOC_EV + SetUpScenarios.endSOC_EVAllowedDeviationFromInitalValue))
-                    if simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot] < (SetUpScenarios.initialSOC_EV - SetUpScenarios.endSOC_EVAllowedDeviationFromInitalValue):
-                        total_ConstraintViolation_SOCOfTheEVLastValue_BT1  [index_day, index_BT1] = ((SetUpScenarios.initialSOC_EV - SetUpScenarios.endSOC_EVAllowedDeviationFromInitalValue)) - simulationResult_SOCofEV_BT1 [index_day, index_BT1, index_timeslot]
-
-                if intendedModulationDegreeForSpaceHeating > 0.0001 and intendedModulationDegreeDHW > 0.0001:
-                    total_ConstraintViolation_OnlyOneStorage_BT1 [index_day, index_BT1] = total_ConstraintViolation_OnlyOneStorage_BT1 [index_day, index_BT1] + 1
-                total_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1] = total_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1] + abs(simulation_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1, index_timeslot])
-                total_ConstraintViolation_SOCRangeOfTheEV_BT1 [index_day, index_BT1] =  total_ConstraintViolation_SOCRangeOfTheEV_BT1 [index_day, index_BT1] + abs(simulation_ConstraintViolation_SOCRangeOfTheEV_BT1 [index_day, index_BT1, index_timeslot])
-                total_ConstraintViolation_ChargingPowerOfTheEV_BT1 [index_day, index_BT1] = total_ConstraintViolation_ChargingPowerOfTheEV_BT1 [index_day, index_BT1] + abs (simulation_ConstraintViolation_ChargingPowerOfTheEV_BT1 [index_day, index_BT1, index_timeslot])
-                if Run_Simulations.considerMaximumNumberOfStartsHP_Combined == True:
-                    if simulationResult_numberOfStartsCombined_BT1 [index_day, index_BT1] > (Run_Simulations.maximumNumberOfStarts_Combined + 1):
-                        total_ConstraintViolation_numberOfStarts_Combined_BT1 [index_day, index_BT1] = simulationResult_numberOfStartsCombined_BT1 [index_day, index_BT1] - (Run_Simulations.maximumNumberOfStarts_Combined + 1)
-                if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual  == True:
-                    if simulationResult_numberOfStartsBufferStorage_BT1 [index_day, index_BT1] > Run_Simulations.maximumNumberOfStarts_Individual:
-                        total_ConstraintViolation_numberOfStarts_Individual_BT1 [index_day, index_BT1]  = simulationResult_numberOfStartsBufferStorage_BT1 [index_day, index_BT1] - Run_Simulations.maximumNumberOfStarts_Individual
-                    if simulationResult_numberOfStartsDHWTank_BT1 [index_day, index_BT1] > Run_Simulations.maximumNumberOfStarts_Individual:
-                        total_ConstraintViolation_numberOfStarts_Individual_BT1 [index_day, index_BT1]  = total_ConstraintViolation_numberOfStarts_Individual_BT1 [index_day, index_BT1]+  simulationResult_numberOfStartsDHWTank_BT1 [index_day, index_BT1] - Run_Simulations.maximumNumberOfStarts_Individual
-
-
         # Calculate the objectives
             for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
                 if simulationResult_SurplusPower_BT1  [index_day, index_BT1, index_timeslot] > 0:
@@ -4100,6 +6578,20 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 if (simulationResult_PVGeneration_BT1  [index_day, index_BT1, index_timeslot] -  simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot]) > simulationObjective_maximumLoad_BT1 [index_day, index_BT1]:
                     simulationObjective_maximumLoad_BT1 [index_day, index_BT1] = simulationResult_PVGeneration_BT1  [index_day, index_BT1, index_timeslot] -   simulationResult_electricalLoad_BT1[index_day, index_BT1, index_timeslot]
                 simulationObjective_costs_BT1  [index_day, index_BT1]  = simulationObjective_costs_BT1  [index_day, index_BT1] +  simulationResult_costs_BT1 [index_day, index_BT1, index_timeslot]
+
+
+                simulationObjective_gasConsumptionkWh_BT1 [index_day, index_BT1] = 0
+                simulationObjective_CO2Emissions_BT1 [index_day, index_BT1] = 0
+                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] = simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT1[index_day, index_BT1, index_timeslot]
+                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_CorrectionNecessary:
+                    simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] =  5
+                if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < 0:
+                    simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot] =  5
+
+                simulationObjective_thermalDiscomfort_BT1[index_day, index_BT1] = simulationObjective_thermalDiscomfort_BT1 [index_day, index_BT1] + simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot]
 
 
         #Building Type 2
@@ -4264,7 +6756,6 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 if index_timeslot >=1:
                     simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot - 1]  + ((intendedModulationDegreeForSpaceHeating/100 * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
                     simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_UsableVolumeDHW_BT2[index_day, index_BT2, index_timeslot-1] + ((intendedModulationDegreeDHW/100 * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
-
                 if index_timeslot ==0:
                     simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] = SetUpScenarios.initialBufferStorageTemperature  + ((intendedModulationDegreeForSpaceHeating/100 * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
                     simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] = SetUpScenarios.initialUsableVolumeDHWTank + ((intendedModulationDegreeDHW/100 * cop_heatPump_DHW[index_timeslot] *  SetUpScenarios.electricalPower_HP * SetUpScenarios.timeResolution_InMinutes * 60 - df_buildingData ['DHW [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesDHWTank * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.temperatureOfTheHotWaterInTheDHWTank * SetUpScenarios.densityOfWater * SetUpScenarios.specificHeatCapacityOfWater))
@@ -4283,30 +6774,6 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                     simulationResult_costs_BT2 [index_day, index_BT2, index_timeslot] = (simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] - simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
                 if simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot] <= simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]:
                     simulationResult_costs_BT2 [index_day, index_BT2, index_timeslot] = (simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot] - simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
-                #Calculate the constraint violation
-                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] >SetUpScenarios.maximalBufferStorageTemperature:
-                    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] -SetUpScenarios.maximalBufferStorageTemperature
-                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] <SetUpScenarios.minimalBufferStorageTemperature:
-                    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - SetUpScenarios.minimalBufferStorageTemperature
-
-                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] > SetUpScenarios.maximumCapacityDHWTankOptimization:
-                    simulation_ConstraintViolation_DHWTankRange_BT2  [index_day, index_BT2, index_timeslot] = simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] - SetUpScenarios.maximumCapacityDHWTankOptimization
-                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < SetUpScenarios.minimumCapacityDHWTankOptimization:
-                    simulation_ConstraintViolation_DHWTankRange_BT2  [index_day, index_BT2, index_timeslot] =  simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] - SetUpScenarios.minimumCapacityDHWTankOptimization
-
-
-                if intendedModulationDegreeForSpaceHeating > 0 and intendedModulationDegreeDHW >0:
-                    simulation_ConstraintViolation_OnlyOneStorage_BT2 [index_day, index_BT2, index_timeslot] =1
-
-                if (intendedModulationDegreeForSpaceHeating/100 < SetUpScenarios.minimalModulationdDegree_HP/100) and (intendedModulationDegreeForSpaceHeating/100>0.0001):
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] = (SetUpScenarios.minimalModulationdDegree_HP/100) - intendedModulationDegreeForSpaceHeating
-
-                if intendedModulationDegreeForSpaceHeating/100 > 1:
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] + intendedModulationDegreeForSpaceHeating/100 -1
-                if (intendedModulationDegreeDHW/100 < (SetUpScenarios.minimalModulationdDegree_HP/100)) and (intendedModulationDegreeDHW/100 > 0.0001):
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] +  (SetUpScenarios.minimalModulationdDegree_HP/100) - intendedModulationDegreeDHW/100
-                if intendedModulationDegreeDHW/100 > 1:
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot] + intendedModulationDegreeDHW/100 - 1
 
 
                 if index_timeslot >= 1:
@@ -4320,34 +6787,6 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
             simulationInput_BT2_DHW [index_BT2, index_timeslot] = df_buildingData ['DHW [W]'] [index_timeslot + 1]
             simulationInput_BT2_electricityDemand [index_BT2, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
 
-
-            #Calculate the total constraint violations
-            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
-                total_ConstraintViolation_BufferStorageTemperatureRange_BT2 [index_day, index_BT2] = total_ConstraintViolation_BufferStorageTemperatureRange_BT2 [index_day, index_BT2] + abs(simulation_ConstraintViolation_BufferStorageTemperatureRange_BT2 [index_day, index_BT2, index_timeslot])
-                total_ConstraintViolation_DHWTankRange_BT2 [index_day, index_BT2] = total_ConstraintViolation_DHWTankRange_BT2 [index_day, index_BT2] + abs(simulation_ConstraintViolation_DHWTankRange_BT2 [index_day, index_BT2, index_timeslot])
-                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
-                    if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] > SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue :
-                        total_ConstraintViolation_BufferStorageTemperatureLastValue_BT2 [index_day, index_BT2] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue)
-                    if  simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] < SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue :
-                        total_ConstraintViolation_BufferStorageTemperatureLastValue_BT2 [index_day, index_BT2] =  (SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot]
-                    if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] > SetUpScenarios.initialUsableVolumeDHWTank + SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
-                        total_ConstraintViolation_DHWTankLastValue_BT2 [index_day, index_BT2] = simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] - ( SetUpScenarios.initialUsableVolumeDHWTank + SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue)
-                    if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
-                        total_ConstraintViolation_DHWTankLastValue_BT2 [index_day, index_BT2] = (SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue) - simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot]
-
-                if intendedModulationDegreeForSpaceHeating > 0.0001 and intendedModulationDegreeDHW > 0.0001:
-                    total_ConstraintViolation_OnlyOneStorage_BT2 [index_day, index_BT2] = total_ConstraintViolation_OnlyOneStorage_BT2 [index_day, index_BT2] + 1
-                total_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2] = total_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2] + abs(simulation_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2, index_timeslot])
-                if Run_Simulations.considerMaximumNumberOfStartsHP_Combined == True:
-                    if simulationResult_numberOfStartsCombined_BT2 [index_day, index_BT2] > (Run_Simulations.maximumNumberOfStarts_Combined + 1):
-                        total_ConstraintViolation_numberOfStarts_Combined_BT2 [index_day, index_BT2] = simulationResult_numberOfStartsCombined_BT2 [index_day, index_BT2] - (Run_Simulations.maximumNumberOfStarts_Combined + 1)
-                if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual  == True:
-                    if simulationResult_numberOfStartsBufferStorage_BT2 [index_day, index_BT2] > Run_Simulations.maximumNumberOfStarts_Individual:
-                        total_ConstraintViolation_numberOfStarts_Individual_BT2 [index_day, index_BT2]  = simulationResult_numberOfStartsBufferStorage_BT2 [index_day, index_BT2] - Run_Simulations.maximumNumberOfStarts_Individual
-                    if simulationResult_numberOfStartsDHWTank_BT2 [index_day, index_BT2] > Run_Simulations.maximumNumberOfStarts_Individual:
-                        total_ConstraintViolation_numberOfStarts_Individual_BT2 [index_day, index_BT2]  = total_ConstraintViolation_numberOfStarts_Individual_BT2 [index_day, index_BT2]+  simulationResult_numberOfStartsDHWTank_BT2 [index_day, index_BT2] - Run_Simulations.maximumNumberOfStarts_Individual
-
-
         # Calculate the objectives
             for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
                 if simulationResult_SurplusPower_BT2  [index_day, index_BT2, index_timeslot] > 0:
@@ -4358,6 +6797,19 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                     simulationObjective_maximumLoad_BT2 [index_day, index_BT2] = simulationResult_PVGeneration_BT2  [index_day, index_BT2, index_timeslot] -   simulationResult_electricalLoad_BT2[index_day, index_BT2, index_timeslot]
                 simulationObjective_costs_BT2  [index_day, index_BT2]  = simulationObjective_costs_BT2  [index_day, index_BT2] +  simulationResult_costs_BT2 [index_day, index_BT2, index_timeslot]
 
+
+                simulationObjective_gasConsumptionkWh_BT2 [index_day, index_BT2] = 0
+                simulationObjective_CO2Emissions_BT2 [index_day, index_BT2] = 0
+                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] = simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT2[index_day, index_BT2, index_timeslot]
+                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] > SetUpScenarios.maximumUsableVolumeDHWTank_CorrectionNecessary:
+                    simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] =  5
+                if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < 0:
+                    simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot] =  5
+
+                simulationObjective_thermalDiscomfort_BT2[index_day, index_BT2] = simulationObjective_thermalDiscomfort_BT2 [index_day, index_BT2] + simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot]
 
 
          #Building Type 3
@@ -4450,6 +6902,10 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 # Adjust the charging Power of the EV if SOC is too high
                 if hypothetical_SOCofEV_BT3 >= SetUpScenarios.initialSOC_EV:
                     intendedPowerEVCharging = 0
+                    
+                if hypothetical_SOCofEV_BT3 < SetUpScenarios.socThresholdForForcedCharging:
+                    intendedPowerEVCharging = SetUpScenarios.chargingPowerMaximal_EV * (SetUpScenarios.modulationDegreeCharging_ConventionalControl/100) *  df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1]
+
 
 
                 #Calculate simulation values
@@ -4477,16 +6933,6 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 if simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot] <= simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot]:
                     simulationResult_costs_BT3 [index_day, index_BT3, index_timeslot] = (simulationResult_PVGeneration_BT3 [index_day, index_BT3, index_timeslot] - simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
 
-                #Calculate the constraint violation
-                if  simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot] < 0:
-                    simulation_ConstraintViolation_SOCRangeOfTheEV_BT3 [index_day, index_BT3, index_timeslot] = simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot]
-                if simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot] >100:
-                    simulation_ConstraintViolation_SOCRangeOfTheEV_BT3 [index_day, index_BT3, index_timeslot] =simulationResult_SOCofEV_BT3 [index_day, index_BT3, index_timeslot] - 100
-
-                if intendedPowerEVCharging < 0:
-                    simulation_ConstraintViolation_ChargingPowerOfTheEV_BT3 [index_day, index_BT3, index_timeslot] = intendedPowerEVCharging
-                if intendedPowerEVCharging > SetUpScenarios.chargingPowerMaximal_EV:
-                    simulation_ConstraintViolation_ChargingPowerOfTheEV_BT3 [index_day, index_BT3, index_timeslot] = intendedPowerEVCharging - SetUpScenarios.chargingPowerMaximal_EV
 
                 # Set the values for the input parameters of the simulation (only used in the output .csv file)
                 simulationInput_BT3_availabilityPattern [index_BT3, index_timeslot] = df_availabilityPatternEV ["Availability of the EV"] [index_timeslot + 1]
@@ -4514,6 +6960,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 if (simulationResult_PVGeneration_BT3  [index_day, index_BT3, index_timeslot] -  simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]) > simulationObjective_maximumLoad_BT3 [index_day, index_BT3]:
                     simulationObjective_maximumLoad_BT3 [index_day, index_BT3] = simulationResult_PVGeneration_BT3  [index_day, index_BT3, index_timeslot] -   simulationResult_electricalLoad_BT3[index_day, index_BT3, index_timeslot]
                 simulationObjective_costs_BT3  [index_day, index_BT3]  = simulationObjective_costs_BT3  [index_day, index_BT3] +  simulationResult_costs_BT3 [index_day, index_BT3, index_timeslot]
+
+            simulationObjective_gasConsumptionkWh_BT3 [index_day, index_BT3] = 0
+            simulationObjective_CO2Emissions_BT3 [index_day, index_BT3] = 0
 
         #Building Type 4
         for index_BT4 in range (0, len(indexOfBuildingsOverall_BT4)):
@@ -4605,6 +7054,7 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
 
 
 
+
                 #Calculate hypothetical temperatures, volumes
                 if index_timeslot >=1:
                     hypotheticalTemperatureBufferStorageWhenHeatingWithIntendedModulation = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot - 1]  + (((intendedModulationDegreeForSpaceHeating/100) * cop_heatPump_SpaceHeating[index_timeslot] *  SetUpScenarios.electricalPower_HP_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60  - df_buildingData['Space Heating [W]'] [index_timeslot + 1]  * SetUpScenarios.timeResolution_InMinutes * 60 - SetUpScenarios.standingLossesBufferStorage_BT4_MFH * SetUpScenarios.timeResolution_InMinutes * 60) / (SetUpScenarios.capacityOfBufferStorage_BT4_MFH * SetUpScenarios.densityOfCement * SetUpScenarios.specificHeatCapacityOfCement))
@@ -4651,40 +7101,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 if simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot] <= simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]:
                     simulationResult_costs_BT4 [index_day, index_BT4, index_timeslot] = (simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot] - simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
 
-                #Calculate the constraint violation
-                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] >SetUpScenarios.maximalBufferStorageTemperature:
-                    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT4 [index_day, index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] -SetUpScenarios.maximalBufferStorageTemperature
-                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] <SetUpScenarios.minimalBufferStorageTemperature:
-                    simulation_ConstraintViolation_BufferStorageTemperatureRange_BT4 [index_day, index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - SetUpScenarios.minimalBufferStorageTemperature
-
-                if (intendedModulationDegreeForSpaceHeating/100 < SetUpScenarios.minimalModulationdDegree_HP/100) and (intendedModulationDegreeForSpaceHeating/100>0.0001):
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4, index_timeslot] = (SetUpScenarios.minimalModulationdDegree_HP/100) - intendedModulationDegreeForSpaceHeating
-
-                if intendedModulationDegreeForSpaceHeating/100 > 1:
-                    simulation_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4, index_timeslot] =  simulation_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4, index_timeslot] + intendedModulationDegreeForSpaceHeating/100 -1
-
-
-                if index_timeslot >= 1:
-                    if  outputVector_BT4_heatGenerationCoefficientSpaceHeating_Conventional [index_BT4, index_timeslot - 1] == 0 and intendedModulationDegreeForSpaceHeating/100 >0.001 :
-                        simulationResult_numberOfStartsBufferStorage_BT4 [index_day, index_BT4] += 1
-
                 # Set the values for the input parameters of the simulation (only used in the output .csv file)
                 simulationInput_BT4_SpaceHeating [index_BT4, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
                 simulationInput_BT4_electricityDemand [index_BT4, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
-
-            #Calculate the total constraint violations
-            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
-                total_ConstraintViolation_BufferStorageTemperatureRange_BT4 [index_day, index_BT4] = total_ConstraintViolation_BufferStorageTemperatureRange_BT4 [index_day, index_BT4] + abs(simulation_ConstraintViolation_BufferStorageTemperatureRange_BT4 [index_day, index_BT4, index_timeslot])
-                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
-                    if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] > SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue :
-                        total_ConstraintViolation_BufferStorageTemperatureLastValue_BT4 [index_day, index_BT4] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - (SetUpScenarios.initialBufferStorageTemperature + SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue)
-                    if  simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] < SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue :
-                        total_ConstraintViolation_BufferStorageTemperatureLastValue_BT4 [index_day, index_BT4] =  (SetUpScenarios.initialBufferStorageTemperature - SetUpScenarios.endBufferStorageTemperatureAllowedDeviationFromInitalValue) - simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot]
-
-                total_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4] = total_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4] + abs(simulation_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4, index_timeslot])
-                if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual == True:
-                    if simulationResult_numberOfStartsBufferStorage_BT4 [index_day, index_BT4] > Run_Simulations.maximumNumberOfStarts_Individual:
-                        total_ConstraintViolation_numberOfStarts_Individual_BT4 [index_day, index_BT4]  = simulationResult_numberOfStartsBufferStorage_BT4 [index_day, index_BT4] - Run_Simulations.maximumNumberOfStarts_Individual
 
 
         # Calculate the objectives
@@ -4696,6 +7115,17 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 if (simulationResult_PVGeneration_BT4  [index_day, index_BT4, index_timeslot] -  simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]) > simulationObjective_maximumLoad_BT4 [index_day, index_BT4]:
                     simulationObjective_maximumLoad_BT4 [index_day, index_BT4] = simulationResult_PVGeneration_BT4  [index_day, index_BT4, index_timeslot] -   simulationResult_electricalLoad_BT4[index_day, index_BT4, index_timeslot]
                 simulationObjective_costs_BT4  [index_day, index_BT4]  = simulationObjective_costs_BT4  [index_day, index_BT4] +  simulationResult_costs_BT4 [index_day, index_BT4, index_timeslot]
+
+                simulationObjective_gasConsumptionkWh_BT4 [index_day, index_BT4] = 0
+                simulationObjective_CO2Emissions_BT4 [index_day, index_BT4] = 0
+
+                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT4 [index_day, index_BT4, index_timeslot] = simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT4[index_day, index_BT4, index_timeslot] = (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_BufferStorageTemperature_BT4[index_day, index_BT4, index_timeslot]
+
+                simulationObjective_thermalDiscomfort_BT4[index_day, index_BT4] = simulationObjective_thermalDiscomfort_BT4 [index_day, index_BT4] + simulationResult_thermalDiscomfort_BT4 [index_day, index_BT4, index_timeslot]
+
 
         #Building Type 5
         for index_BT5 in range (0, len(indexOfBuildingsOverall_BT5)):
@@ -4832,19 +7262,6 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                     simulation_ConstraintViolation_disChargingPowerOfTheBAT_BT5 [index_day, index_BT5, index_timeslot] = outputVector_BT5_disChargingPowerBAT_Conventional [index_BT5, index_timeslot] - df_buildingData ['Electricity [W]'] [index_timeslot + 1]
 
 
-        #Calculate the total constraint violations
-            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
-                if index_timeslot == SetUpScenarios.numberOfTimeSlotsPerDay - 1:
-                    if simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot] > (SetUpScenarios.initialSOC_BAT + SetUpScenarios.endSOC_BATAllowedDeviationFromInitalValueUpperLimit):
-                        total_ConstraintViolation_SOCOfTheBATLastValue_BT5  [index_day, index_BT5] =  simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot] - ((SetUpScenarios.initialSOC_BAT + SetUpScenarios.endSOC_BATAllowedDeviationFromInitalValueUpperLimit))
-                    if simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot] < (SetUpScenarios.initialSOC_BAT - SetUpScenarios.endSOC_BATAllowedDeviationFromInitalValueLowerLimit):
-                        total_ConstraintViolation_SOCOfTheBATLastValue_BT5  [index_day, index_BT5] = ((SetUpScenarios.initialSOC_BAT - SetUpScenarios.endSOC_BATAllowedDeviationFromInitalValueLowerLimit)) - simulationResult_SOCofBAT_BT5 [index_day, index_BT5, index_timeslot]
-
-                total_ConstraintViolation_SOCRangeOfTheBAT_BT5 [index_day, index_BT5] =  total_ConstraintViolation_SOCRangeOfTheBAT_BT5 [index_day, index_BT5] + abs(simulation_ConstraintViolation_SOCRangeOfTheBAT_BT5 [index_day, index_BT5, index_timeslot])
-                total_ConstraintViolation_ChargingPowerOfTheBAT_BT5 [index_day, index_BT5] = total_ConstraintViolation_ChargingPowerOfTheBAT_BT5 [index_day, index_BT5] + abs (simulation_ConstraintViolation_ChargingPowerOfTheBAT_BT5 [index_day, index_BT5, index_timeslot])
-                total_ConstraintViolation_disChargingPowerOfTheBAT_BT5 [index_day, index_BT5] = total_ConstraintViolation_disChargingPowerOfTheBAT_BT5 [index_day, index_BT5] + abs (simulation_ConstraintViolation_disChargingPowerOfTheBAT_BT5 [index_day, index_BT5, index_timeslot])
-
-
         # Calculate the objectives
             for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
                 if simulationResult_SurplusPower_BT5  [index_day, index_BT5, index_timeslot] > 0:
@@ -4855,9 +7272,284 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                     simulationObjective_maximumLoad_BT5 [index_day, index_BT5] = simulationResult_PVGeneration_BT5  [index_day, index_BT5, index_timeslot] -   simulationResult_electricalLoad_BT5[index_day, index_BT5, index_timeslot]
                 simulationObjective_costs_BT5  [index_day, index_BT5]  = simulationObjective_costs_BT5  [index_day, index_BT5] +  simulationResult_costs_BT5 [index_day, index_BT5, index_timeslot]
 
+            simulationObjective_gasConsumptionkWh_BT5 [index_day, index_BT5] = 0
+            simulationObjective_CO2Emissions_BT5 [index_day, index_BT5] = 0
+
+
+        #Building Type 6
+        for index_BT6 in range (0, len(indexOfBuildingsOverall_BT6) ):
+
+            #Reading of the data
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Wind generation
+            indexBuildingForWindPowerAssignment = index_BT6
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+
+            # Set up inital values for the simulation
+            simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, 0] = SetUpScenarios.initialEnergyContentCombinedStorage
+            simulationResult_temperatureBuilding_BT6[index_day, index_BT6, 0] = SetUpScenarios.initialTemperatureBuilding
+
+            #Calculate the simulation steps
+            heatUpCombinedStorage = True
+
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+
+                if index_timeslot >=1:
+
+                    # Heat up the combined storage with full gas power until upper limit and then let it cool down until lower limit
+                    if heatUpCombinedStorage == True and simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot - 1] <= SetUpScenarios.maximumEnergyContentCombinedStorage * 0.85:
+                        outputVector_BT6_heatGenerationCoefficient_GasBoiler  [index_day, index_BT6, index_timeslot] = 1
+                    elif heatUpCombinedStorage == True and simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot - 1] > SetUpScenarios.maximumEnergyContentCombinedStorage * 0.85:
+                        outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_day, index_BT6, index_timeslot] = 0
+                        heatUpCombinedStorage = False
+                    elif heatUpCombinedStorage == False and simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot - 1] > SetUpScenarios.maximumEnergyContentCombinedStorage * 0.15:
+                        outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_day, index_BT6, index_timeslot] = 0
+                    elif heatUpCombinedStorage == False and simulationResult_energyLevelCombinedStorage_BT6[ index_day, index_BT6, index_timeslot - 1] < SetUpScenarios.maximumEnergyContentCombinedStorage * 0.15:
+                        outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_day, index_BT6, index_timeslot] = 1
+                        heatUpCombinedStorage = True
+
+                    #Heat up combined storage with electrical heating element if there is a surplus of PV
+                    if simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot] - df_buildingData['Electricity [W]'] [index_timeslot] > 0:
+                        if simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot - 1] <= SetUpScenarios.maximumEnergyContentCombinedStorage * 0.93:
+                            outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_day, index_BT6, index_timeslot] = (simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot] - df_buildingData['Electricity [W]'] [index_timeslot]) /SetUpScenarios.maximalPowerElectricalHeatingElement
+                            if outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_day, index_BT6, index_timeslot] > 1:
+                                outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement[index_day, index_BT6, index_timeslot] = 1
+
+
+                    #Calculate the necessary energy to keep the temperature of the building at the same level
+                    requiredEnergyForKeepingTheIdealTemperature = (SetUpScenarios.idealComfortTemperature - simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot - 1]) * SetUpScenarios.totalHeatCapacityOfTheBuilding
+                    if requiredEnergyForKeepingTheIdealTemperature <=0:
+                        outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] = 0
+                    else :
+                        outputVector_BT6_heatTransferCoefficient_StorageToRoom[index_day, index_BT6, index_timeslot] = requiredEnergyForKeepingTheIdealTemperature/(SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.timeResolution_InMinutes * 60)
+                        if outputVector_BT6_heatTransferCoefficient_StorageToRoom[index_day, index_BT6, index_timeslot] > 1:
+                            outputVector_BT6_heatTransferCoefficient_StorageToRoom[index_day, index_BT6, index_timeslot] = 1
+
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot] = simulationResult_energyLevelCombinedStorage_BT6[index_day, index_BT6, index_timeslot - 1]  + (outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage )  * (SetUpScenarios.timeResolution_InMinutes * 60)
+                    simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] = simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot - 1] + ((outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+                if index_timeslot ==0:
+                    simulationResult_energyLevelCombinedStorage_BT6 [index_day, index_BT6, index_timeslot] = SetUpScenarios.initialEnergyContentCombinedStorage + (outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.efficiency_GasBoiler + outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerElectricalHeatingElement * SetUpScenarios.efficiency_ElectricalHeatingElement - outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - SetUpScenarios.standingLossesCombinedStorage)  * (SetUpScenarios.timeResolution_InMinutes * 60)
+                    simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] = SetUpScenarios.initialTemperatureBuilding + ((outputVector_BT6_heatTransferCoefficient_StorageToRoom [index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+
+                simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT6)
+                simulationResult_RESGeneration_BT6 [index_day, index_BT6, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT6) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] = (outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement [index_day, index_BT6, index_timeslot]) * SetUpScenarios.maximalPowerElectricalHeatingElement  + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT6 [index_day, index_BT6, index_timeslot] = simulationResult_RESGeneration_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_gasConsumptionkWh_BT6 [index_day, index_BT6, index_timeslot] =  outputVector_BT6_heatGenerationCoefficient_GasBoiler[index_day, index_BT6, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler * SetUpScenarios.timeResolution_InMinutes * 60 / 3600000
+
+                if simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] > simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]:
+                    simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot] = (simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] <= simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]:
+                    simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot] = (simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+                simulationResult_costs_BT6[index_day, index_BT6, index_timeslot] = simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot] + (simulationResult_gasConsumptionkWh_BT6 [index_day, index_BT6, index_timeslot]) * SetUpScenarios.priceForGasInCentPerKWH
 
 
 
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT6_SpaceHeating [index_BT6, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT6_DHW [index_BT6, index_timeslot] = df_buildingData ['DHW [W]'] [index_timeslot + 1]
+                simulationInput_BT6_electricityDemand [index_BT6, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+                #Count number of starts of the gas boiler
+                if index_timeslot >= 1:
+                    if  outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_day, index_BT6, index_timeslot - 1] == 0 and outputVector_BT6_heatGenerationCoefficient_GasBoiler [index_day, index_BT6, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsGasBoiler_BT6 [index_day, index_BT6] += 1
+
+            # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT6  [index_day, index_BT6, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT6  [index_day, index_BT6] = simulationObjective_surplusEnergyKWH_BT6  [index_day, index_BT6] + ((simulationResult_SurplusPower_BT6  [index_day, index_BT6, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] - simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]) > simulationObjective_maximumLoad_BT6 [index_day, index_BT6]:
+                    simulationObjective_maximumLoad_BT6 [index_day, index_BT6] = simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot] -  simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]
+                if (simulationResult_PVGeneration_BT6  [index_day, index_BT6, index_timeslot] -  simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]) > simulationObjective_maximumLoad_BT6 [index_day, index_BT6]:
+                    simulationObjective_maximumLoad_BT6 [index_day, index_BT6] = simulationResult_PVGeneration_BT6  [index_day, index_BT6, index_timeslot] -   simulationResult_electricalLoad_BT6[index_day, index_BT6, index_timeslot]
+                simulationObjective_costs_BT6  [index_day, index_BT6]  = simulationObjective_costs_BT6  [index_day, index_BT6] +  simulationResult_costs_BT6 [index_day, index_BT6, index_timeslot]
+
+                simulationObjective_CO2Emissions_BT6 [index_day, index_BT6] = 0
+                if simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT6 [index_day, index_BT6, index_timeslot]  = simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT6 [index_day, index_BT6, index_timeslot] =  (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_temperatureBuilding_BT6[index_day, index_BT6, index_timeslot]
+                if simulationResult_energyLevelCombinedStorage_BT6  [index_day, index_BT6, index_timeslot] < 0:
+                    simulationResult_thermalDiscomfort_BT6[index_day, index_BT6, index_timeslot] = 3
+                if simulationResult_energyLevelCombinedStorage_BT6  [index_day, index_BT6, index_timeslot] > SetUpScenarios.maximumEnergyContentCombinedStorage:
+                    simulationResult_thermalDiscomfort_BT6[index_day, index_BT6, index_timeslot] = 3
+
+                simulationObjective_thermalDiscomfort_BT6[index_day, index_BT6] = simulationObjective_thermalDiscomfort_BT6 [index_day, index_BT6] + simulationResult_thermalDiscomfort_BT6 [index_day, index_BT6, index_timeslot]
+
+
+
+        # Building Type 7
+        for index_BT7 in range (0, len(indexOfBuildingsOverall_BT7) ):
+
+            #Reading of the data
+            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "_Day" + str(currentDay) +".csv", sep =";")
+            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+
+
+            #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
+            if 'Demand Electricity [W]' in df_buildingData_original:
+                df_buildingData_original.rename(columns={'Demand Electricity [W]': 'Electricity [W]'}, inplace=True)
+
+
+            #Adjust dataframes to the current time resolution and set new index "Timeslot"
+            df_buildingData_original['Time'] = pd.to_datetime(df_buildingData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_buildingData = df_buildingData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+
+            arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
+            df_buildingData['Timeslot'] = arrayTimeSlots
+            df_buildingData = df_buildingData.set_index('Timeslot')
+
+            df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_priceData['Timeslot'] = arrayTimeSlots
+            df_priceData = df_priceData.set_index('Timeslot')
+
+            df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
+            df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
+            df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
+            df_outsideTemperatureData = df_outsideTemperatureData.set_index('Timeslot')
+
+            #Wind generation
+            indexBuildingForWindPowerAssignment = index_BT7
+            windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
+            df_windPowerAssignedNominalPerBuilding = pd.DataFrame({'Timeslot': df_buildingData.index, 'Wind [nominal]':windProfileNominal })
+            del df_windPowerAssignedNominalPerBuilding['Timeslot']
+            df_windPowerAssignedNominalPerBuilding.index +=1
+
+
+
+         #Calculate the simulation steps
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay):
+
+                simulationResult_temperatureBuilding_BT7[index_day, index_BT7, 0] = SetUpScenarios.initialTemperatureBuilding
+   
+                
+                #Try to keep the ideal temperature in the building by uisng the gas boiler
+                requiredEnergyForKeepingTheIdealTemperature = (SetUpScenarios.idealComfortTemperature - simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot - 1]) * SetUpScenarios.totalHeatCapacityOfTheBuilding
+                if requiredEnergyForKeepingTheIdealTemperature <=0:
+                    outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day, index_BT7, index_timeslot] = 0
+                else :
+                    outputVector_BT7_heatGenerationCoefficient_GasBoiler[index_day, index_BT7, index_timeslot] = requiredEnergyForKeepingTheIdealTemperature/(SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.timeResolution_InMinutes * 60)
+                    if outputVector_BT7_heatGenerationCoefficient_GasBoiler[index_day, index_BT7, index_timeslot] > 1:
+                        outputVector_BT7_heatGenerationCoefficient_GasBoiler[index_day, index_BT7, index_timeslot] = 1
+
+
+                #Heat up combined storage with electrical heating element if there is a surplus of PV
+                simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT7)
+                surplusPower = simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot] - df_buildingData['Electricity [W]'] [index_timeslot + 1]
+
+                if surplusPower > 0:
+                    if simulationResult_temperatureBuilding_BT7 [index_day, index_BT7, index_timeslot - 1] <= SetUpScenarios.maximumPhysicalTemperatureBuilding * 0.95:
+                        if surplusPower >= SetUpScenarios.electricalPowerFanHeater_Stage1 and surplusPower < SetUpScenarios.electricalPowerFanHeater_Stage2:
+                            outputVector_BT7_electricalPowerFanHeater [index_day, index_BT7, index_timeslot] =  SetUpScenarios.electricalPowerFanHeater_Stage1
+                        if surplusPower >= SetUpScenarios.electricalPowerFanHeater_Stage2 and surplusPower < SetUpScenarios.electricalPowerFanHeater_Stage3:
+                            outputVector_BT7_electricalPowerFanHeater [index_day, index_BT7, index_timeslot] =  SetUpScenarios.electricalPowerFanHeater_Stage2
+                        if surplusPower >= SetUpScenarios.electricalPowerFanHeater_Stage3 and surplusPower :
+                            outputVector_BT7_electricalPowerFanHeater [index_day, index_BT7, index_timeslot] =  SetUpScenarios.electricalPowerFanHeater_Stage3
+
+                
+
+                #Calculate the simulation values with the corrected input vectors
+                if index_timeslot >=1:
+                    simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] = simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot - 1] + ((outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day,index_BT7, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.efficiency_GasBoiler  + outputVector_BT7_electricalPowerFanHeater [index_day,index_BT7, index_timeslot] * SetUpScenarios.efficiency_ElectricalFanHeater  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+                if index_timeslot ==0:
+                    simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] = SetUpScenarios.initialTemperatureBuilding + ((outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day, index_BT7, index_timeslot] * SetUpScenarios.maximalPowerHeatingSystem * SetUpScenarios.efficiency_GasBoiler  + outputVector_BT7_electricalPowerFanHeater [index_day, index_BT7, index_timeslot] * SetUpScenarios.efficiency_ElectricalFanHeater  - df_buildingData['Space Heating [W]'] [index_timeslot + 1])*SetUpScenarios.timeResolution_InMinutes * 60)/(SetUpScenarios.totalHeatCapacityOfTheBuilding)
+
+                # Set the values for the input parameters of the simulation (only used in the output .csv file)
+                simulationInput_BT7_SpaceHeating [index_BT7, index_timeslot] = df_buildingData['Space Heating [W]'] [index_timeslot + 1]
+                simulationInput_BT7_electricityDemand [index_BT7, index_timeslot] = df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+
+
+                simulationResult_RESGeneration_BT7 [index_day, index_BT7, index_timeslot] = df_buildingData ['PV [nominal]'] [index_timeslot + 1] * SetUpScenarios.determinePVPeakOfBuildings (index_BT7) + df_windPowerAssignedNominalPerBuilding ["Wind [nominal]"] [index_timeslot + 1] * SetUpScenarios.maximalPowerOfWindTurbine
+                simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] = (outputVector_BT7_electricalPowerFanHeater [index_day, index_BT7, index_timeslot])  + df_buildingData ['Electricity [W]'] [index_timeslot + 1]
+                simulationResult_SurplusPower_BT7 [index_day, index_BT7, index_timeslot] = simulationResult_RESGeneration_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_gasConsumptionkWh_BT7 [index_day, index_BT7, index_timeslot] =  outputVector_BT7_heatGenerationCoefficient_GasBoiler[index_day, index_BT7, index_timeslot] * SetUpScenarios.maximalPowerGasBoiler  * SetUpScenarios.timeResolution_InMinutes * 60 / 3600000
+
+                if simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] > simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]:
+                    simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot] = (simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
+                if simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] <= simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]:
+                    simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot] = (simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (SetUpScenarios.revenueForFeedingBackElecticityIntoTheGrid_CentsPerkWh/3600000)
+                simulationResult_costs_BT7[index_day, index_BT7, index_timeslot] = simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot] + (simulationResult_gasConsumptionkWh_BT7 [index_day, index_BT7, index_timeslot]) * SetUpScenarios.priceForGasInCentPerKWH
+
+
+
+            #Count number of starts of the gas boiler
+
+                if index_timeslot >= 1:
+                    if  outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day,index_BT7, index_timeslot - 1] == 0 and outputVector_BT7_heatGenerationCoefficient_GasBoiler [index_day,index_BT7, index_timeslot] >0.0001 :
+                        simulationResult_numberOfStartsGasBoiler_BT7 [index_day, index_BT7] += 1
+
+
+        # Calculate the objectives
+            for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
+                if simulationResult_SurplusPower_BT7  [index_day, index_BT7, index_timeslot] > 0:
+                    simulationObjective_surplusEnergyKWH_BT7  [index_day, index_BT7] = simulationObjective_surplusEnergyKWH_BT7  [index_day, index_BT7] + ((simulationResult_SurplusPower_BT7  [index_day, index_BT7, index_timeslot] * SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                if (simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] - simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]) > simulationObjective_maximumLoad_BT7 [index_day, index_BT7]:
+                    simulationObjective_maximumLoad_BT7 [index_day, index_BT7] = simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot] -  simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]
+                if (simulationResult_PVGeneration_BT7  [index_day, index_BT7, index_timeslot] -  simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]) > simulationObjective_maximumLoad_BT7 [index_day, index_BT7]:
+                    simulationObjective_maximumLoad_BT7 [index_day, index_BT7] = simulationResult_PVGeneration_BT7  [index_day, index_BT7, index_timeslot] -   simulationResult_electricalLoad_BT7[index_day, index_BT7, index_timeslot]
+                simulationObjective_costs_BT7  [index_day, index_BT7]  = simulationObjective_costs_BT7  [index_day, index_BT7] +  simulationResult_costs_BT7 [index_day, index_BT7, index_timeslot]
+
+                simulationObjective_CO2Emissions_BT7 [index_day, index_BT7] = 0 #
+
+                if simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] > (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT7 [index_day, index_BT7, index_timeslot]  = simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] - (SetUpScenarios.idealComfortTemperature + SetUpScenarios.allowedTemperatureDeviationForOptimalComfort)
+                if simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot] < (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort):
+                    simulationResult_thermalDiscomfort_BT7 [index_day, index_BT7, index_timeslot] =  (SetUpScenarios.idealComfortTemperature - SetUpScenarios.allowedTemperatureDeviationForOptimalComfort) - simulationResult_temperatureBuilding_BT7[index_day, index_BT7, index_timeslot]
+
+                simulationObjective_thermalDiscomfort_BT7[index_day, index_BT7] = simulationObjective_thermalDiscomfort_BT7 [index_day, index_BT7] + simulationResult_thermalDiscomfort_BT7 [index_day, index_BT7, index_timeslot]
+
+        #Combine the thermal discomfort arrays of all buildings into one
+        simulationResult_thermalDiscomfort_BT1_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT1, axis=0)
+        simulationResult_thermalDiscomfort_BT2_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT2, axis=0)
+        simulationResult_thermalDiscomfort_BT3_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT3, axis=0)
+        simulationResult_thermalDiscomfort_BT4_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT4, axis=0)
+        simulationResult_thermalDiscomfort_BT5_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT5, axis=0)
+        simulationResult_thermalDiscomfort_BT6_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT6, axis=0)
+        simulationResult_thermalDiscomfort_BT7_squeezed = np.squeeze(simulationResult_thermalDiscomfort_BT7, axis=0)
+
+        #Create the combined array for total discomfort
+        combined_array_thermal_discomfort = np.concatenate([simulationResult_thermalDiscomfort_BT1, simulationResult_thermalDiscomfort_BT2, simulationResult_thermalDiscomfort_BT3, simulationResult_thermalDiscomfort_BT4, simulationResult_thermalDiscomfort_BT5, simulationResult_thermalDiscomfort_BT6, simulationResult_thermalDiscomfort_BT7], axis=1)
+        combined_array_thermal_discomfort = np.sum(combined_array_thermal_discomfort, axis=1)
+        combined_array_thermal_discomfort = np.squeeze(combined_array_thermal_discomfort)
 
         # Calculate values for all buildings combined
         for index_timeslot in range (0, SetUpScenarios.numberOfTimeSlotsPerDay ):
@@ -4865,10 +7557,14 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT1 [index_day, index_BT1, index_timeslot]
                 simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT1 [index_day, index_BT1, index_timeslot]
                 simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT1 [index_day, index_BT1, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT1[index_day, index_BT1]
             for index_BT2 in range (0, len(indexOfBuildingsOverall_BT2)):
                 simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT2 [index_day, index_BT2, index_timeslot]
                 simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT2 [index_day, index_BT2, index_timeslot]
                 simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT2 [index_day, index_BT2, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT2[index_day, index_BT2]
             for index_BT3 in range (0, len(indexOfBuildingsOverall_BT3)):
                 simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT3 [index_day, index_BT3, index_timeslot]
                 simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT3 [index_day, index_BT3, index_timeslot]
@@ -4877,14 +7573,27 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
                 simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT4 [index_day, index_BT4, index_timeslot]
                 simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT4 [index_day, index_BT4, index_timeslot]
                 simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT4 [index_day, index_BT4, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT4[index_day, index_BT4]
             for index_BT5 in range (0, len(indexOfBuildingsOverall_BT5)):
                 simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT5 [index_day, index_BT5, index_timeslot]
                 simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT5 [index_day, index_BT5, index_timeslot]
                 simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT5 [index_day, index_BT5, index_timeslot]
+            for index_BT6 in range (0, len(indexOfBuildingsOverall_BT6)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT6 [index_day, index_BT6, index_timeslot]
+                simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] = simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] + simulationResult_gasConsumptionkWh_BT6 [index_day, index_BT6, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT6[index_day, index_BT6]
+            for index_BT7 in range (0, len(indexOfBuildingsOverall_BT7)):
+                simulationResult_electricalLoad_combined [index_day, index_timeslot] = simulationResult_electricalLoad_combined [index_day, index_timeslot] + simulationResult_electricalLoad_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_RESGeneration_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] + simulationResult_RESGeneration_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_PVGeneration_combined [index_day, index_timeslot] = simulationResult_PVGeneration_combined [index_day, index_timeslot] + simulationResult_PVGeneration_BT7 [index_day, index_BT7, index_timeslot]
+                simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] = simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot] + simulationResult_gasConsumptionkWh_BT7 [index_day, index_BT7, index_timeslot]
+                if index_timeslot == 0:
+                    simulationObjective_thermalDiscomfort_combined [index_day] = simulationObjective_thermalDiscomfort_combined [index_day] + simulationObjective_thermalDiscomfort_BT7[index_day, index_BT7]
 
-
-
-            simulationResult_SurplusEnergy_combined [index_day, index_timeslot] = simulationResult_RESGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day, index_timeslot]
             if simulationResult_electricalLoad_combined [index_day,index_timeslot] > simulationResult_PVGeneration_combined [index_day, index_timeslot]:
                simulationResult_costs_combined [index_day, index_timeslot] = (simulationResult_electricalLoad_combined [index_day, index_timeslot] - simulationResult_PVGeneration_combined [index_day, index_timeslot]) * SetUpScenarios.timeResolution_InMinutes * 60 * (df_priceData ['Price [Cent/kWh]'] [index_timeslot + 1]/3600000)
             if simulationResult_electricalLoad_combined [index_day, index_timeslot] <= simulationResult_PVGeneration_combined [index_day, index_timeslot]:
@@ -4894,33 +7603,17 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
             #Calculate the objectives for all buidlings combined
             if simulationResult_RESGeneration_combined [index_day, index_timeslot] > simulationResult_electricalLoad_combined [index_day,index_timeslot]:
                 simulationObjective_surplusEnergy_kWh_combined [index_day] =  simulationObjective_surplusEnergy_kWh_combined [index_day] +  (simulationResult_RESGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day,index_timeslot]) * ((SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
+                simulationResult_SurplusEnergy_combined [index_day, index_timeslot] = (simulationResult_RESGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day,index_timeslot]) * ((SetUpScenarios.timeResolution_InMinutes * 60) /3600000)
             simulationObjective_costs_Euro_combined [index_day] =simulationObjective_costs_Euro_combined [index_day] + simulationResult_costs_combined [index_day, index_timeslot]
             if (simulationResult_electricalLoad_combined [index_day, index_timeslot]  > simulationResult_PVGeneration_combined [index_day, index_timeslot]) and (simulationResult_electricalLoad_combined [index_day, index_timeslot]  - simulationResult_PVGeneration_combined [index_day, index_timeslot])> simulationObjective_maximumLoad_kW_combined [index_day]:
                 simulationObjective_maximumLoad_kW_combined [index_day] = simulationResult_electricalLoad_combined [index_day, index_timeslot]  - simulationResult_PVGeneration_combined [index_day, index_timeslot]
             if (simulationResult_electricalLoad_combined [index_day, index_timeslot]  <= simulationResult_PVGeneration_combined [index_day, index_timeslot]) and ( simulationResult_PVGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day, index_timeslot])> simulationObjective_maximumLoad_kW_combined [index_day]:
                 simulationObjective_maximumLoad_kW_combined [index_day] = simulationResult_PVGeneration_combined [index_day, index_timeslot] - simulationResult_electricalLoad_combined [index_day, index_timeslot]
+            simulationObjective_gasConsumptionkWh_combined [index_day] = simulationObjective_gasConsumptionkWh_combined [index_day] + simulationResult_gasConsumptionkWh_combined [index_day, index_timeslot]
 
-           #Calculate the combined score
-            if Run_Simulations.optimization_1Objective == True:
+        #Scale the results for thermal discomfort
+        simulationObjective_thermalDiscomfort_combined [index_day]  = simulationObjective_thermalDiscomfort_combined [index_day] / (SetUpScenarios.numberOfTimeSlotsPerDay * SetUpScenarios.numberOfBuildings_Total)
 
-               if Run_Simulations.optimizationGoal_minimizeSurplusEnergy == True:
-                   simulationObjective_combinedScore_combined [index_day] = simulationObjective_surplusEnergy_kWh_combined [index_day]
-               if Run_Simulations.optimizationGoal_minimizePeakLoad == True:
-                   simulationObjective_combinedScore_combined [index_day] = simulationObjective_maximumLoad_kW_combined [index_day]
-               if Run_Simulations.optimizationGoal_minimizeCosts == True:
-                  simulationObjective_combinedScore_combined [index_day] = simulationObjective_costs_Euro_combined [index_day]
-
-            if Run_Simulations.optimization_2Objective == True:
-
-               if (Run_Simulations.optimizationGoal_minimizeSurplusEnergy == True and Run_Simulations.optimizationGoal_minimizePeakLoad == True):
-                   simulationObjective_combinedScore_combined [index_day] = Run_Simulations.objective_minimizePeakLoad_weight*(simulationObjective_maximumLoad_kW_combined [index_day]/Run_Simulations.objective_minimizePeakLoad_normalizationValue) + Run_Simulations.objective_minimizeSurplusEnergy_weight * (simulationObjective_surplusEnergy_kWh_combined/Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue)
-               if (Run_Simulations.optimizationGoal_minimizeSurplusEnergy == True and Run_Simulations.optimizationGoal_minimizeCosts == True):
-                   simulationObjective_combinedScore_combined [index_day] = Run_Simulations.objective_minimizeCosts_weight *(simulationObjective_costs_Euro_combined [index_day]/Run_Simulations.objective_minimizeCosts_normalizationValue) + Run_Simulations.objective_minimizeSurplusEnergy_weight * (simulationObjective_surplusEnergy_kWh_combined/Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue)
-               if (Run_Simulations.optimizationGoal_minimizePeakLoad == True and Run_Simulations.optimizationGoal_minimizeCosts == True):
-                   simulationObjective_combinedScore_combined [index_day] = Run_Simulations.objective_minimizeCosts_weight *(simulationObjective_costs_Euro_combined [index_day]/Run_Simulations.objective_minimizeCosts_normalizationValue) +  Run_Simulations.objective_minimizeCosts_weight *(simulationObjective_costs_Euro_combined [index_day]/Run_Simulations.objective_minimizeCosts_normalizationValue)
-
-            if Run_Simulations.optimization_3Objectives == True:
-                simulationObjective_combinedScore_combined [index_day] = Run_Simulations.objective_minimizePeakLoad_weight*(simulationObjective_maximumLoad_kW_combined [index_day]/Run_Simulations.objective_minimizePeakLoad_normalizationValue) + Run_Simulations.objective_minimizeSurplusEnergy_weight * (simulationObjective_surplusEnergy_kWh_combined/Run_Simulations.objective_minimizeSurplusEnergy_normalizationValue) + Run_Simulations.objective_minimizeCosts_weight *(simulationObjective_costs_Euro_combined [index_day]/Run_Simulations.objective_minimizeCosts_normalizationValue)
 
     #Convert and round values of the objectives
     simulationObjective_maximumLoad_kW_combined [index_day] = simulationObjective_maximumLoad_kW_combined [index_day]  /1000
@@ -4928,154 +7621,27 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     simulationObjective_costs_Euro_combined [index_day] =  simulationObjective_costs_Euro_combined [index_day] /100
     simulationObjective_costs_Euro_combined [index_day] =  round(simulationObjective_costs_Euro_combined [index_day],2)
     simulationObjective_surplusEnergy_kWh_combined [index_day] =  round(simulationObjective_surplusEnergy_kWh_combined [index_day],2)
-
-    #Calculate constraint violation for all buildings combined
-    for index_BT1 in range (0, len(indexOfBuildingsOverall_BT1)):
-        total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] = total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] + total_ConstraintViolation_BufferStorageTemperatureRange_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_DHWTankRange_combined [index_day] = total_ConstraintViolation_DHWTankRange_combined [index_day] + total_ConstraintViolation_DHWTankRange_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] =  total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] +  total_ConstraintViolation_BufferStorageTemperatureLastValue_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_DHWTankLastValue_combined [index_day] = total_ConstraintViolation_DHWTankLastValue_combined [index_day] + total_ConstraintViolation_DHWTankLastValue_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_OnlyOneStorage_combined [index_day] = total_ConstraintViolation_OnlyOneStorage_combined [index_day] + total_ConstraintViolation_OnlyOneStorage_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_MinimalModulationDegree_combined [index_day] = total_ConstraintViolation_MinimalModulationDegree_combined [index_day] + total_ConstraintViolation_MinimalModulationDegree_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day]  = total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day] + total_ConstraintViolation_SOCRangeOfTheEV_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day]  = total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] + total_ConstraintViolation_SOCOfTheEVLastValue_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_ChargingPowerOfTheEV_combined [index_day] = total_ConstraintViolation_ChargingPowerOfTheEV_combined [index_day] +total_ConstraintViolation_ChargingPowerOfTheEV_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] = total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] + total_ConstraintViolation_numberOfStarts_Individual_BT1 [index_day, index_BT1]
-        total_ConstraintViolation_numberOfStarts_Combined_combined [index_day] = total_ConstraintViolation_numberOfStarts_Combined_combined [index_day] + total_ConstraintViolation_numberOfStarts_Combined_BT1 [index_day, index_BT1]
-        hypotheticalSOCDropWithNoCharging_combined [index_day] = hypotheticalSOCDropWithNoCharging_combined [index_day] +  hypotheticalSOCDropWithNoCharging_BT1 [index_day, index_BT1]
-    for index_BT2 in range (0, len(indexOfBuildingsOverall_BT2)):
-        total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] = total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] + total_ConstraintViolation_BufferStorageTemperatureRange_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_DHWTankRange_combined [index_day] = total_ConstraintViolation_DHWTankRange_combined [index_day] + total_ConstraintViolation_DHWTankRange_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] =  total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] +  total_ConstraintViolation_BufferStorageTemperatureLastValue_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_DHWTankLastValue_combined [index_day] = total_ConstraintViolation_DHWTankLastValue_combined [index_day] + total_ConstraintViolation_DHWTankLastValue_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_OnlyOneStorage_combined [index_day] = total_ConstraintViolation_OnlyOneStorage_combined [index_day] + total_ConstraintViolation_OnlyOneStorage_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_MinimalModulationDegree_combined [index_day] = total_ConstraintViolation_MinimalModulationDegree_combined [index_day] + total_ConstraintViolation_MinimalModulationDegree_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] = total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] + total_ConstraintViolation_numberOfStarts_Individual_BT2 [index_day, index_BT2]
-        total_ConstraintViolation_numberOfStarts_Combined_combined [index_day] = total_ConstraintViolation_numberOfStarts_Combined_combined [index_day] + total_ConstraintViolation_numberOfStarts_Combined_BT2 [index_day, index_BT2]
-    for index_BT3 in range (0, len(indexOfBuildingsOverall_BT3)):
-        total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day]  = total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day] + total_ConstraintViolation_SOCRangeOfTheEV_BT3 [index_day, index_BT3]
-        total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day]  = total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] + total_ConstraintViolation_SOCOfTheEVLastValue_BT3 [index_day, index_BT3]
-        total_ConstraintViolation_ChargingPowerOfTheEV_combined [index_day] = total_ConstraintViolation_ChargingPowerOfTheEV_combined [index_day] +total_ConstraintViolation_ChargingPowerOfTheEV_BT3 [index_day, index_BT3]
-        hypotheticalSOCDropWithNoCharging_combined [index_day] = hypotheticalSOCDropWithNoCharging_combined [index_day] +  hypotheticalSOCDropWithNoCharging_BT3 [index_day, index_BT3]
-    for index_BT4 in range (0, len(indexOfBuildingsOverall_BT4)):
-        total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] = total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] + total_ConstraintViolation_BufferStorageTemperatureRange_BT4 [index_day, index_BT4]
-        total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] =  total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] +  total_ConstraintViolation_BufferStorageTemperatureLastValue_BT4 [index_day, index_BT4]
-        total_ConstraintViolation_MinimalModulationDegree_combined [index_day] = total_ConstraintViolation_MinimalModulationDegree_combined [index_day] + total_ConstraintViolation_MinimalModulationDegree_BT4 [index_day, index_BT4]
-        total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] = total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] + total_ConstraintViolation_numberOfStarts_Individual_BT4 [index_day, index_BT4]
-    for index_BT5 in range (0, len(indexOfBuildingsOverall_BT5)):
-        total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day]  = total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day] + total_ConstraintViolation_SOCRangeOfTheBAT_BT5 [index_day, index_BT5]
-        total_ConstraintViolation_SOCOfTheBATLastValue_combined [index_day]  = total_ConstraintViolation_SOCOfTheBATLastValue_combined [index_day] + total_ConstraintViolation_SOCOfTheBATLastValue_BT5 [index_day, index_BT5]
-        total_ConstraintViolation_ChargingPowerOfTheBAT_combined [index_day] = total_ConstraintViolation_ChargingPowerOfTheBAT_combined [index_day] + total_ConstraintViolation_disChargingPowerOfTheBAT_BT5 [index_day, index_BT5] + total_ConstraintViolation_ChargingPowerOfTheBAT_BT5 [index_day, index_BT5]
+    simulationObjective_thermalDiscomfort_combined [index_day] = round(simulationObjective_thermalDiscomfort_combined [index_day], 2)
+    simulationObjective_gasConsumptionkWh_combined  [index_day] = round(simulationObjective_gasConsumptionkWh_combined [index_day], 2)
 
 
-
-    #Print results (constraint violations and objectives)
-    print("Possible constraint violations:")
-    if total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] > 0.09:
-       print ("total_ConstraintViolation_BufferStorageTemperatureRange_combined: " + str(round(total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_DHWTankRange_combined [index_day] >0.1:
-       print("total_ConstraintViolation_DHWTankRange_combined: " + str(round(total_ConstraintViolation_DHWTankRange_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] >0.09:
-       print("total_ConstraintViolation_BufferStorageTemperatureLastValue_combined: ", str(round(total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_OnlyOneStorage_combined [index_day] >0.1:
-       print("total_ConstraintViolation_OnlyOneStorage_combined: " + str(round(total_ConstraintViolation_OnlyOneStorage_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_MinimalModulationDegree_combined [index_day] >0.2:
-       print("total_ConstraintViolation_MinimalModulationDegree_combined: " + str(round(total_ConstraintViolation_MinimalModulationDegree_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day] >0.1:
-       print("total_ConstraintViolation_SOCOfTheEVLastValue_combined: " + str(round(total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] >0.1:
-       print("total_ConstraintViolation_SOCOfTheEVLastValue_combined: " + str(round(total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_ChargingPowerOfTheEV_combined [index_day] >1:
-       print("total_ConstraintViolation_ChargingPowerOfTheEV_combined: " + str(round(total_ConstraintViolation_ChargingPowerOfTheEV_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_numberOfStarts_Individual_combined [index_day] >0.01:
-       print("total_ConstraintViolation_numberOfStarts_Individual_combined: " + str(round(total_ConstraintViolation_numberOfStarts_Individual_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_numberOfStarts_Combined_combined [index_day] >0.01:
-       print("total_ConstraintViolation_numberOfStarts_Combined_combined: " + str(round(total_ConstraintViolation_numberOfStarts_Combined_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day] >1:
-       print("total_ConstraintViolation_SOCRangeOfTheBAT_combined: " + str(round(total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_SOCOfTheBATLastValue_combined [index_day] >0.01:
-       print("total_ConstraintViolation_SOCOfTheBATLastValue_combined: " + str(round(total_ConstraintViolation_SOCOfTheBATLastValue_combined [index_day], 2)) + "\n")
-    if total_ConstraintViolation_ChargingPowerOfTheBAT_combined [index_day] >0.01:
-       print("total_ConstraintViolation_ChargingPowerOfTheBAT_combined: " + str(round(total_ConstraintViolation_ChargingPowerOfTheBAT_combined [index_day], 2)) + "\n")
-
-
-
-    #Calculate the negative score due to constraint violations
-
-
-    #total_ConstraintViolation_BufferStorageTemperatureRange_combined
-    averageDeviationPerTimeSlot_BufferStorageTemperatureRange_combined = total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] / SetUpScenarios.numberOfTimeSlotsPerDay
-    allowedTemperatureRange = SetUpScenarios.maximalBufferStorageTemperature - SetUpScenarios.minimalBufferStorageTemperature
-    negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] = ((100/allowedTemperatureRange) * averageDeviationPerTimeSlot_BufferStorageTemperatureRange_combined)/SetUpScenarios.numberOfBuildings_Total
-
-    #total_ConstraintViolation_DHWTankRange_combined
-    averageDeviationPerTimeSlot_DHWTankRange_combined = total_ConstraintViolation_DHWTankRange_combined [index_day]  / SetUpScenarios.numberOfTimeSlotsPerDay
-    allowedVolumeRange = SetUpScenarios.maximumCapacityDHWTankOptimization -  SetUpScenarios.minimumCapacityDHWTankOptimization
-    negativeScore_total_ConstraintViolation_DHWTankRange_combined [index_day] = ((100/allowedVolumeRange) * averageDeviationPerTimeSlot_DHWTankRange_combined)/SetUpScenarios.numberOfBuildings_Total
-
-    #total_ConstraintViolation_BufferStorageTemperatureLastValue_combined
-    negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] = ((100/allowedTemperatureRange) * total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day])/SetUpScenarios.numberOfBuildings_Total
-
-    #total_ConstraintViolation_DHWTankLastValue_combined
-    negativeScore_total_ConstraintViolation_DHWTankLastValue_combined [index_day] = ((100/allowedVolumeRange) * total_ConstraintViolation_DHWTankLastValue_combined [index_day] )/SetUpScenarios.numberOfBuildings_Total
-
-    #total_ConstraintViolation_SOCOfTheEV_combined
-    negativeScore_total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day] = (total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day])/SetUpScenarios.numberOfBuildings_Total
-
-    #total_ConstraintViolation_SOCOfTheEVLastValue_combined
-    if hypotheticalSOCDropWithNoCharging_combined [index_day] == 0:
-        negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] =0
-    else:
-        negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] = (100/hypotheticalSOCDropWithNoCharging_combined [index_day])* (total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day])
-        if np.isnan(negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day]) == True:
-            negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] =0
-
-    #total_ConstraintViolation_SOCOfTheBAT_combined
-    negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day] = (total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day])/SetUpScenarios.numberOfBuildings_Total
-    if np.isnan(negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day]) == True:
-        negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day] =0
-
-
-
-    #total_ConstraintViolation_numberOfStarts_Combined_combined
-    negativeScore_total_ConstraintViolation_numberOfStarts_Combined_combined [index_day] = (total_ConstraintViolation_numberOfStarts_Combined_combined [index_day])/SetUpScenarios.numberOfBuildings_Total
-
-     #total negative score
-    negativeScore_total_overall [index_day] = Run_Simulations.weight_total_ConstraintViolation_BufferStorageTemperatureRange_combined * negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day] + Run_Simulations.weight_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined * negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day] + Run_Simulations.weight_total_ConstraintViolation_DHWTankRange_combined * negativeScore_total_ConstraintViolation_DHWTankRange_combined [index_day] + Run_Simulations.weight_total_ConstraintViolation_DHWTankLastValue_combined * negativeScore_total_ConstraintViolation_DHWTankLastValue_combined [index_day] + Run_Simulations.weight_total_ConstraintViolation_SOCRangeOfTheEV_combined * negativeScore_total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day] + Run_Simulations.weight_total_ConstraintViolation_SOCOfTheEVLastValue_combined * negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day] + Run_Simulations.weight_total_ConstraintViolation_numberOfStarts_Combined_combined * negativeScore_total_ConstraintViolation_numberOfStarts_Combined_combined [index_day]  + Run_Simulations.weight_total_ConstraintViolation_SOCRangeOfTheBAT_combined * negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day]
-
-    print("")
-    print("Negative Scores")
-    print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_combined: ", round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_DHWTankRange_combined: ", round(negativeScore_total_ConstraintViolation_DHWTankRange_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined: ", round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_DHWTankLastValue_combined: ", round(negativeScore_total_ConstraintViolation_DHWTankLastValue_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_SOCRangeOfTheEV_combined: ", round(negativeScore_total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined: ", round(negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_numberOfStarts_Combined_combined: ", round(negativeScore_total_ConstraintViolation_numberOfStarts_Combined_combined [index_day], 3))
-    print("negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined: ", round(negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day], 3))
-    print("negativeScore_total_overall: ", round(negativeScore_total_overall [index_day], 3))
-    print("")
-
-
-    print("")
-    print("Objectives" + "\n" + "\n")
-    print("Consider objective Surplus Energy: " + str(Run_Simulations.optimizationGoal_minimizeSurplusEnergy))
-    print("Consider objective Peak Load: " + str(Run_Simulations.optimizationGoal_minimizePeakLoad))
-    print("Consider objective Costs: " + str(Run_Simulations.optimizationGoal_minimizeCosts) + "\n")
-    print("Objective Surplus Energy [kWh]: " + str(round(simulationObjective_surplusEnergy_kWh_combined [index_day], 1)) )
-    print("Objective Peak Load [kW]: " + str(round(simulationObjective_maximumLoad_kW_combined [index_day], 2)))
-    print("Objective Costs [Euro]: " + str(round(simulationObjective_costs_Euro_combined [index_day], 2)) )
-    print("Objective Score: " + str(round(simulationObjective_combinedScore_combined [index_day]/100, 2)))
-    print("")
 
 
     #Write result data into files
 
+    #Create folder for the day
+    pathForCreatingTheResultDataWithDay = pathForCreatingTheResultData + "/Day" + str(currentDay)
+
+    try:
+        os.makedirs(pathForCreatingTheResultDataWithDay)
+    except OSError:
+        print ("Creation of the directory %s failed" % pathForCreatingTheResultDataWithDay)
+
+
     #BT1
     for i in range (0, SetUpScenarios.numberOfBuildings_BT1):
+        df_resultingProfiles_BT1 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT1_heatGenerationCoefficientSpaceHeating_Conventional[i, :],'heatGenerationCoefficientDHW': outputVector_BT1_heatGenerationCoefficientDHW_Conventional[i, :],'chargingPowerEV': outputVector_BT1_chargingPowerEV_Conventional[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT1[0,i, :], 'usableVolumeDHWTank': simulationResult_UsableVolumeDHW_BT1[0,i, :], 'simulationResult_SOCofEV': simulationResult_SOCofEV_BT1[0,i, :], 'simulationResult_energyLevelOfEV': simulationResult_energyLevelOfEV_BT1[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT1[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT1[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT1[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT1[0,i, :], 'simulationResult_costs': simulationResult_costs_BT1[0,i, :], 'Space Heating [W]': simulationInput_BT1_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT1_DHW [i, :], 'Electricity [W]': simulationInput_BT1_electricityDemand [i, :], 'Availability of the EV': simulationInput_BT1_availabilityPattern [i, :],'Energy Consumption of the EV':simulationInput_BT1_energyConsumptionOfTheEV [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT1 [0, i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'COP (Space Heating)': cop_heatPump_SpaceHeating [:], 'COP (DHW)': cop_heatPump_DHW [:]})
 
-
-        df_resultingProfiles_BT1 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT1_heatGenerationCoefficientSpaceHeating_Conventional[i, :],'heatGenerationCoefficientDHW': outputVector_BT1_heatGenerationCoefficientDHW_Conventional[i, :],'chargingPowerEV': outputVector_BT1_chargingPowerEV_Conventional[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT1[0,i, :], 'usableVolumeDHWTank': simulationResult_UsableVolumeDHW_BT1[0,i, :], 'simulationResult_SOCofEV': simulationResult_SOCofEV_BT1[0,i, :], 'simulationResult_energyLevelOfEV': simulationResult_energyLevelOfEV_BT1[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT1[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT1[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT1[0,i, :],  'Space Heating [W]': simulationInput_BT1_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT1_DHW [i, :], 'Electricity [W]': simulationInput_BT1_electricityDemand [i, :], 'Availability of the EV': simulationInput_BT1_availabilityPattern [i, :],'Energy Consumption of the EV':simulationInput_BT1_energyConsumptionOfTheEV [i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT1[0,i, :], 'simulationResult_costs': simulationResult_costs_BT1[0,i, :]})
         #Round values
         df_resultingProfiles_BT1 ['heatGenerationCoefficientSpaceHeating'] = df_resultingProfiles_BT1 ['heatGenerationCoefficientSpaceHeating'].round(2)
         df_resultingProfiles_BT1 ['heatGenerationCoefficientDHW'] = df_resultingProfiles_BT1 ['heatGenerationCoefficientDHW'].round(2)
@@ -5083,24 +7649,32 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         df_resultingProfiles_BT1 ['temperatureBufferStorage'] = df_resultingProfiles_BT1 ['temperatureBufferStorage'].round(2)
         df_resultingProfiles_BT1 ['usableVolumeDHWTank'] = df_resultingProfiles_BT1 ['usableVolumeDHWTank'].round(2)
         df_resultingProfiles_BT1 ['simulationResult_SOCofEV'] = df_resultingProfiles_BT1 ['simulationResult_SOCofEV'].round(2)
-        df_resultingProfiles_BT1 ['simulationResult_energyLevelOfEV'] = df_resultingProfiles_BT1 ['simulationResult_energyLevelOfEV'].round(2)
+        df_resultingProfiles_BT1 ['simulationResult_energyLevelOfEV'] = (df_resultingProfiles_BT1 ['simulationResult_energyLevelOfEV']/3600000).round(2)
         df_resultingProfiles_BT1 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT1 ['simulationResult_PVGeneration'].round(2)
         df_resultingProfiles_BT1 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT1 ['simulationResult_electricalLoad'].round(2)
         df_resultingProfiles_BT1 ['simulationResult_costs'] = df_resultingProfiles_BT1 ['simulationResult_costs'].round(2)
         df_resultingProfiles_BT1 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT1 ['simulationResult_RESGeneration'].round(2)
+        df_resultingProfiles_BT1 ['thermalDiscomfort'] = df_resultingProfiles_BT1 ['thermalDiscomfort'].round(2)
+
+        df_resultingProfiles_BT1 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT1 ['simulationResult_SurplusPower'].round(2)
         df_resultingProfiles_BT1 ['Space Heating [W]'] = df_resultingProfiles_BT1 ['Space Heating [W]'].round(1)
         df_resultingProfiles_BT1 ['DHW [W]'] = df_resultingProfiles_BT1 ['DHW [W]'].round(1)
         df_resultingProfiles_BT1 ['Electricity [W]'] = df_resultingProfiles_BT1 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT1 ['Outside Temperature [C]'] = df_resultingProfiles_BT1 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT1 ['Price [Cent/kWh]'] = df_resultingProfiles_BT1 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT1 ['COP (Space Heating)'] = df_resultingProfiles_BT1 ['COP (Space Heating)'].round(2)
+        df_resultingProfiles_BT1 ['COP (DHW)'] = df_resultingProfiles_BT1 ['COP (DHW)'].round(2)
+        price_array = df_resultingProfiles_BT1['Price [Cent/kWh]'].values
 
-        df_resultingProfiles_BT1.index += 1
         df_resultingProfiles_BT1.index.name = 'timeslot'
         df_resultingProfiles_BT1.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT1), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
-        df_resultingProfiles_BT1.to_csv(pathForCreatingTheResultData + "/BT1_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        df_resultingProfiles_BT1.to_csv(pathForCreatingTheResultDataWithDay + "/BT1_HH" + str(i + 1) + ".csv", index=True,  sep =";")
 
 
     #BT2
     for i in range (0, SetUpScenarios.numberOfBuildings_BT2):
-        df_resultingProfiles_BT2 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT2_heatGenerationCoefficientSpaceHeating_Conventional[i, :],'heatGenerationCoefficientDHW': outputVector_BT2_heatGenerationCoefficientDHW_Conventional[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT2[0,i, :], 'usableVolumeDHWTank': simulationResult_UsableVolumeDHW_BT2[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT2[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT2[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT2[0,i, :], 'Space Heating [W]': simulationInput_BT2_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT2_DHW [i, :], 'Electricity [W]': simulationInput_BT2_electricityDemand [i, :] , 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT2[0,i, :], 'simulationResult_costs': simulationResult_costs_BT2[0,i, :]})
+        df_resultingProfiles_BT2 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT2_heatGenerationCoefficientSpaceHeating_Conventional[i, :],'heatGenerationCoefficientDHW': outputVector_BT2_heatGenerationCoefficientDHW_Conventional[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT2[0,i, :], 'usableVolumeDHWTank': simulationResult_UsableVolumeDHW_BT2[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT2[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT2[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT2[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT2[0,i, :], 'simulationResult_costs': simulationResult_costs_BT2[0,i, :], 'Space Heating [W]': simulationInput_BT2_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT2_DHW [i, :], 'Electricity [W]': simulationInput_BT2_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT2 [0, i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'COP (Space Heating)': cop_heatPump_SpaceHeating [:], 'COP (DHW)': cop_heatPump_DHW [:] })
+
         #Round values
         df_resultingProfiles_BT2 ['heatGenerationCoefficientSpaceHeating'] = df_resultingProfiles_BT2 ['heatGenerationCoefficientSpaceHeating'].round(2)
         df_resultingProfiles_BT2 ['heatGenerationCoefficientDHW'] = df_resultingProfiles_BT2 ['heatGenerationCoefficientDHW'].round(2)
@@ -5110,37 +7684,53 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         df_resultingProfiles_BT2 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT2 ['simulationResult_electricalLoad'].round(2)
         df_resultingProfiles_BT2 ['simulationResult_costs'] = df_resultingProfiles_BT2 ['simulationResult_costs'].round(2)
         df_resultingProfiles_BT2 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT2 ['simulationResult_RESGeneration'].round(2)
+        df_resultingProfiles_BT2 ['thermalDiscomfort'] = df_resultingProfiles_BT2 ['thermalDiscomfort'].round(2)
+
+        df_resultingProfiles_BT2 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT2 ['simulationResult_SurplusPower'].round(2)
         df_resultingProfiles_BT2 ['Space Heating [W]'] = df_resultingProfiles_BT2 ['Space Heating [W]'].round(1)
         df_resultingProfiles_BT2 ['DHW [W]'] = df_resultingProfiles_BT2 ['DHW [W]'].round(1)
         df_resultingProfiles_BT2 ['Electricity [W]'] = df_resultingProfiles_BT2 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT2 ['Outside Temperature [C]'] = df_resultingProfiles_BT2 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT2 ['Price [Cent/kWh]'] = df_resultingProfiles_BT2 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT2 ['COP (Space Heating)'] = df_resultingProfiles_BT2 ['COP (Space Heating)'].round(2)
+        df_resultingProfiles_BT2 ['COP (DHW)'] = df_resultingProfiles_BT2 ['COP (DHW)'].round(2)
+        price_array = df_resultingProfiles_BT2['Price [Cent/kWh]'].values
 
-        df_resultingProfiles_BT2.index += 1
         df_resultingProfiles_BT2.index.name = 'timeslot'
         df_resultingProfiles_BT2.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT2), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
-        df_resultingProfiles_BT2.to_csv(pathForCreatingTheResultData + "/BT2_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        df_resultingProfiles_BT2.to_csv(pathForCreatingTheResultDataWithDay + "/BT2_HH" + str(i + 1) + ".csv", index=True,  sep =";")
 
     #BT3
     for i in range (0, SetUpScenarios.numberOfBuildings_BT3):
-        df_resultingProfiles_BT3 = pd.DataFrame({'chargingPowerEV': outputVector_BT3_chargingPowerEV_Conventional[i, :],  'simulationResult_SOCofEV': simulationResult_SOCofEV_BT3[0,i, :], 'simulationResult_energyLevelOfEV': simulationResult_energyLevelOfEV_BT3[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT3[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT3[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT3[0,i, :], 'Electricity [W]': simulationInput_BT3_electricityDemand [i, :], 'Availability of the EV': simulationInput_BT3_availabilityPattern [i, :],'Energy Consumption of the EV':simulationInput_BT3_energyConsumptionOfTheEV [i, :] , 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT3[0,i, :], 'simulationResult_costs': simulationResult_costs_BT3[0,i, :]})
+        df_resultingProfiles_BT3 = pd.DataFrame({'chargingPowerEV': outputVector_BT3_chargingPowerEV_Conventional[i, :],  'simulationResult_SOCofEV': simulationResult_SOCofEV_BT3[0,i, :], 'simulationResult_energyLevelOfEV': simulationResult_energyLevelOfEV_BT3[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT3[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT3[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT3[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT3[0,i, :], 'simulationResult_costs': simulationResult_costs_BT3[0,i, :], 'Electricity [W]': simulationInput_BT3_electricityDemand [i, :], 'Availability of the EV': simulationInput_BT3_availabilityPattern [i, :],'Energy Consumption of the EV':simulationInput_BT3_energyConsumptionOfTheEV [i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]']})
+
+
         #Round values
         df_resultingProfiles_BT3 ['chargingPowerEV'] = df_resultingProfiles_BT3 ['chargingPowerEV'].round(2)
         df_resultingProfiles_BT3 ['simulationResult_SOCofEV'] = df_resultingProfiles_BT3 ['simulationResult_SOCofEV'].round(2)
-        df_resultingProfiles_BT3 ['simulationResult_energyLevelOfEV'] = df_resultingProfiles_BT3 ['simulationResult_energyLevelOfEV'].round(2)
+        df_resultingProfiles_BT3 ['simulationResult_energyLevelOfEV'] = (df_resultingProfiles_BT3 ['simulationResult_energyLevelOfEV']/3600000).round(2)
         df_resultingProfiles_BT3 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT3 ['simulationResult_PVGeneration'].round(2)
         df_resultingProfiles_BT3 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT3 ['simulationResult_electricalLoad'].round(2)
         df_resultingProfiles_BT3 ['simulationResult_costs'] = df_resultingProfiles_BT3 ['simulationResult_costs'].round(2)
         df_resultingProfiles_BT3 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT3 ['simulationResult_RESGeneration'].round(2)
-        df_resultingProfiles_BT3 ['Electricity [W]'] = df_resultingProfiles_BT3 ['Electricity [W]'].round(1)
 
-        df_resultingProfiles_BT3.index += 1
+        df_resultingProfiles_BT3 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT3 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT3 ['Electricity [W]'] = df_resultingProfiles_BT3 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT3 ['Outside Temperature [C]'] = df_resultingProfiles_BT3 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT3 ['Price [Cent/kWh]'] = df_resultingProfiles_BT3 ['Price [Cent/kWh]'].round(2)
+        price_array = df_resultingProfiles_BT3['Price [Cent/kWh]'].values
+
+
         df_resultingProfiles_BT3.index.name = 'timeslot'
         df_resultingProfiles_BT3.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT3), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
-        df_resultingProfiles_BT3.to_csv(pathForCreatingTheResultData + "/BT3_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        df_resultingProfiles_BT3.to_csv(pathForCreatingTheResultDataWithDay + "/BT3_HH" + str(i + 1) + ".csv", index=True,  sep =";")
 
 
     #BT4
     for i in range (0, SetUpScenarios.numberOfBuildings_BT4):
-        df_resultingProfiles_BT4 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT4_heatGenerationCoefficientSpaceHeating_Conventional[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT4[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT4[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT4[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT4[0,i, :] , 'Space Heating [W]': simulationInput_BT4_SpaceHeating [i, :],  'Electricity [W]': simulationInput_BT4_electricityDemand [i, :] , 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT4[0,i, :], 'simulationResult_costs': simulationResult_costs_BT4[0,i, :]})
+        df_resultingProfiles_BT4 = pd.DataFrame({'heatGenerationCoefficientSpaceHeating': outputVector_BT4_heatGenerationCoefficientSpaceHeating_Conventional[i, :], 'temperatureBufferStorage': simulationResult_BufferStorageTemperature_BT4[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT4[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT4[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT4[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT4[0,i, :], 'simulationResult_costs': simulationResult_costs_BT4[0,i, :], 'Space Heating [W]': simulationInput_BT4_SpaceHeating [i, :],  'Electricity [W]': simulationInput_BT4_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT4 [0, i, :],  'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'COP (Space Heating)': cop_heatPump_SpaceHeating [:]  })
+
+
         #Round values
         df_resultingProfiles_BT4 ['heatGenerationCoefficientSpaceHeating'] = df_resultingProfiles_BT4 ['heatGenerationCoefficientSpaceHeating'].round(2)
         df_resultingProfiles_BT4 ['temperatureBufferStorage'] = df_resultingProfiles_BT4 ['temperatureBufferStorage'].round(2)
@@ -5148,17 +7738,26 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         df_resultingProfiles_BT4 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT4 ['simulationResult_electricalLoad'].round(2)
         df_resultingProfiles_BT4 ['simulationResult_costs'] = df_resultingProfiles_BT4 ['simulationResult_costs'].round(2)
         df_resultingProfiles_BT4 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT4 ['simulationResult_RESGeneration'].round(2)
+        df_resultingProfiles_BT4 ['thermalDiscomfort'] = df_resultingProfiles_BT4 ['thermalDiscomfort'].round(2)
+
+        df_resultingProfiles_BT4 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT4 ['simulationResult_SurplusPower'].round(2)
         df_resultingProfiles_BT4 ['Space Heating [W]'] = df_resultingProfiles_BT4 ['Space Heating [W]'].round(1)
         df_resultingProfiles_BT4 ['Electricity [W]'] = df_resultingProfiles_BT4 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT4 ['Outside Temperature [C]'] = df_resultingProfiles_BT4 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT4 ['Price [Cent/kWh]'] = df_resultingProfiles_BT4 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT4 ['COP (Space Heating)'] = df_resultingProfiles_BT4 ['COP (Space Heating)'].round(2)
+        price_array = df_resultingProfiles_BT4['Price [Cent/kWh]'].values
 
-        df_resultingProfiles_BT4.index += 1
         df_resultingProfiles_BT4.index.name = 'timeslot'
         df_resultingProfiles_BT4.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT4), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
-        df_resultingProfiles_BT4.to_csv(pathForCreatingTheResultData + "/BT4_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        df_resultingProfiles_BT4.to_csv(pathForCreatingTheResultDataWithDay + "/BT4_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+
 
     #BT5
     for i in range (0, SetUpScenarios.numberOfBuildings_BT5):
-        df_resultingProfiles_BT5 = pd.DataFrame({'chargingPowerBAT': outputVector_BT5_chargingPowerBAT_Conventional[i, :], 'disChargingPowerBAT': outputVector_BT5_disChargingPowerBAT_Conventional[i, :],  'simulationResult_SOCofBAT': simulationResult_SOCofBAT_BT5[0,i, :], 'simulationResult_energyLevelOfBAT': simulationResult_energyLevelOfBAT_BT5[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT5[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT5[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT5[0,i, :] , 'Electricity [W]': simulationInput_BT5_electricityDemand [i, :] , 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT5[0,i, :], 'simulationResult_costs': simulationResult_costs_BT5[0,i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]']})
+        df_resultingProfiles_BT5 = pd.DataFrame({'chargingPowerBAT': outputVector_BT5_chargingPowerBAT_Conventional[i, :], 'disChargingPowerBAT': outputVector_BT5_disChargingPowerBAT_Conventional[i, :],  'simulationResult_SOCofBAT': simulationResult_SOCofBAT_BT5[0,i, :], 'simulationResult_energyLevelOfBAT': simulationResult_energyLevelOfBAT_BT5[0,i, :], 'simulationResult_PVGeneration': simulationResult_PVGeneration_BT5[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT5[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT5[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT5[0,i, :], 'simulationResult_costs': simulationResult_costs_BT5[0,i, :], 'Electricity [W]': simulationInput_BT5_electricityDemand [i, :], 'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]']})
+
+
         #Round values
         df_resultingProfiles_BT5 ['chargingPowerBAT'] = df_resultingProfiles_BT5 ['chargingPowerBAT'].round(2)
         df_resultingProfiles_BT5 ['disChargingPowerBAT'] = df_resultingProfiles_BT5 ['disChargingPowerBAT'].round(2)
@@ -5168,14 +7767,76 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         df_resultingProfiles_BT5 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT5 ['simulationResult_electricalLoad'].round(2)
         df_resultingProfiles_BT5 ['simulationResult_costs'] = df_resultingProfiles_BT5 ['simulationResult_costs'].round(2)
         df_resultingProfiles_BT5 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT5 ['simulationResult_RESGeneration'].round(2)
-        df_resultingProfiles_BT5 ['Electricity [W]'] = df_resultingProfiles_BT5 ['Electricity [W]'].round(1)
 
-        df_resultingProfiles_BT5.index += 1
+        df_resultingProfiles_BT5 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT5 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT5 ['Electricity [W]'] = df_resultingProfiles_BT5 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT5 ['Outside Temperature [C]'] = df_resultingProfiles_BT5 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT5 ['Price [Cent/kWh]'] = df_resultingProfiles_BT5 ['Price [Cent/kWh]'].round(2)
+        price_array = df_resultingProfiles_BT5['Price [Cent/kWh]'].values
+
+
         df_resultingProfiles_BT5.index.name = 'timeslot'
         df_resultingProfiles_BT5.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT5), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
-        df_resultingProfiles_BT5.to_csv(pathForCreatingTheResultData + "/BT5_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+        df_resultingProfiles_BT5.to_csv(pathForCreatingTheResultDataWithDay + "/BT5_HH" + str(i + 1) + ".csv", index=True,  sep =";")
 
 
+    #BT6
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT6):
+        df_resultingProfiles_BT6 = pd.DataFrame({'heatGenerationCoefficient_GasBoiler': outputVector_BT6_heatGenerationCoefficient_GasBoiler[0, i, :],'heatGenerationCoefficient_ElectricalHeatingElement': outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement[0, i, :],'heatTransferCoefficient_StorageToRoom': outputVector_BT6_heatTransferCoefficient_StorageToRoom[0, i, :], 'temperatureBuilding': simulationResult_temperatureBuilding_BT6[0,i, :], 'energyLevelCombinedStorage': simulationResult_energyLevelCombinedStorage_BT6[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT6[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT6[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT6[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT6[0,i, :], 'simulationResult_costs': simulationResult_costs_BT6[0,i, :], 'Space Heating [W]': simulationInput_BT6_SpaceHeating [i, :], 'DHW [W]': simulationInput_BT6_DHW [i, :], 'Electricity [W]': simulationInput_BT6_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT6 [0, i, :] ,  'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'gasConsumptionkWh': simulationResult_gasConsumptionkWh_BT6[0, i, :]})
+
+
+
+        #Round values
+        df_resultingProfiles_BT6 ['heatGenerationCoefficient_GasBoiler'] = df_resultingProfiles_BT6 ['heatGenerationCoefficient_GasBoiler'].round(2)
+        df_resultingProfiles_BT6 ['heatGenerationCoefficient_ElectricalHeatingElement'] = df_resultingProfiles_BT6 ['heatGenerationCoefficient_ElectricalHeatingElement'].round(2)
+        df_resultingProfiles_BT6 ['heatTransferCoefficient_StorageToRoom'] = df_resultingProfiles_BT6 ['heatTransferCoefficient_StorageToRoom'].round(2)
+        df_resultingProfiles_BT6 ['temperatureBuilding'] = df_resultingProfiles_BT6 ['temperatureBuilding'].round(2)
+        df_resultingProfiles_BT6 ['energyLevelCombinedStorage'] = df_resultingProfiles_BT6 ['energyLevelCombinedStorage'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT6 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT6 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_costs'] = df_resultingProfiles_BT6 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT6 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT6 ['simulationResult_RESGeneration'].round(2)
+
+        df_resultingProfiles_BT6 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT6 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT6 ['Space Heating [W]'] = df_resultingProfiles_BT6 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT6 ['DHW [W]'] = df_resultingProfiles_BT6 ['DHW [W]'].round(1)
+        df_resultingProfiles_BT6 ['Electricity [W]'] = df_resultingProfiles_BT6 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT6 ['Outside Temperature [C]'] = df_resultingProfiles_BT6 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT6 ['Price [Cent/kWh]'] = df_resultingProfiles_BT6 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT6 ['thermalDiscomfort'] = df_resultingProfiles_BT6 ['thermalDiscomfort'].round(2)
+        df_resultingProfiles_BT6 ['gasConsumptionkWh'] = df_resultingProfiles_BT6 ['gasConsumptionkWh'].round(2)
+        price_array = df_resultingProfiles_BT6['Price [Cent/kWh]'].values
+
+        df_resultingProfiles_BT6.index.name = 'timeslot'
+        df_resultingProfiles_BT6.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT6), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT6.to_csv(pathForCreatingTheResultDataWithDay + "/BT6_HH" + str(i + 1) + ".csv", index=True,  sep =";")
+
+    #BT7
+    for i in range (0, SetUpScenarios.numberOfBuildings_BT7):
+        df_resultingProfiles_BT7 = pd.DataFrame({'heatGenerationCoefficient_GasBoiler': outputVector_BT7_heatGenerationCoefficient_GasBoiler[0, i, :],'heatGenerationCoefficient_ElectricalFanHeater': outputVector_BT7_electricalPowerFanHeater[0,i, :], 'temperatureBuilding': simulationResult_temperatureBuilding_BT7[0,i, :],  'simulationResult_PVGeneration': simulationResult_PVGeneration_BT7[0,i, :], 'simulationResult_RESGeneration': simulationResult_RESGeneration_BT7[0,i, :], 'simulationResult_electricalLoad': simulationResult_electricalLoad_BT7[0,i, :], 'simulationResult_SurplusPower': simulationResult_SurplusPower_BT7[0,i, :], 'simulationResult_costs': simulationResult_costs_BT7[0,i, :], 'Space Heating [W]': simulationInput_BT7_SpaceHeating [i, :],  'Electricity [W]': simulationInput_BT7_electricityDemand [i, :], 'thermalDiscomfort': simulationResult_thermalDiscomfort_BT7 [0, i, :] ,  'Outside Temperature [C]': df_outsideTemperatureData['Temperature [C]'], 'Price [Cent/kWh]': df_priceData['Price [Cent/kWh]'], 'gasConsumptionkWh': simulationResult_gasConsumptionkWh_BT7[0, i, :]})
+
+
+        #Round values
+        df_resultingProfiles_BT7 ['heatGenerationCoefficient_GasBoiler'] = df_resultingProfiles_BT7 ['heatGenerationCoefficient_GasBoiler'].round(2)
+        df_resultingProfiles_BT7 ['heatGenerationCoefficient_ElectricalFanHeater'] = df_resultingProfiles_BT7 ['heatGenerationCoefficient_ElectricalFanHeater'].round(2)
+        df_resultingProfiles_BT7 ['temperatureBuilding'] = df_resultingProfiles_BT7 ['temperatureBuilding'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_PVGeneration'] = df_resultingProfiles_BT7 ['simulationResult_PVGeneration'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_electricalLoad'] = df_resultingProfiles_BT7 ['simulationResult_electricalLoad'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_costs'] = df_resultingProfiles_BT7 ['simulationResult_costs'].round(2)
+        df_resultingProfiles_BT7 ['simulationResult_RESGeneration'] = df_resultingProfiles_BT7 ['simulationResult_RESGeneration'].round(2)
+
+        df_resultingProfiles_BT7 ['simulationResult_SurplusPower'] = df_resultingProfiles_BT7 ['simulationResult_SurplusPower'].round(2)
+        df_resultingProfiles_BT7 ['Space Heating [W]'] = df_resultingProfiles_BT7 ['Space Heating [W]'].round(1)
+        df_resultingProfiles_BT7 ['Electricity [W]'] = df_resultingProfiles_BT7 ['Electricity [W]'].round(1)
+        df_resultingProfiles_BT7 ['Outside Temperature [C]'] = df_resultingProfiles_BT7 ['Outside Temperature [C]'].round(2)
+        df_resultingProfiles_BT7 ['Price [Cent/kWh]'] = df_resultingProfiles_BT7 ['Price [Cent/kWh]'].round(2)
+        df_resultingProfiles_BT7 ['thermalDiscomfort'] = df_resultingProfiles_BT7 ['thermalDiscomfort'].round(2)
+        df_resultingProfiles_BT7 ['gasConsumptionkWh'] = df_resultingProfiles_BT7 ['gasConsumptionkWh'].round(2)
+        price_array = df_resultingProfiles_BT7['Price [Cent/kWh]'].values
+
+        df_resultingProfiles_BT7.index.name = 'timeslot'
+        df_resultingProfiles_BT7.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_BT7), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
+        df_resultingProfiles_BT7.to_csv(pathForCreatingTheResultDataWithDay + "/BT7_HH" + str(i + 1) + ".csv", index=True,  sep =";")
 
 
     #Combined results for the whole residential area
@@ -5191,51 +7852,29 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
     df_resultingProfiles_combined.index.name = 'timeslot'
     df_resultingProfiles_combined.index +=1
     df_resultingProfiles_combined.insert(0, 'time of day', pd.date_range('1970-1-1', periods=len(df_resultingProfiles_combined), freq=str(SetUpScenarios.timeResolution_InMinutes) + 'min').strftime('%H:%M'))
-    df_resultingProfiles_combined.to_csv (pathForCreatingTheResultData + "/wholeResidentialArea.csv", index=True,  sep =";")
+    df_resultingProfiles_combined.to_csv (pathForCreatingTheResultDataWithDay + "/wholeResidentialArea.csv", index=True,  sep =";")
 
 
     #Print results into file
-    filename = pathForCreatingTheResultData + "/Results.txt"
+    filename = pathForCreatingTheResultDataWithDay + "/Results.txt"
     with open(filename, 'w') as f:
         print("Objectives" + "\n" + "\n")
-        print("Consider objective Surplus Energy: " + str(Run_Simulations.optimizationGoal_minimizeSurplusEnergy), file = f)
-        print("Consider objective Peak Load: " + str(Run_Simulations.optimizationGoal_minimizePeakLoad), file = f)
-        print("Consider objective Costs: " + str(Run_Simulations.optimizationGoal_minimizeCosts) + "\n", file = f)
         print("Objective Surplus Energy [kWh]: " + str(round(simulationObjective_surplusEnergy_kWh_combined [index_day], 2)) , file = f)
         print("Objective Peak Load [kW]: " + str(round(simulationObjective_maximumLoad_kW_combined [index_day], 2)), file = f)
         print("Objective Costs [Euro]: " + str(round(simulationObjective_costs_Euro_combined [index_day], 2)), file = f)
+        print("Objective Gas Consumption [kWh]: " + str(round(simulationObjective_gasConsumptionkWh_combined [index_day], 2)), file = f)
+        print("Objective Thermal Discomfort: " + str(round(simulationObjective_thermalDiscomfort_combined [index_day], 2)), file = f)
         print("Objective Score: " + str(round(simulationObjective_combinedScore_combined [index_day], 2)), file = f)
-        print("", file = f)
-        print("", file = f)
-        print("", file = f)
-        print("Negative Scores", file = f)
-        print("", file = f)
-        print("", file = f)
-        print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_combined: ", round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_DHWTankRange_combined: ", round(negativeScore_total_ConstraintViolation_DHWTankRange_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined: ",round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_DHWTankLastValue_combined: ",round(negativeScore_total_ConstraintViolation_DHWTankLastValue_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_SOCRangeOfTheEV_combined: ",round(negativeScore_total_ConstraintViolation_SOCRangeOfTheEV_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined: ",round(negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined: ",round(negativeScore_total_ConstraintViolation_SOCRangeOfTheBAT_combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_numberOfStarts_Combined_combined: ",round(negativeScore_total_ConstraintViolation_numberOfStarts_Combined_combined [index_day], 3), file = f)
-        print("", file = f)
-        print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_CorrectionLimit_Combined: ",round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_CorrectionLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_DHWTankRange_CorrectionLimit_Combined: ",round(negativeScore_total_ConstraintViolation_DHWTankRange_CorrectionLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_PhysicalLimit_Combined: ",round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureRange_PhysicalLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_DHWTankRange_PhysicalLimit_Combined: ", round(negativeScore_total_ConstraintViolation_DHWTankRange_PhysicalLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_CorrectionLimit_Combined: ",round(negativeScore_total_ConstraintViolation_BufferStorageTemperatureLastValue_CorrectionLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_DHWTankLastValue_CorrectionLimit_Combined: ",round(negativeScore_total_ConstraintViolation_DHWTankLastValue_CorrectionLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_CorrectionLimit_Combined: ",round(negativeScore_total_ConstraintViolation_SOCOfTheEVLastValue_CorrectionLimit_Combined [index_day], 3), file = f)
-        print("negativeScore_total_ConstraintViolation_numberOfStarts_CorrectionLimit_Combined_Combined: ",round(negativeScore_total_ConstraintViolation_numberOfStarts_CorrectionLimit_Combined_Combined [index_day], 3), file = f)
-        print("negativeScore_total_overall: ",round(negativeScore_total_overall [index_day], 3), file = f)
-        print("", file = f)
-        print("", file = f)
-        print("", file = f)
 
 
 
-    return simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, negativeScore_total_overall
+
+
+    if use_local_search == True:
+        return simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, simulationResult_electricalLoad_combined [0], price_array, simulationInput_BT1_availabilityPattern, combined_array_thermal_discomfort, outputVector_BT1_heatGenerationCoefficientSpaceHeating_Conventional, outputVector_BT1_heatGenerationCoefficientDHW_Conventional, outputVector_BT1_chargingPowerEV_Conventional, outputVector_BT2_heatGenerationCoefficientSpaceHeating_Conventional, outputVector_BT2_heatGenerationCoefficientDHW_Conventional, outputVector_BT3_chargingPowerEV_Conventional, outputVector_BT4_heatGenerationCoefficientSpaceHeating_Conventional, outputVector_BT5_chargingPowerBAT_Conventional, outputVector_BT5_disChargingPowerBAT_Conventional, outputVector_BT6_heatGenerationCoefficient_GasBoiler, outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement, outputVector_BT6_heatTransferCoefficient_StorageToRoom, outputVector_BT7_heatGenerationCoefficient_GasBoiler, outputVector_BT7_electricalPowerFanHeater, combined_array_thermal_discomfort, simulationResult_thermalDiscomfort_BT1, simulationResult_thermalDiscomfort_BT2, simulationResult_thermalDiscomfort_BT3, simulationResult_thermalDiscomfort_BT4, simulationResult_thermalDiscomfort_BT5, simulationResult_thermalDiscomfort_BT6, simulationResult_thermalDiscomfort_BT7
+    else:
+        return simulationObjective_surplusEnergy_kWh_combined, simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined
+
     #End method
 
 
