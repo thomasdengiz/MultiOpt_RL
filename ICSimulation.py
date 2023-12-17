@@ -4202,8 +4202,8 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
                         simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = 5
                         thermal_discomfort_dhw_BT1[index_BT1, index_timeslot] = 5
                     if simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot] < SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
-                        simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = 20
-                        thermal_discomfort_dhw_BT1[index_BT1, index_timeslot] = -20
+                        simulationResult_thermalDiscomfort_BT1[index_day, index_BT1, index_timeslot] = 5 + ((SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue) - simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot]) * 0.5
+                        thermal_discomfort_dhw_BT1[index_BT1, index_timeslot] = (-1) * (5+ ((SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue) - simulationResult_UsableVolumeDHW_BT1 [index_day, index_BT1, index_timeslot]) *0.5) 
 
                 simulationObjective_thermalDiscomfort_BT1[index_day, index_BT1] = simulationObjective_thermalDiscomfort_BT1 [index_day, index_BT1] + simulationResult_thermalDiscomfort_BT1 [index_day, index_BT1, index_timeslot]
 
@@ -4533,8 +4533,8 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
                         simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = 5
                         thermal_discomfort_dhw_BT2[index_BT2, index_timeslot] = 5
                     if simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot] < SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue:
-                        simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = 20
-                        thermal_discomfort_dhw_BT2[index_BT2, index_timeslot] = -20
+                        simulationResult_thermalDiscomfort_BT2[index_day, index_BT2, index_timeslot] = 5 + ((SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue) - simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot]) * 0.5
+                        thermal_discomfort_dhw_BT2[index_BT2, index_timeslot] = (-1) * (5+ ((SetUpScenarios.initialUsableVolumeDHWTank - SetUpScenarios.endUsableVolumeDHWTankAllowedDeviationFromInitialValue) - simulationResult_UsableVolumeDHW_BT2 [index_day, index_BT2, index_timeslot]) *0.5) 
 
                 simulationObjective_thermalDiscomfort_BT2[index_day, index_BT2] = simulationObjective_thermalDiscomfort_BT2 [index_day, index_BT2] + simulationResult_thermalDiscomfort_BT2 [index_day, index_BT2, index_timeslot]
 

@@ -1,97 +1,48 @@
-
-import gymnasium as gym
-from gymnasium import Env
-from gymnasium.spaces import Discrete, Box, Tuple, MultiDiscrete, space
+import matplotlib.pyplot as plt
 import numpy as np
-import os
+
+# Time of day values
+time_of_day = [
+    "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00",
+    "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+    "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+]
+
+# Electricity load values in W
+electricity_load = np.array([
+    5460.99, 177.71, 163.63, 745.47, 770.04, 1049.45, 1090.48, 868.8, 277.68, 3117.22,
+    3416.91, 1383.88, 1551.66, 7324.61, 969.77, 431.08, 703.39, 1201.25, 898.28, 4969.99,
+    5839.21, 259.08, 410.82, 617.37, 661.68, 552.18, 319.37, 702.73
+])
+
+# Convert electricity load values to kW
+electricity_load_kW = electricity_load / 1000
+
+# Increase the figure size for better visibility
+plt.figure(figsize=(12, 6))
+
+# Plotting the bar diagram
+plt.bar(time_of_day, electricity_load_kW[:len(time_of_day)], color='#FFD700', edgecolor='black')  # Dark yellow color
+
+# Adjusting x-axis ticks
+plt.xticks(rotation=45, ha='right', fontsize=16)
+plt.yticks(fontsize=16)
+
+# Labeling the plot
+plt.xlabel('Time of Day', fontsize=18)
+plt.ylabel('Electricity Load (kW)', fontsize=18)
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+# Set x-axis limits to remove extra space on the left and right
+plt.xlim(-0.5, len(time_of_day) - 0.5)
+
+# Automatically adjust subplot parameters for better spacing
+plt.tight_layout()
+
+plt.savefig('C:/Users/wi9632/Desktop/temp.png', dpi=100)
+
+# Show the plot
+plt.show()
 
 
 
-
-class DSM_Env_RL2(Env):
-    def __init__(self):
-
-        # Define the bounds for each dimension of the action space
-        action_space_bounds = [10, 10,51]
-
-        # Create a MultiDiscrete action space
-        self.action_space = MultiDiscrete(action_space_bounds)
-
-        #Specify observation space
-        low = np.zeros(2 * 5)
-        high = np.ones(2 * 5)
-
-        # Create the observation space
-        observation_space = gym.spaces.Box(low=low, high=high, dtype=np.float64)
-        self.observation_space = observation_space
-
-    def reset (self, **kwargs):
-        super().reset(**kwargs)
-        # Specify observation space
-        low = np.zeros(2 * 5)
-        high = np.ones(2 * 5)
-        info = {}
-        # Create the observation space
-        observation_space = gym.spaces.Box(low=low, high=high, dtype=np.float64)
-        self.observation_space = observation_space
-
-        return low, info
-
-    def render (self):
-
-        pass
-
-    def step(self, action ):
-
-        # Execute the action in the external simulation and return the next observation, reward, done, and info
-        action_from_timeslot = action[0]
-        action_to_timeslot = action[1]
-        action_shifting_percentage = action[2]
-
-        #External environment is not used in this test example
-        #result_costs, result_peak, result_DC, results_dict, percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened = Run_Simulations_Help.execute_single_modification_operator_decision_RL2(current_solution, action_from_timeslot, action_to_timeslot, action_shifting_percentage, self.read_RL_data_day, timeslots_for_state_load_percentages_costs )
-
-        percentage_array_loads_per_timeslot_highest_prices_shortened =np.zeros(5)
-        percentage_array_loads_per_timeslot_lowest_prices_shortened  =np.zeros(5)
-        #calculate state
-        state_array = np.concatenate((percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened))
-        observation_space= state_array
-
-        reward = 1
-        done = False
-
-        info = {}
-        print("")
-        return observation_space, reward, done, False, info
-
-
-#Use Stable Baselines 3 to apply a RL algorithm on the environmetn
-from stable_baselines3 import A2C
-
-gym.register("dsm-env-v1", lambda: DSM_Env_RL2())
-env = gym.make("dsm-env-v1")
-
-#Ceck environment
-check_environment = False
-if check_environment == True:
-    from gymnasium.utils.env_checker import check_env
-    check_env(env.unwrapped)
-    from stable_baselines3.common.env_checker import check_env
-    check_env(env)
-
-#Create the files of the model
-models_dir = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Models\A2C"
-logdir = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Logs\A2C"
-if not os.path.exists(models_dir):
-    os.makedirs(models_dir)
-if not os.path.exists(logdir):
-    os.makedirs(logdir)
-
-#Define the model
-model = A2C('MlpPolicy', env, verbose=1)
-
-#train and save the model
-model.learn(total_timesteps=1000)
-model.save(os.path.join(models_dir, 'trained_a2c_model'))
-
-#########

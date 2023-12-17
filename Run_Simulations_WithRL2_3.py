@@ -178,9 +178,10 @@ if __name__ == "__main__":
     import random
     import pickle
 
-    days_for_simulation =[9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361]# [3,  28, 37, 52, 65, 81, 294, 298, 310, 315, 339, 352]
+    #days_for_simultion =
+    days_for_simulation = [9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361]# [3,  28, 37, 52, 65, 81, 294, 298, 310, 315, 339, 352]
     currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
-    simulationName = "RL3"
+    simulationName = "RL2_3"
     df_results_multiopt_local_search = pd.DataFrame(columns=["Day", "GD_Conventional", "GD PF_Approx", "HV PF_Approx", "HV PF_Full", "HV_Ratio"])
 
     for currentDay_iteration in days_for_simulation:
@@ -374,6 +375,7 @@ if __name__ == "__main__":
 
 
                             #Local Search: Optimize for costs (to be tested and loop necessary for multiple solutions)
+                             #Local Search: Optimize for costs (to be tested and loop necessary for multiple solutions)
                             if optimize_costs_local_search == True:
                                 # Find the timeslots with the highgest prices
                                 k = int(60 / SetUpScenarios.timeResolution_InMinutes)  # number of highest price timeslots to select
@@ -398,370 +400,164 @@ if __name__ == "__main__":
                                     percentage_array_loads_per_timeslot_lowest_prices = np.round((electrical_load_profile_current_solution[reshaped_array_lowest_prices] / sum_of_loads) * 100, 1)
 
 
-                                #create the arrays with the highes and lowest prices for 1/2 day
-                                sorted_indices_half_day_part_1_ascending = np.argsort(-price_array[0: int(len(price_array)*0.5)])
-                                sorted_indices_half_day_part_2_ascending  = np.argsort(-price_array[int(len(price_array)*0.5):])
-                                sorted_indices_half_day_part_2_ascending += int(len(price_array)*0.5)
-                                sorted_indices_half_day_part_1_descending = np.argsort(price_array[0: int(len(price_array)*0.5)])
-                                sorted_indices_half_day_part_2_descending  = np.argsort(price_array[int(len(price_array)*0.5):])
-                                sorted_indices_half_day_part_2_descending += int(len(price_array) * 0.5)
+                                #Adust the arrays
+                                adjusted_percentage_array_loads_highest_prices_temp = percentage_array_loads_per_timeslot_highest_prices.reshape(12, 2)
+                                adjusted_percentage_array_loads_highest_prices = adjusted_percentage_array_loads_highest_prices_temp.sum(axis=1)
 
-                                highest_k_prices_array_half_day_part_1 = np.array([sorted_indices_half_day_part_1_ascending[:k],sorted_indices_half_day_part_1_ascending[k:2 * k],sorted_indices_half_day_part_1_ascending[2 * k:3 * k], sorted_indices_half_day_part_1_ascending[3 * k:4 * k],sorted_indices_half_day_part_1_ascending[4 * k:5 * k],sorted_indices_half_day_part_1_ascending[5 * k:6 * k]])
-                                highest_k_prices_array_half_day_part_2 = np.array([sorted_indices_half_day_part_2_ascending[:k],sorted_indices_half_day_part_2_ascending[k:2 * k],sorted_indices_half_day_part_2_ascending[2 * k:3 * k], sorted_indices_half_day_part_2_ascending[3 * k:4 * k],sorted_indices_half_day_part_2_ascending[4 * k:5 * k],sorted_indices_half_day_part_2_ascending[5 * k:6 * k]])
-                                highest_k_prices_half_day_combined_array = np.stack([ highest_k_prices_array_half_day_part_1, highest_k_prices_array_half_day_part_2], axis=0)
-                                lowest_k_prices_array_half_day_part_1 = np.array([sorted_indices_half_day_part_1_descending[:k],sorted_indices_half_day_part_1_descending[k:2 * k],sorted_indices_half_day_part_1_descending[2 * k:3 * k], sorted_indices_half_day_part_1_descending[3 * k:4 * k],sorted_indices_half_day_part_1_descending[4 * k:5 * k],sorted_indices_half_day_part_2_descending[5 * k:6 * k]])
-                                lowest_k_prices_array_half_day_part_2 = np.array([sorted_indices_half_day_part_2_descending[:k],sorted_indices_half_day_part_2_descending[k:2 * k],sorted_indices_half_day_part_2_descending[2 * k:3 * k], sorted_indices_half_day_part_2_descending[3 * k:4 * k],sorted_indices_half_day_part_2_descending[4 * k:5 * k],sorted_indices_half_day_part_2_descending[5 * k:6 * k]])
-                                lowest_k_prices_half_day_combined_array = np.stack([lowest_k_prices_array_half_day_part_1, lowest_k_prices_array_half_day_part_2], axis=0)
+                                adjusted_percentage_array_loads_lowest_prices_temp = percentage_array_loads_per_timeslot_lowest_prices.reshape(12, 2)
+                                adjusted_percentage_array_loads_lowest_prices = adjusted_percentage_array_loads_lowest_prices_temp.sum(axis=1)
 
-                                # create the arrays with the highes and lowest prices for 1/3 day
-                                sorted_indices_onethird_day_part_1_ascending = np.argsort(-price_array[0: int(len(price_array)*0.33)])
-                                sorted_indices_onethird_day_part_2_ascending  = np.argsort(-price_array[int(len(price_array)*0.33):int(len(price_array)*0.66)])
-                                sorted_indices_onethird_day_part_2_ascending += int(len(price_array)*0.33)
-                                sorted_indices_onethird_day_part_3_ascending = np.argsort(-price_array[int(len(price_array) * 0.66):])
-                                sorted_indices_onethird_day_part_3_ascending += int(len(price_array) * 0.66)
+                                adjusted_array_lowest_prices = np.minimum(reshaped_array_lowest_prices[::2], reshaped_array_lowest_prices[1::2])
+                                adjusted_array_highest_prices = np.minimum(reshaped_array_highest_prices[::2],reshaped_array_highest_prices[1::2])
 
-                                sorted_indices_onethird_day_part_1_descending = np.argsort(price_array[0: int(len(price_array)*0.33)])
-                                sorted_indices_onethird_day_part_2_descending  = np.argsort(price_array[int(len(price_array)*0.33):int(len(price_array)*0.66)])
-                                sorted_indices_onethird_day_part_2_descending += int(len(price_array)*0.33)
-                                sorted_indices_onethird_day_part_3_descending = np.argsort(price_array[int(len(price_array) * 0.66):])
-                                sorted_indices_onethird_day_part_3_descending += int(len(price_array) * 0.66)
+                                # Parameters of the agent (action and state space)
+                                timeslots_for_state_load_percentages_costs = 3
+                                number_of_discrete_shifting_actions = 20
+                                minimum_shifting_percentage = 20
+                                maximum_shifting_percentage = 40
 
-                                highest_k_prices_array_onethird_day_part_1 = np.array([sorted_indices_onethird_day_part_1_ascending [:k],sorted_indices_onethird_day_part_1_ascending [k:2 * k],sorted_indices_onethird_day_part_1_ascending [2 * k:3 * k], sorted_indices_onethird_day_part_1_ascending [3 * k:4 * k]])
-                                highest_k_prices_array_onethird_day_part_2 = np.array([sorted_indices_onethird_day_part_2_ascending [:k],sorted_indices_onethird_day_part_2_ascending [k:2 * k],sorted_indices_onethird_day_part_2_ascending [2 * k:3 * k], sorted_indices_onethird_day_part_2_ascending [3 * k:4 * k]])
-                                highest_k_prices_array_onethird_day_part_3 = np.array([sorted_indices_onethird_day_part_3_ascending [:k],sorted_indices_onethird_day_part_3_ascending [k:2 * k],sorted_indices_onethird_day_part_3_ascending [2 * k:3 * k], sorted_indices_onethird_day_part_3_ascending [3 * k:4 * k]])
-                                highest_k_prices_onethird_day_combined_array =np.stack([highest_k_prices_array_onethird_day_part_1, highest_k_prices_array_onethird_day_part_2, highest_k_prices_array_onethird_day_part_3], axis=0)
+                                percentage_array_loads_per_timeslot_highest_prices_shortened = adjusted_percentage_array_loads_highest_prices [0:timeslots_for_state_load_percentages_costs]
+                                percentage_array_loads_per_timeslot_lowest_prices_shortened = adjusted_percentage_array_loads_lowest_prices [0:timeslots_for_state_load_percentages_costs]
 
-                                lowest_k_prices_array_onethird_day_part_1 = np.array([sorted_indices_onethird_day_part_1_descending[:k],sorted_indices_onethird_day_part_1_descending[k:2 * k],sorted_indices_onethird_day_part_1_descending[2 * k:3 * k], sorted_indices_onethird_day_part_1_descending[3 * k:4 * k]])
-                                lowest_k_prices_array_onethird_day_part_2 = np.array([sorted_indices_onethird_day_part_2_descending[:k],sorted_indices_onethird_day_part_2_descending[k:2 * k],sorted_indices_onethird_day_part_2_descending[2 * k:3 * k], sorted_indices_onethird_day_part_2_descending[3 * k:4 * k]])
-                                lowest_k_prices_array_onethird_day_part_3 = np.array([sorted_indices_onethird_day_part_3_descending[:k],sorted_indices_onethird_day_part_3_descending[k:2 * k],sorted_indices_onethird_day_part_3_descending[2 * k:3 * k], sorted_indices_onethird_day_part_3_descending[3 * k:4 * k]])
-                                lowest_k_prices_onethird_day_combined_array =np.stack([lowest_k_prices_array_onethird_day_part_1, lowest_k_prices_array_onethird_day_part_2, lowest_k_prices_array_onethird_day_part_3], axis=0)
+                                percentage_array_loads_per_timeslot_highest_prices_shortened_before_action = percentage_array_loads_per_timeslot_highest_prices_shortened
+                                percentage_array_loads_per_timeslot_lowest_prices_shortened_before_action = percentage_array_loads_per_timeslot_lowest_prices_shortened
 
 
-                                #Create the shifting percentages within one interval (3. Parameter of the local seach algorithm)
-                                percentage_shifted_loads = np.zeros(12)
-                                threshold_random_number_dhw_heating = 85 # Unit %
+                                #Define the dimensionality of the observation space (dimensinality = timeslots_for_state_load_percentages_costs * 2)
+                                percentage_array_loads_per_timeslot_highest_prices_shortened = adjusted_percentage_array_loads_highest_prices [0:timeslots_for_state_load_percentages_costs]
+                                percentage_array_loads_per_timeslot_lowest_prices_shortened = adjusted_percentage_array_loads_lowest_prices [0:timeslots_for_state_load_percentages_costs]
 
-                                random_index_shifting_timeslot_1 = random.randint(0, 11)
-                                random_index_shifting_timeslot_2 = random.randint(0, 11)
+                                percentage_array_loads_per_timeslot_highest_prices_shortened_before_action = percentage_array_loads_per_timeslot_highest_prices_shortened
+                                percentage_array_loads_per_timeslot_lowest_prices_shortened_before_action = percentage_array_loads_per_timeslot_lowest_prices_shortened
 
-                                timeslots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-                                weights = [50-index_iteration*2, 40-index_iteration*2, 15+index_iteration*2, 10+index_iteration*2, 7+index_iteration, 6+index_iteration*0.5, 5+index_iteration*0.5, 4+index_iteration*0.5, 3+index_iteration*0.25, 2+index_iteration*0.25, 1+index_iteration*0.25, 0+index_iteration*0.5]
 
-                                random_index_shifting_timeslot_1 = random.choices(timeslots, weights=weights, k=1)[0]
-                                random_index_shifting_timeslot_2 = random.choices(timeslots, weights=weights, k=1)[0]
+                                param_1_number_of_partitions_for_shifting = 1
 
-                                percentage_shifted_loads [random_index_shifting_timeslot_1] = random.uniform(20-index_iteration, 40-index_iteration*2)
-                                percentage_shifted_loads[random_index_shifting_timeslot_2] = random.uniform(20-index_iteration, 40-index_iteration*2)
+                                #Load the saved RL model (A2C, TD3, DQN, PPO)
+                                from stable_baselines3 import PPO
+                                model_path_extension_RL2 = "RL2_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots3_ShiftActions20_PPO_Nl/trained_PPO_model"
+                                model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL2)
 
-                                random_number_param_1 = random.random()
+                                observation_space = (np.concatenate((percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened))).reshape(-1)
 
-                                help_threshould_1 = 1.6
-                                help_thrshould_2_addition = 0.3
-                                if random_number_param_1 < help_threshould_1:
-                                    param_1_number_of_partitions_for_shifting = 1
-                                if random_number_param_1 >= help_threshould_1 and random_number_param_1 < help_threshould_1 + help_thrshould_2_addition:
-                                    param_1_number_of_partitions_for_shifting = 2
-                                if random_number_param_1 >= help_threshould_1 + help_thrshould_2_addition:
-                                    param_1_number_of_partitions_for_shifting = 3
 
-                                if param_1_number_of_partitions_for_shifting == 1:
-                                    param_2_number_of_intervales_within_partition = 12
-                                if param_1_number_of_partitions_for_shifting == 2:
-                                    param_2_number_of_intervales_within_partition = 6
-                                if param_1_number_of_partitions_for_shifting == 3:
-                                    param_2_number_of_intervales_within_partition = 4
+                                for helpIterationRLAction in range (0,2):
+                                    #Get the action from the RL agent
+                                    action_rl_agent1, _ = model.predict(observation_space, deterministic=False)
+                                    action_from_timeslot = action_rl_agent1[0]
+                                    action_to_timeslot = action_rl_agent1[1]
+                                    action_shifting_percentage = minimum_shifting_percentage + ((maximum_shifting_percentage - minimum_shifting_percentage)/ number_of_discrete_shifting_actions) * action_rl_agent1[2]
 
-                                selected_indices_param_2_number_of_intervales_within_partition = np.where(percentage_shifted_loads > 0.1)[0].tolist()
+                                    #Print Help Info
+                                    '''
+                                    print(f"Info: action Nr. {helpIterationRLAction + 1}")
+                                    print(f"Info: observation_space: {observation_space}")
+                                    print(f"Info: action_rl_agent1: {action_rl_agent1}")
+                                    print(f"Info: action_from_timeslot: {action_from_timeslot}")
+                                    print(f"Info: action_to_timeslot: {round(action_to_timeslot, 1)}")
+                                    print(f"Info: action_shifting_percentage: {round(action_shifting_percentage, 1)}")
+                                    '''
+                                    for helpIteration in range (0,2):
+                                        #Shift profiles cosindering the full day partition
+                                        if param_1_number_of_partitions_for_shifting == 1:
 
-                                for helpIteration in range (0,2):
-                                    #Shift profiles cosindering the full day partition
-                                    if param_1_number_of_partitions_for_shifting == 1:
-
-                                        for current_price_inverval in selected_indices_param_2_number_of_intervales_within_partition:
                                             # Change the profiles of BT1
                                             for index_BT1 in indexOfBuildingsOverall_BT1:
                                                 help_balance_time_slot = helpIteration
                                                 #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                help_output_mod_degree_old = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-                                                outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                help_output_mod_degree_new = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
+                                                help_output_mod_degree_old = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
+                                                outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [reshaped_array_highest_prices[action_from_timeslot]]  - action_shifting_percentage/100 -0.0
+                                                help_output_mod_degree_new = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
                                                 if help_output_mod_degree_new <0:
                                                     help_output_mod_degree_new = 0
                                                 changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  +  changed_mod_degree
+                                                outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]   +  changed_mod_degree
 
+                                                action_from_timeslot, action_to_timeslot, action_shifting_percentage
 
-                                                if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = 0
+                                                if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]    < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]   = SetUpScenarios.minimalModulationdDegree_HP /100
+                                                if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]   < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = 0
+
                                                 #Shift DHW heating power from highes price timeslot to lowest
-
-                                                if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] > 0.1:
-                                                    help_output_mod_degree_old =  outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new =  outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
+                                                if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  > 0.1:
+                                                    help_output_mod_degree_old =  outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
+                                                    outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]    - action_shifting_percentage/100 -0.0
+                                                    help_output_mod_degree_new =  outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
                                                     if help_output_mod_degree_new <0:
                                                         help_output_mod_degree_new = 0
                                                     changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
+                                                    outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]    + changed_mod_degree
 
-                                                    if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]= 0
+                                                    if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                        outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][adjusted_array_lowest_prices[action_to_timeslot] + helpIteration] = SetUpScenarios.minimalModulationdDegree_HP /100
+                                                    if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                        outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][adjusted_array_highest_prices[action_from_timeslot] + helpIteration] = 0
 
 
                                                 # Shift charging power EV from highes price timeslot to lowest
-                                                help_output_EVpower_old = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-                                                outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - (percentage_shifted_loads[current_price_inverval]*2/100) *SetUpScenarios.chargingPowerMaximal_EV
-                                                if outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]<0:
-                                                    outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = 0
-                                                help_output_EVpower_new = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
+                                                help_output_EVpower_old = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
+                                                outputVector_BT1_chargingPowerEV [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]    - (action_shifting_percentage*2/100) *SetUpScenarios.chargingPowerMaximal_EV
+                                                if outputVector_BT1_chargingPowerEV [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration] <0:
+                                                    outputVector_BT1_chargingPowerEV [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = 0
+                                                help_output_EVpower_new = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
                                                 changed_EVpower = help_output_EVpower_old - help_output_EVpower_new
 
-                                                #Check if the EV is available at the desired timeslot for increasing the load
-                                                current_price_inverval_temp = current_price_inverval
-                                                while availability_pattern_EV_BT1 [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval_temp] [help_balance_time_slot]] ==0 and current_price_inverval_temp<len(lowest_k_prices_array_full_day_1) - 1:
-                                                    current_price_inverval_temp += 1
-                                                outputVector_BT1_chargingPowerEV [index_BT1 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval_temp] [help_balance_time_slot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_EVpower
+                                                # Check if the EV is available at the desired timeslot for increasing the load
+                                                help_value_timeslot_addition = 0
+                                                while availability_pattern_EV_BT1 [index_BT1 - 1] [reshaped_array_lowest_prices[action_to_timeslot + help_value_timeslot_addition]] ==0 and action_to_timeslot + help_value_timeslot_addition<len(reshaped_array_lowest_prices) - 1:
+                                                    help_value_timeslot_addition += 1
+                                                outputVector_BT1_chargingPowerEV [index_BT1 - 1] [reshaped_array_lowest_prices[action_to_timeslot + help_value_timeslot_addition]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1]  [reshaped_array_lowest_prices[action_to_timeslot + help_value_timeslot_addition]]   + changed_EVpower
 
 
                                             # Change the profiles of BT2
                                             for index_BT2 in indexOfBuildingsOverall_BT2:
                                                 help_balance_time_slot = helpIteration
                                                 #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                help_output_mod_degree_old = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-                                                outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                help_output_mod_degree_new = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
+                                                help_output_mod_degree_old = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
+                                                outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]    - action_shifting_percentage/100 -0.0
+                                                help_output_mod_degree_new = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
                                                 if help_output_mod_degree_new <0:
                                                     help_output_mod_degree_new = 0
                                                 changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  +  changed_mod_degree
+                                                outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1]  [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]   +  changed_mod_degree
 
 
-                                                if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = 0
+                                                if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]   < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = SetUpScenarios.minimalModulationdDegree_HP /100
+                                                if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]   < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = 0
                                                 #Shift DHW heating power from highes price timeslot to lowest
 
-                                                if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] > 0.1:
-                                                    help_output_mod_degree_old =  outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new =  outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
+                                                if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  > 0.1:
+                                                    help_output_mod_degree_old =  outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
+                                                    outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]    - action_shifting_percentage/100 -0.0
+                                                    help_output_mod_degree_new =  outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
                                                     if help_output_mod_degree_new <0:
                                                         help_output_mod_degree_new = 0
                                                     changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
+                                                    outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]    + changed_mod_degree
 
-                                                    if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]= 0
+                                                    if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                        outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][adjusted_array_lowest_prices[action_to_timeslot] + helpIteration] = SetUpScenarios.minimalModulationdDegree_HP /100
+                                                    if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                        outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][adjusted_array_highest_prices[action_from_timeslot] + helpIteration] = 0
 
                                             # Change the profiles of BT4
                                             for index_BT4 in indexOfBuildingsOverall_BT4:
 
-                                                help_balance_time_slot = random.randint(0, k-1)
+                                                help_output_mod_degree_old = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
+                                                outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]    - action_shifting_percentage/100 -0.0
+                                                help_output_mod_degree_new = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]
 
-                                                #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                help_temp_highest_price = highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]
-                                                help_temp_lowest_price = lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]
-
-                                                #ToDo: Continue (06.07.23): direkte verringerung (nicht prozentual) für alle BT1-4 und für alle Partitionen
-                                                help_output_mod_degree_old = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-                                                outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                help_output_mod_degree_new = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]
-
-                                                if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = 0
+                                                if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]   < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = SetUpScenarios.minimalModulationdDegree_HP /100
+                                                if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_highest_prices[action_from_timeslot] + helpIteration]   < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][adjusted_array_highest_prices[action_from_timeslot] + helpIteration]  = 0
 
                                                 changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  +  changed_mod_degree
-
-
-                                    #Shift profiles cosindering the half day partition
-                                    if param_1_number_of_partitions_for_shifting == 2:
-                                        for current_partition_of_the_day in range (0, 2):
-                                            for current_price_inverval in range(0, param_2_number_of_intervales_within_partition):
-                                                # Change the profiles of BT1
-                                                for index_BT1 in indexOfBuildingsOverall_BT1:
-                                                    help_balance_time_slot = random.randint(0, k-1)
-                                                    #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                    help_output_mod_degree_old =outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                    if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP/100:
-                                                        outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] =0
-
-                                                    #Shift DHW heating power from highes price timeslot to lowest
-                                                    random_number_dhw_heating = random.random()
-                                                    if random_number_dhw_heating > threshold_random_number_dhw_heating / 100:
-                                                        help_output_mod_degree_old = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                        help_output_mod_degree_new  = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                        outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                        if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                            outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-                                                        if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP/100:
-                                                            outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] =0
-
-
-                                                    # Shift charging power EV from highes price timeslot to lowest
-                                                    help_output_EVpower_old = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   * ((100-percentage_shifted_loads[current_price_inverval])/100)
-                                                    help_output_EVpower_new = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_EVpower = help_output_EVpower_old - help_output_EVpower_new
-                                                    outputVector_BT1_chargingPowerEV [index_BT1 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_EVpower
-
-                                                # Change the profiles of BT2
-                                                for index_BT2 in indexOfBuildingsOverall_BT2:
-                                                    help_balance_time_slot = random.randint(0, k-1)
-                                                    #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                    help_output_mod_degree_old =outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                    if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP/100:
-                                                        outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] =0
-
-
-                                                    #Shift DHW heating power from highes price timeslot to lowest
-                                                    random_number_dhw_heating = random.random()
-                                                    if random_number_dhw_heating > threshold_random_number_dhw_heating / 100:
-                                                        help_output_mod_degree_old = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                        help_output_mod_degree_new  = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                        outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-
-                                                        if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                            outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-                                                        if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP/100:
-                                                            outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] =0
-
-                                                # Change the profiles of BT4
-                                                for index_BT4 in indexOfBuildingsOverall_BT4:
-                                                    help_balance_time_slot = random.randint(0, k-1)
-                                                    #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                    help_temp_highest_price = highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]
-                                                    help_temp_lowest_price = lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]
-
-                                                    help_output_mod_degree_old =outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                    if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][lowest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP/100:
-                                                        outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_half_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] =0
-
-                                    #Shift profiles cosindering the third day partition
-                                    if param_1_number_of_partitions_for_shifting == 3:
-                                        for current_partition_of_the_day in range (0, 3):
-                                            for current_price_inverval in range(0, param_2_number_of_intervales_within_partition):
-                                                # Change the profiles of BT1
-                                                for index_BT1 in indexOfBuildingsOverall_BT1:
-                                                    help_balance_time_slot = random.randint(0, k-1)
-                                                    #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                    help_output_mod_degree_old = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                    if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = 0
-
-                                                    #Shift DHW heating power from highes price timeslot to lowest
-                                                    random_number_dhw_heating = random.random()
-                                                    if random_number_dhw_heating > threshold_random_number_dhw_heating / 100:
-                                                        help_output_mod_degree_old = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                        help_output_mod_degree_new = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                        outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                        if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                            outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-                                                        if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                            outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-
-
-                                                    # Shift charging power EV from highes price timeslot to lowest
-                                                    help_output_EVpower_old = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   * ((100-percentage_shifted_loads[current_price_inverval])/100)
-                                                    help_output_EVpower_new = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_EVpower = help_output_EVpower_old - help_output_mod_degree_new
-                                                    outputVector_BT1_chargingPowerEV [index_BT1 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_EVpower
-                                                    help_balance_time_slot += 1
-                                                    if help_balance_time_slot >=k:
-                                                        help_balance_time_slot = 0
-
-                                                # Change the profiles of BT2
-                                                for index_BT2 in indexOfBuildingsOverall_BT2:
-                                                    help_balance_time_slot = random.randint(0, k-1)
-                                                    #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                    help_output_mod_degree_old = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-
-                                                    if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-
-                                                    #Shift DHW heating power from highes price timeslot to lowest
-                                                    random_number_dhw_heating = random.random()
-                                                    if random_number_dhw_heating > threshold_random_number_dhw_heating / 100:
-                                                        help_output_mod_degree_old = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]  - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                        help_output_mod_degree_new = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                        changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                        outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                        if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                            outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-                                                        if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                            outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]= SetUpScenarios.minimalModulationdDegree_HP /100
-
-
-                                                # Change the profiles of BT4
-                                                for index_BT4 in indexOfBuildingsOverall_BT4:
-                                                    help_balance_time_slot = random.randint(0, k-1)
-                                                    #Shift Space heating power from highes price timeslot to lowest: Full day
-                                                    help_output_mod_degree_old = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   - percentage_shifted_loads[current_price_inverval]/100 -0.0
-                                                    help_output_mod_degree_new = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]
-                                                    changed_mod_degree = help_output_mod_degree_old - help_output_mod_degree_new
-                                                    outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [lowest_k_prices_array_full_day_1[current_price_inverval] [help_balance_time_slot]]   + changed_mod_degree
-
-                                                    if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][lowest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
-                                                    if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]]  < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                                        outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][highest_k_prices_onethird_day_combined_array [current_partition_of_the_day][current_price_inverval] [help_balance_time_slot]] = SetUpScenarios.minimalModulationdDegree_HP /100
+                                                outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]  = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [adjusted_array_lowest_prices[action_to_timeslot] + helpIteration]   +  changed_mod_degree
 
 
                             if optimize_peak_local_search == True:
@@ -799,7 +595,7 @@ if __name__ == "__main__":
                                     array_load_percentages_lowest_prices[i] = round((electrical_load_profile_current_solution[reshaped_lowest_prices_fully_day[i]] / max_load), 2) * 100
 
                                 # Parameters of the agent (action and state space)
-                                timeslots_for_state_load_percentages_peak = 3
+                                timeslots_for_state_load_percentages_peak = 5
                                 number_of_discrete_shifting_actions = 15
                                 minimum_shifting_percentage = 10
                                 maximum_shifting_percentage = 25
@@ -808,8 +604,8 @@ if __name__ == "__main__":
 
                                 #Load the saved RL model (A2C, TD3, DQN, PPO)
                                 from stable_baselines3 import PPO
-                                model_path_extension = "RL3_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots3_ShiftActions15_PPO_ns/trained_PPO_model"
-                                model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension)
+                                model_path_extension_RL3 = "RL3_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots5_ShiftActions15_PPO_XA/trained_PPO_model"
+                                model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL3)
 
 
 
@@ -2374,7 +2170,7 @@ if __name__ == "__main__":
     average_row["Day"] = "Average"
     df_results_multiopt_local_search = pd.concat([df_results_multiopt_local_search, pd.DataFrame(average_row, index=[0])], ignore_index=True)
     time_limit_in_minutes = int(time_limit_in_seconds_for_local_search / 60)
-    df_results_multiopt_local_search.to_csv(folderPath_resultFile_multiOpt + "/RL3_result_multiopt_" + "min" + str(time_limit_in_minutes) + ".csv", sep=';',index=False)
+    df_results_multiopt_local_search.to_csv(folderPath_resultFile_multiOpt + "/RL2_3_result_multiopt_" + "min" + str(time_limit_in_minutes) + ".csv", sep=';',index=False)
 
     #Print the parameters of the run as a txt file
     folderPath_resultFile_multiOpt_txt_file = folderPath_resultFile_multiOpt + "/Run_Parameters.txt"
@@ -2384,7 +2180,8 @@ if __name__ == "__main__":
         file.write(f"number_of_new_solutions_per_solution_in_iteration: {number_of_new_solutions_per_solution_in_iteration}\n")
         file.write(f"number_of_iterations_local_search: {number_of_iterations_local_search}\n")
         file.write(f"time_limit_in_seconds_for_local_search: {time_limit_in_seconds_for_local_search}\n")
-        file.write(f"model: {model_path_extension}\n")
+        file.write(f"model RL2: {model_path_extension_RL2}\n")
+        file.write(f"model RL3: {model_path_extension_RL3}\n")
 
 
 
