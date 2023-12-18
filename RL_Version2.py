@@ -22,11 +22,11 @@ start_time = time.time()
 number_of_days_for_training = 12
 number_of_new_solutions_per_solution = 10
 number_of_new_solutions_per_iteration = 10
-number_of_iterations_per_day = 2
+number_of_iterations_per_day = 3
 use_resulting_state_after_action_as_current_solution = True
 
-#days_for_testing =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352]
-days_for_testing =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352]
+#days_for_training =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352], [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
+days_for_training =  [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
 choose_days_randomly = False
 
 number_of_runs_for_the_algorithm = number_of_days_for_training * number_of_iterations_per_day * number_of_new_solutions_per_iteration * number_of_new_solutions_per_solution
@@ -96,12 +96,12 @@ class DSM_Env(Env):
         self.read_RL_data_iteration = 0
 
         if choose_days_randomly == True:
-            random_index = random.randint(0, len(days_for_testing) - 1)
-            chosen_day = days_for_testing[random_index]
+            random_index = random.randint(0, len(days_for_training) - 1)
+            chosen_day = days_for_training[random_index]
             self.read_RL_data_day = chosen_day
             print(f"-------New Day {chosen_day}------------")
         else:
-            chosen_day = days_for_testing [self.help_index_current_day]
+            chosen_day = days_for_training [self.help_index_current_day]
             self.read_RL_data_day = chosen_day
             print(f"-------New Day {chosen_day}------------")
 
@@ -109,7 +109,7 @@ class DSM_Env(Env):
 
         print(f"Reselt called")
         #Read the base solution when a new training day or iteration is used
-        file_path = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(self.read_RL_data_iteration) + ".pkl"
+        file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(self.read_RL_data_iteration) + ".pkl"
         # Load the list from the file
         try:
             with open(file_path, "rb") as file:
@@ -120,7 +120,7 @@ class DSM_Env(Env):
 
 
         #read conventional solution
-        file_path = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(0) + ".pkl"
+        file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(0) + ".pkl"
         try:
             with open(file_path, "rb") as file:
                 conventional_solutions = pickle.load(file)
@@ -269,15 +269,15 @@ class DSM_Env(Env):
         if  self.help_counter_iteration_current_day > number_of_iterations_per_day:
             #Change the read base solution by choosing the base solution from a new day
             if choose_days_randomly == True:
-                random_index = random.randint(0, len(days_for_testing) - 1)
-                chosen_day = days_for_testing[random_index]
+                random_index = random.randint(0, len(days_for_training) - 1)
+                chosen_day = days_for_training[random_index]
             else:
                 self.help_index_current_day+=1
                 try:
-                    chosen_day = days_for_testing[self.help_index_current_day]
+                    chosen_day = days_for_training[self.help_index_current_day]
                 except:
                     self.help_index_current_day = 0
-                    chosen_day = days_for_testing[self.help_index_current_day]
+                    chosen_day = days_for_training[self.help_index_current_day]
                     done = True
             self.read_RL_data_day = chosen_day
             self.solution_of_current_file = 0
@@ -316,7 +316,6 @@ import stable_baselines3 as sb3
 
 
 
-
 #env = DSM_Env(total_number_of_solutions_per_day, number_of_days_for_training, number_of_new_solutions_per_solution)
 gym.register("dsm-env-v0", lambda: DSM_Env())
 env = gym.make("dsm-env-v0")
@@ -336,19 +335,25 @@ characters = string.ascii_letters  # Includes uppercase and lowercase letters
 random_string = random.choice(characters) + random.choice(characters)
 
 #Define the model directory (PPO, A2C, TD3, DQN)
-models_dir = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Models\\" + string_run_name + "_PPO_" + random_string
-logdir = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Logs\\" + string_run_name + "_PPO_" + random_string
+models_dir = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Models\\" + string_run_name + "_PPO_" + random_string
+logdir = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Models\\" + string_run_name + "_PPO_" + random_string
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
 #Define the model directory (PPO, A2C, TD3, DQN)
-model = PPO('MlpPolicy', env, verbose=1, ent_coef=0.4)
+
+model = PPO('MlpPolicy', env, verbose=1) #Default values: ent_coef= 0.0, learning_rate= 0.0003
+
+
+
 
 #train and save the model
-model.learn(total_timesteps=number_of_runs_for_the_algorithm - 2)
+model.learn(total_timesteps=number_of_runs_for_the_algorithm )
 model.save(os.path.join(models_dir, 'trained_PPO_model'))
+
+
 
 
 # Calculate the elapsed time in seconds
@@ -361,5 +366,24 @@ seconds = int(elapsed_time % 60)
 
 print("")
 print(f"Elapsed time: {hours} hours, {minutes} minutes, {seconds} seconds")
+
+
+# Write the parameters  of the modelto the text file
+model_init_params = {
+    'ent_coef': model.ent_coef,
+    'learning_rate': model.learning_rate,
+    'n_steps': model.n_steps,
+    'policy': model.policy
+}
+file_path = os.path.join(logdir, "model_parameters.txt")
+with open(file_path, "w") as file:
+    file.write(f"days_for_training: {days_for_training} \n")
+    file.write(f"Elapsed time: {hours} hours, {minutes} minutes, {seconds} seconds \n")
+    file.write(f"number_of_runs_for_the_algorithm: {number_of_runs_for_the_algorithm} \n")
+
+    for key, value in model_init_params.items():
+        file.write(f"{key}: {value}\n")
+
+
 
 

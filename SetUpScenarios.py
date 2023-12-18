@@ -25,8 +25,8 @@ numberOfBuildings_Total = numberOfBuildings_BT1 + numberOfBuildings_BT2 + number
 #Solver options
 solverOption_relativeGap_normalDecentral= 1.0 / 100 # Unit: [%/100] = [%] / [100]
 solverOption_timeLimit_normalDecentral = 5 * 60 # Unit: [seconds] =[min]*[seconds/min]
-solverOption_relativeGap_Central = 0.5 / 100 # Unit: [%/100] = [%] / [100]
-solverOption_timeLimit_Central = 5 * 60 # Unit: [seconds] =[min]*[seconds/min]
+solverOption_relativeGap_Central = 0.1 / 100 # Unit: [%/100] = [%] / [100]
+solverOption_timeLimit_Central = 10 * 60 # Unit: [seconds] =[min]*[seconds/min]
 
 #Parameters of the renewable Energy Sources (RES): PV system and windTurbine
 averagePVPeak = 5000 # Unit: [W]
@@ -68,7 +68,7 @@ capacityOfBufferStorage_BT4_MFH = 63000# Unit: [liter]  #12 appartments a 75m^2 
 capacityOfDHWTank = 250 # Unit: [liter]
 
 initialUsableVolumeDHWTank = 125 # Unit: [liter]
-endUsableVolumeDHWTankAllowedDeviationFromInitialValue = 10  # Unit: [liter] --> For the calculation of the discomfort
+endUsableVolumeDHWTankAllowedDeviationFromInitialValue = 30  # Unit: [liter] --> For the calculation of the discomfort
 endUsableVolumeDHWTankAllowedDeviationFromInitialValueOptimization = 0  # Unit: [liter]
 endUsableVolumeDHWTankAllowedDeviationFromInitialValue_ForCorrection = 1000  # Unit: [liter]
 densityOfWater = 1 # Unit: [kg/l]
@@ -121,8 +121,8 @@ if timeResolution_InMinutes ==30:
     maximumCapacityDHWTankOptimization = 250 # Unit: [liter]
     minimumCapacityDHWTankOptimization = 50 # Unit: [liter]
     
-    maximumUsableVolumeDHWTank_ConventionalControl = 180 # Unit: [liter]
-    minimumUsableVolumeDHWTank_ConventionalControl = 50 # Unit: [liter]
+    maximumUsableVolumeDHWTank_ConventionalControl = 160 # Unit: [liter]
+    minimumUsableVolumeDHWTank_ConventionalControl = 80 # Unit: [liter]
     
 
     

@@ -33,14 +33,14 @@ help_sum_reward_2_action = 0
 
 
 number_of_days_for_training = 12
-number_of_new_solutions_per_solution = 15
-number_of_new_solutions_per_iteration = 15
-number_of_iterations_per_day = 2
+number_of_new_solutions_per_solution = 20
+number_of_new_solutions_per_iteration = 20
+number_of_iterations_per_day = 3
 use_resulting_state_after_action_as_current_solution = True
 string_run_name = "RL1_Days" + str(number_of_days_for_training) + "_SolSol" + str (number_of_new_solutions_per_solution) + "_SolIt" + str(number_of_new_solutions_per_iteration) + "_ItDay" + str (number_of_iterations_per_day) + "_ResState" + str(use_resulting_state_after_action_as_current_solution)
 
-#days_for_testing =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352]
-days_for_testing =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352]
+#days_for_training =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352], [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
+days_for_training =  [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
 choose_days_randomly = False
 
 number_of_runs_for_the_algorithm = number_of_days_for_training * number_of_iterations_per_day * number_of_new_solutions_per_iteration * number_of_new_solutions_per_solution
@@ -80,12 +80,12 @@ class DSM_Env(Env):
         self.read_RL_data_iteration = 0
 
         if choose_days_randomly == True:
-            random_index = random.randint(0, len(days_for_testing) - 1)
-            chosen_day = days_for_testing[random_index]
+            random_index = random.randint(0, len(days_for_training) - 1)
+            chosen_day = days_for_training[random_index]
             self.read_RL_data_day = chosen_day
             print(f"-------New Day {chosen_day}------------")
         else:
-            chosen_day = days_for_testing [self.help_index_current_day]
+            chosen_day = days_for_training [self.help_index_current_day]
             self.read_RL_data_day = chosen_day
             print(f"-------New Day {chosen_day}------------")
 
@@ -93,7 +93,7 @@ class DSM_Env(Env):
 
         print(f"Reselt called")
         #Read the base solution when a new training day is used
-        file_path = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(self.read_RL_data_iteration) + ".pkl"
+        file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(self.read_RL_data_iteration) + ".pkl"
         # Load the list from the file
         try:
             with open(file_path, "rb") as file:
@@ -103,7 +103,7 @@ class DSM_Env(Env):
             return 0, 0, 0
 
         #read conventional solution
-        file_path = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(0) + ".pkl"
+        file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(0) + ".pkl"
         try:
             with open(file_path, "rb") as file:
                 conventional_solutions = pickle.load(file)
@@ -268,15 +268,15 @@ class DSM_Env(Env):
         if  self.help_counter_iteration_current_day > number_of_iterations_per_day:
             #Change the read base solution by choosing the base solution from a new day
             if choose_days_randomly == True:
-                random_index = random.randint(0, len(days_for_testing) - 1)
-                chosen_day = days_for_testing[random_index]
+                random_index = random.randint(0, len(days_for_training) - 1)
+                chosen_day = days_for_training[random_index]
             else:
                 self.help_index_current_day+=1
                 try:
-                    chosen_day = days_for_testing[self.help_index_current_day]
+                    chosen_day = days_for_training[self.help_index_current_day]
                 except:
                     self.help_index_current_day = 0
-                    chosen_day = days_for_testing[self.help_index_current_day]
+                    chosen_day = days_for_training[self.help_index_current_day]
                     done = True
             self.read_RL_data_day = chosen_day
             self.solution_of_current_file = 0
@@ -295,10 +295,35 @@ class DSM_Env(Env):
 from stable_baselines3 import PPO
 from stable_baselines3 import A2C
 from stable_baselines3 import DQN
+from stable_baselines3.common.callbacks import BaseCallback
 
 import stable_baselines3 as sb3
 
+# Define a callback to log training information
+class CustomCallback(BaseCallback):
+    def __init__(self, log_dir, verbose=0):
+        super(CustomCallback, self).__init__(verbose)
+        self.log_dir = log_dir
+        os.makedirs(self.log_dir, exist_ok=True)
+        self.log_file = os.path.join(self.log_dir, "training.log")
+        self.start_time = time.time()
 
+    def _on_step(self) -> bool:
+        # Log custom training information to the text file
+        with open(self.log_file, "a") as f:
+            f.write(self._log())
+        return True
+
+    def _log(self):
+        time_elapsed = time.time() - self.start_time
+        # Access custom information from your environment and log it here
+        log_string = f"time/                   |             |\n"
+        log_string += f"iterations           | {self.num_timesteps}          |\n"
+        log_string += f"time_elapsed         | {time_elapsed:.2f}      |\n"
+        log_string += f"total_timesteps      | {self.num_timesteps}          |\n"
+        # Add custom information here
+        log_string += "-----------------------------------------\n"
+        return log_string
 
 
 #env = DSM_Env(total_number_of_solutions_per_day, number_of_days_for_training, number_of_new_solutions_per_solution)
@@ -320,8 +345,8 @@ characters = string.ascii_letters  # Includes uppercase and lowercase letters
 random_string = random.choice(characters) + random.choice(characters)
 
 #Define the model directory (PPO, A2C, TD3, DQN)
-models_dir = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Models\\" + string_run_name + "_DQN_" + random_string
-logdir = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Logs\\" + string_run_name + "_DQN_" + random_string
+models_dir = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Models\\" + string_run_name + "_DQN_" + random_string
+logdir = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Logs\\" + string_run_name + "_DQN_" + random_string
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 if not os.path.exists(logdir):
@@ -330,9 +355,10 @@ if not os.path.exists(logdir):
 #Define the model (PPO, A2C, TD3, DQN)
 #model = A2C('MlpPolicy', env, verbose=1, ent_coef=0.01)
 model = DQN('MlpPolicy', env, verbose=1)
+callback = CustomCallback(logdir)  # Specify the log directory
 
 #train and save the model
-model.learn(total_timesteps=number_of_runs_for_the_algorithm - 2)
+model.learn(total_timesteps=number_of_runs_for_the_algorithm - 2, callback=callback)
 model.save(os.path.join(models_dir, 'trained_DQN_model'))
 
 

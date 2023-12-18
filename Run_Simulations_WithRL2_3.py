@@ -95,7 +95,6 @@ calculate_pareto_front_comparisons = True
 
 
 
-
 scaleResultsWeightedSum = False
 
 font_size_title_Pareto_Plot = 14
@@ -166,12 +165,11 @@ minimalModulationDegreeOfTheMaximumPowerInCaseOfANecessaryCorrection = 0.7 # Sho
 
 
 
-
 daysOfTheYearForSimulation_Testing = [ 5]
 
-
-
 #Run simulations
+
+
 if __name__ == "__main__":
     import Building_Combined
     import ANN
@@ -180,9 +178,10 @@ if __name__ == "__main__":
     import random
     import pickle
 
-    days_for_simulation = [9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361] # [3,  28, 37, 52, 65, 81, 294, 298, 310, 315, 339, 352]
+    #days_for_simultion =
+    days_for_simulation = [9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361]# [3,  28, 37, 52, 65, 81, 294, 298, 310, 315, 339, 352]
     currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
-    simulationName = "RL2"
+    simulationName = "RL2_3"
     df_results_multiopt_local_search = pd.DataFrame(columns=["Day", "GD_Conventional", "GD PF_Approx", "HV PF_Approx", "HV PF_Full", "HV_Ratio"])
 
     for currentDay_iteration in days_for_simulation:
@@ -216,7 +215,7 @@ if __name__ == "__main__":
             print ("Successfully created the directory %s" % folderPath_WholeSimulation)
 
 
-     #Exact methods centralized (testing)
+        #Exact methods centralized (testing)
         if useCentralizedOptimization == True:
             print("\n--------Centralized Optimization-------\n")
             includeObjectivesInReturnStatementCentralized = False
@@ -296,7 +295,7 @@ if __name__ == "__main__":
                         number_of_new_solutions_per_solution = number_of_new_solutions_per_solution_in_iteration
 
                     #Store the current population
-                    file_path = r"C:\Users\wi9632\Desktop\Ergebnisse\DSM\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(currentDay) + "_It" + str(index_iteration) + ".pkl"
+                    file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(currentDay) + "_It" + str(index_iteration) + ".pkl"
                     with open(file_path, "wb") as file:
                         pickle.dump(results_list_population, file)
 
@@ -374,6 +373,8 @@ if __name__ == "__main__":
 
 
 
+
+                            #Local Search: Optimize for costs (to be tested and loop necessary for multiple solutions)
                              #Local Search: Optimize for costs (to be tested and loop necessary for multiple solutions)
                             if optimize_costs_local_search == True:
                                 # Find the timeslots with the highgest prices
@@ -410,7 +411,7 @@ if __name__ == "__main__":
                                 adjusted_array_highest_prices = np.minimum(reshaped_array_highest_prices[::2],reshaped_array_highest_prices[1::2])
 
                                 # Parameters of the agent (action and state space)
-                                timeslots_for_state_load_percentages_costs = 4
+                                timeslots_for_state_load_percentages_costs = 3
                                 number_of_discrete_shifting_actions = 20
                                 minimum_shifting_percentage = 20
                                 maximum_shifting_percentage = 40
@@ -434,8 +435,8 @@ if __name__ == "__main__":
 
                                 #Load the saved RL model (A2C, TD3, DQN, PPO)
                                 from stable_baselines3 import PPO
-                                model_path_extension = "RL2_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots4_ShiftActions20_PPO_ZZ/trained_PPO_model"
-                                model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension)
+                                model_path_extension_RL2 = "RL2_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots3_ShiftActions20_PPO_Nl/trained_PPO_model"
+                                model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL2)
 
                                 observation_space = (np.concatenate((percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened))).reshape(-1)
 
@@ -560,8 +561,11 @@ if __name__ == "__main__":
 
 
                             if optimize_peak_local_search == True:
-                                # Determine highest load
 
+
+
+
+                                # Determine highest load
                                 help_array_electrical_load = electrical_load_profile_current_solution.copy()
                                 help_price_array = price_array.copy()
                                 max_load = np.max(electrical_load_profile_current_solution)
@@ -584,96 +588,95 @@ if __name__ == "__main__":
                                 highest_k_prices_array_full_day_1 = np.array([sorted_indices_ascending[:k],sorted_indices_ascending[k:2 * k],sorted_indices_ascending[2 * k:3 * k], sorted_indices_ascending[3 * k:4 * k],sorted_indices_ascending[4 * k:5 * k],sorted_indices_ascending[5 * k:6 * k],sorted_indices_ascending[6 * k:7 * k],sorted_indices_ascending[7 * k:8 * k],sorted_indices_ascending[8 * k:9 * k],sorted_indices_ascending[9 * k:10 * k],sorted_indices_ascending[10 * k:11 * k],sorted_indices_ascending[11 * k:12 * k]])
                                 lowest_k_prices_array_full_day_1 = np.array([sorted_indices_descending[:k],sorted_indices_descending[k:2 * k],sorted_indices_descending[2 * k:3 * k], sorted_indices_descending[3 * k:4 * k],sorted_indices_descending[4 * k:5 * k],sorted_indices_descending[5 * k:6 * k],sorted_indices_descending[6 * k:7 * k],sorted_indices_descending[7 * k:8 * k],sorted_indices_descending[8 * k:9 * k],sorted_indices_descending[9 * k:10 * k],sorted_indices_descending[10 * k:11 * k],sorted_indices_descending[11 * k:12 * k]])
 
-                                #Reduce load at all peaks
-                                #shifting_percentage_load = percentage_difference_highest_loads + random.uniform(2, 8)
-                                shifting_percentage_load = random.uniform(10-index_iteration, 25-index_iteration)
-                                if shifting_percentage_load < 0:
-                                    shifting_percentage_load = 0
+                                #Calculate the load percentages (in relation to the maxium load) of the timeslots with the lowest prices
+                                reshaped_lowest_prices_fully_day = lowest_k_prices_array_full_day_1.reshape(-1)
+                                array_load_percentages_lowest_prices = np.zeros((len(reshaped_lowest_prices_fully_day)))
+                                for i in range(0, len(reshaped_lowest_prices_fully_day)):
+                                    array_load_percentages_lowest_prices[i] = round((electrical_load_profile_current_solution[reshaped_lowest_prices_fully_day[i]] / max_load), 2) * 100
+
+                                # Parameters of the agent (action and state space)
+                                timeslots_for_state_load_percentages_peak = 5
+                                number_of_discrete_shifting_actions = 15
+                                minimum_shifting_percentage = 10
+                                maximum_shifting_percentage = 25
+
+                                array_load_percentages_lowest_prices_shortened_before = array_load_percentages_lowest_prices[0:timeslots_for_state_load_percentages_peak]
+
+                                #Load the saved RL model (A2C, TD3, DQN, PPO)
+                                from stable_baselines3 import PPO
+                                model_path_extension_RL3 = "RL3_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots5_ShiftActions15_PPO_XA/trained_PPO_model"
+                                model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL3)
+
+
 
                                 for peak_timeslot in list_timeslots_max_load:
 
+
+                                    # Get the action from the RL agent
+                                    observation_space = array_load_percentages_lowest_prices_shortened_before.reshape(-1)
+                                    action_rl_agent1, _ = model.predict(observation_space, deterministic=False )
+                                    action_to_timeslot = action_rl_agent1[0]
+                                    action_shifting_percentage = minimum_shifting_percentage + ((maximum_shifting_percentage - minimum_shifting_percentage)/ number_of_discrete_shifting_actions) * action_rl_agent1[1]
+
+                                    # Print Help Info
+                                    '''
+                                    print(f"Info: Action Nr. 1")
+                                    print(f"Info: observation_space: {observation_space}")
+                                    print(f"Info: action_shifting_percentage: {action_shifting_percentage}")
+                                    '''
+
+                                    #Reduce load at all peaks
+                                    shifting_percentage_load = action_shifting_percentage
+
                                     # Shift Space heating power, DHW and EV charging from highes peak to lowest price
                                     for index_BT1 in indexOfBuildingsOverall_BT1:
-                                        #Determine time slot to shift the load to
-                                        random_number = random.uniform(0, 100)
-                                        if random_number >= 0 and random_number < 20:
-                                            assigned_price_interval = 0
-                                        if random_number >= 20 and random_number <35:
-                                            assigned_price_interval = 1
-                                        if random_number >= 35 and random_number <50:
-                                            assigned_price_interval = 2
-                                        if random_number >= 50 and random_number <65:
-                                            assigned_price_interval = 3
-                                        if random_number >= 65 and random_number <80:
-                                            assigned_price_interval = 4
-                                        if random_number >= 80 and random_number <95:
-                                            assigned_price_interval = 5
-                                        if random_number >= 95 and random_number <100:
-                                            assigned_price_interval = 6
 
-                                        random_timeslot_in_assigned_interval = random.randint(0, k-1)
+
 
                                         #Shift Space heating power from highes price timeslot to lowest: Full day
                                         outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [peak_timeslot] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [peak_timeslot]   * ((100-shifting_percentage_load)/100)
-                                        if lowest_k_prices_array_full_day_1[assigned_price_interval][random_timeslot_in_assigned_interval] not in list_timeslots_max_load:
-                                            outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]   * ((100+shifting_percentage_load)/100)
-                                        if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                            outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]= SetUpScenarios.minimalModulationdDegree_HP /100
+                                        if reshaped_lowest_prices_fully_day [action_to_timeslot] not in list_timeslots_max_load:
+                                            outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] = outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1]  [reshaped_lowest_prices_fully_day [action_to_timeslot]]   * ((100+shifting_percentage_load)/100)
+                                        if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                            outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]]= SetUpScenarios.minimalModulationdDegree_HP /100
                                         if outputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1 - 1] [peak_timeslot] < SetUpScenarios.minimalModulationdDegree_HP/100:
                                             outputVector_BT1_heatGenerationCoefficientSpaceHeating[index_BT1 - 1][peak_timeslot] = 0
 
                                             #Shift DHW heating power from highes price timeslot to lowest
                                         outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [peak_timeslot] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [peak_timeslot]    * ((100-shifting_percentage_load)/100)
-                                        if lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval] not in list_timeslots_max_load:
-                                            outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]   * ((100+shifting_percentage_load)/100)
-                                        if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                            outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]= SetUpScenarios.minimalModulationdDegree_HP /100
+                                        if reshaped_lowest_prices_fully_day [action_to_timeslot] not in list_timeslots_max_load:
+                                            outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] = outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1]  [reshaped_lowest_prices_fully_day [action_to_timeslot]]   * ((100+shifting_percentage_load)/100)
+                                        if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                            outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]]= SetUpScenarios.minimalModulationdDegree_HP /100
                                         if outputVector_BT1_heatGenerationCoefficientDHW [index_BT1 - 1] [peak_timeslot] < SetUpScenarios.minimalModulationdDegree_HP/100:
                                             outputVector_BT1_heatGenerationCoefficientDHW[index_BT1 - 1][peak_timeslot] = 0
                                         # Shift charging power EV from highes price timeslot to lowest
                                         outputVector_BT1_chargingPowerEV [index_BT1 - 1]  [peak_timeslot]  = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [peak_timeslot]    * ((100-shifting_percentage_load)/100)
-                                        if lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval] not in list_timeslots_max_load:
-                                            outputVector_BT1_chargingPowerEV [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]   * ((100+shifting_percentage_load)/100)
+                                        if reshaped_lowest_prices_fully_day [action_to_timeslot] not in list_timeslots_max_load:
+                                            outputVector_BT1_chargingPowerEV [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] = outputVector_BT1_chargingPowerEV [index_BT1 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]]   * ((100+shifting_percentage_load)/100)
 
                                     # Shift Space heating power and DHW from highes peak to lowest price
                                     for index_BT2 in indexOfBuildingsOverall_BT2:
 
 
-                                        #Determine time slot to shift the load to
-                                        random_number = random.uniform(0, 100)
-                                        if random_number >= 0 and random_number < 20:
-                                            assigned_price_interval = 0
-                                        if random_number >= 20 and random_number <35:
-                                            assigned_price_interval = 1
-                                        if random_number >= 35 and random_number <50:
-                                            assigned_price_interval = 2
-                                        if random_number >= 50 and random_number <65:
-                                            assigned_price_interval = 3
-                                        if random_number >= 65 and random_number <80:
-                                            assigned_price_interval = 4
-                                        if random_number >= 80 and random_number <95:
-                                            assigned_price_interval = 5
-                                        if random_number >= 95 and random_number <100:
-                                            assigned_price_interval = 6
 
-                                        random_timeslot_in_assigned_interval = random.randint(0, k-1)
 
                                         #Shift Space heating power from highes price timeslot to lowest: Full day
                                         outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [peak_timeslot] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [peak_timeslot]   * ((100-shifting_percentage_load)/100)
-                                        if lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval] not in list_timeslots_max_load:
-                                            outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]   * ((100+shifting_percentage_load)/100)
-                                        if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                            outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]= SetUpScenarios.minimalModulationdDegree_HP /100
+                                        if reshaped_lowest_prices_fully_day [action_to_timeslot] not in list_timeslots_max_load:
+                                            outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] = outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1]  [reshaped_lowest_prices_fully_day [action_to_timeslot]]   * ((100+shifting_percentage_load)/100)
+                                        if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                            outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]]= SetUpScenarios.minimalModulationdDegree_HP /100
                                         if outputVector_BT2_heatGenerationCoefficientSpaceHeating [index_BT2 - 1] [peak_timeslot] < SetUpScenarios.minimalModulationdDegree_HP/100:
                                             outputVector_BT2_heatGenerationCoefficientSpaceHeating[index_BT2 - 1][peak_timeslot] = 0
 
 
                                         #Shift DHW heating power from highes price timeslot to lowest
                                         outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [peak_timeslot] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [peak_timeslot]    * ((100-shifting_percentage_load)/100)
-                                        if lowest_k_prices_array_full_day_1[assigned_price_interval][random_timeslot_in_assigned_interval] not in list_timeslots_max_load:
-                                            outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]   * ((100+shifting_percentage_load)/100)
-                                        if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                            outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]= SetUpScenarios.minimalModulationdDegree_HP /100
+                                        if reshaped_lowest_prices_fully_day [action_to_timeslot] not in list_timeslots_max_load:
+                                            outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] = outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1]  [reshaped_lowest_prices_fully_day [action_to_timeslot]]   * ((100+shifting_percentage_load)/100)
+                                        if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                            outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]]= SetUpScenarios.minimalModulationdDegree_HP /100
                                         if outputVector_BT2_heatGenerationCoefficientDHW [index_BT2 - 1] [peak_timeslot] < SetUpScenarios.minimalModulationdDegree_HP/100:
                                             outputVector_BT2_heatGenerationCoefficientDHW[index_BT2 - 1][peak_timeslot] = 0
 
@@ -681,32 +684,13 @@ if __name__ == "__main__":
                                     for index_BT4 in indexOfBuildingsOverall_BT4:
                                         #Shift Space heating power from highes peak to lowest price
 
-                                        #Determine time slot to shift the load to
-                                        random_number = random.uniform(0, 100)
-                                        if random_number >= 0 and random_number < 20:
-                                            assigned_price_interval = 0
-                                        if random_number >= 20 and random_number <35:
-                                            assigned_price_interval = 1
-                                        if random_number >= 35 and random_number <50:
-                                            assigned_price_interval = 2
-                                        if random_number >= 50 and random_number <65:
-                                            assigned_price_interval = 3
-                                        if random_number >= 65 and random_number <80:
-                                            assigned_price_interval = 4
-                                        if random_number >= 80 and random_number <95:
-                                            assigned_price_interval = 5
-                                        if random_number >= 95 and random_number <100:
-                                            assigned_price_interval = 6
-
-                                        random_timeslot_in_assigned_interval = random.randint(0, k-1)
-
                                         #Shift Space heating power from highes price timeslot to lowest: Full day
                                         outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [peak_timeslot] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [peak_timeslot]   * ((100-shifting_percentage_load)/100)
-                                        if lowest_k_prices_array_full_day_1[assigned_price_interval][random_timeslot_in_assigned_interval] not in list_timeslots_max_load:
-                                            outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]   * ((100+shifting_percentage_load)/100)
+                                        if reshaped_lowest_prices_fully_day [action_to_timeslot] not in list_timeslots_max_load:
+                                            outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] = outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1]  [reshaped_lowest_prices_fully_day [action_to_timeslot]]   * ((100+shifting_percentage_load)/100)
 
-                                        if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]] < SetUpScenarios.minimalModulationdDegree_HP /100:
-                                            outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [lowest_k_prices_array_full_day_1[assigned_price_interval] [random_timeslot_in_assigned_interval]]= SetUpScenarios.minimalModulationdDegree_HP /100
+                                        if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]] < SetUpScenarios.minimalModulationdDegree_HP /100:
+                                            outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [reshaped_lowest_prices_fully_day [action_to_timeslot]]= SetUpScenarios.minimalModulationdDegree_HP /100
                                         if outputVector_BT4_heatGenerationCoefficientSpaceHeating [index_BT4 - 1] [peak_timeslot] < SetUpScenarios.minimalModulationdDegree_HP/100:
                                             outputVector_BT4_heatGenerationCoefficientSpaceHeating[index_BT4 - 1][peak_timeslot] = 0
 
@@ -1038,8 +1022,7 @@ if __name__ == "__main__":
                     appendixResultFile = appendixResultFile + "_BT7_" + str(SetUpScenarios.numberOfBuildings_BT7)
                 titleOfThePlot = titleOfThePlot[:-2]
 
-
-                pareto_front.to_csv(pathForCreatingTheResultData_LocalSearch + "/ParetoFront_" + appendixResultFile + ".csv",index=False, sep=";")
+                pareto_front.to_csv(pathForCreatingTheResultData_LocalSearch + "/ParetoFront_" + appendixResultFile + ".csv", index=False,sep=";")
 
 
                 #Calculate parto front metrics for comparisons if desired
@@ -1086,7 +1069,6 @@ if __name__ == "__main__":
                     df_results_multiopt_local_search = pd.concat([df_results_multiopt_local_search, pd.DataFrame(new_row, index=[0])], ignore_index=True)
 
 
-
                     #Plot the combined pareto front
                     import matplotlib.pyplot as plt
                     import matplotlib
@@ -1108,6 +1090,7 @@ if __name__ == "__main__":
 
                     # Save the combined Pareto diagram
                     plt.savefig(pathForCreatingTheResultData_LocalSearch + '/PFrontCombined_' + appendixResultFile + '.png', dpi=100)
+
 
 
                 end_time = time.time()
@@ -2164,6 +2147,7 @@ if __name__ == "__main__":
 
 
 
+
         # Conventional Control
         if useConventionalControl == True:
             print("\n--------------Conventional Control------------\n")
@@ -2186,7 +2170,7 @@ if __name__ == "__main__":
     average_row["Day"] = "Average"
     df_results_multiopt_local_search = pd.concat([df_results_multiopt_local_search, pd.DataFrame(average_row, index=[0])], ignore_index=True)
     time_limit_in_minutes = int(time_limit_in_seconds_for_local_search / 60)
-    df_results_multiopt_local_search.to_csv(folderPath_resultFile_multiOpt + "/RL2_result_multiopt_" + "min" + str(time_limit_in_minutes) + ".csv", sep=';',index=False)
+    df_results_multiopt_local_search.to_csv(folderPath_resultFile_multiOpt + "/RL2_3_result_multiopt_" + "min" + str(time_limit_in_minutes) + ".csv", sep=';',index=False)
 
     #Print the parameters of the run as a txt file
     folderPath_resultFile_multiOpt_txt_file = folderPath_resultFile_multiOpt + "/Run_Parameters.txt"
@@ -2196,8 +2180,8 @@ if __name__ == "__main__":
         file.write(f"number_of_new_solutions_per_solution_in_iteration: {number_of_new_solutions_per_solution_in_iteration}\n")
         file.write(f"number_of_iterations_local_search: {number_of_iterations_local_search}\n")
         file.write(f"time_limit_in_seconds_for_local_search: {time_limit_in_seconds_for_local_search}\n")
-        file.write(f"model: {model_path_extension}\n")
-
+        file.write(f"model RL2: {model_path_extension_RL2}\n")
+        file.write(f"model RL3: {model_path_extension_RL3}\n")
 
 
 
