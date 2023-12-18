@@ -189,8 +189,8 @@ if __name__ == "__main__":
         currentDay = currentDay_iteration
         # define the directory to be created for the result files
         folderName_WholeSimulation = currentDatetimeString + "_" + simulationName + "_Min"+ str(round(time_limit_in_seconds_for_local_search/60)) +"_BTCombined_" + str(SetUpScenarios.numberOfBuildings_Total)
-        folderPath_resultFile_multiOpt = "C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/Instance_Base/" + folderName_WholeSimulation
-        folderPath_WholeSimulation = "C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/Instance_Base/" + folderName_WholeSimulation + "/Day" + str(currentDay)
+        folderPath_resultFile_multiOpt = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/Instance_Base/" + folderName_WholeSimulation
+        folderPath_WholeSimulation = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/Instance_Base/" + folderName_WholeSimulation + "/Day" + str(currentDay)
         pathForCreatingTheResultData_Dichotromic = folderPath_WholeSimulation + "/Dichotromic"
         pathForCreatingTheResultData_LocalSearch = folderPath_WholeSimulation + "/LocalSearch"
         pathForCreatingTheResultData_Box = folderPath_WholeSimulation + "/BoxMethod"
