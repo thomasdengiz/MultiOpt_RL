@@ -372,7 +372,7 @@ for currentDay_iteration in days_for_simulation:
 
     # Define the metaheuristic algorithm for solving the problem
     algorithm = NSGA2(
-        pop_size=30,
+        pop_size=20,
         n_offsprings=10,
         #sampling=FloatRandomSampling(),
         sampling=HybridSampling(candidates=[initial_solution_conventional_control]),
@@ -606,9 +606,19 @@ for currentDay_iteration in days_for_simulation:
         # Calculate the Hypervolume
         from pymoo.indicators.hv import HV
         ind = HV(ref_point=ref_point)
-        hypervolume_approximated_front = round(ind(pareto_front_approximation_values)[0], 1)
+        result_ind = ind(pareto_front_approximation_values)
+        if isinstance(result_ind, (list, np.ndarray)):
+            # If it's a list or NumPy array, use the first element if available
+            if len(result_ind) > 0:
+                hypervolume_approximated_front = round(result_ind[0], 1)
+            else:
+                print("Empty list or array")
+        else:
+            # Handle other cases, e.g., when ind() returns a float
+            hypervolume_approximated_front = round(result_ind, 1)
         hypervolume_full_front = round(ind(pareto_front_full_values)[0], 1)
-        hypervolume_ratio_from_approximation_of_full_pareto_front = round((hypervolume_approximated_front / hypervolume_full_front) *100, 1)
+        hypervolume_ratio_from_approximation_of_full_pareto_front = round(
+            (hypervolume_approximated_front / hypervolume_full_front) * 100, 1)
         print("")
         print("Hypervolume PF_Approximation", hypervolume_approximated_front)
         print("Hypervolume PF_Full", hypervolume_full_front)

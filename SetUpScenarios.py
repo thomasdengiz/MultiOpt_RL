@@ -12,10 +12,10 @@ from random import random
 
 
 #Specify the number of Buildings buildings
-numberOfBuildings_BT1 = 4 * 1
-numberOfBuildings_BT2 = 4 * 1
+numberOfBuildings_BT1 = 4 * 3
+numberOfBuildings_BT2 = 4 * 3
 numberOfBuildings_BT3 = 0
-numberOfBuildings_BT4 = 2 * 1
+numberOfBuildings_BT4 = 2 * 3
 numberOfBuildings_BT5 = 0
 numberOfBuildings_BT6 = 0
 numberOfBuildings_BT7 = 0

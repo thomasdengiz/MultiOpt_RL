@@ -33,7 +33,7 @@ number_of_runs_for_the_algorithm = number_of_days_for_training * number_of_itera
 print("Number of runs for the algorithm: " + str(number_of_runs_for_the_algorithm))
 
 #Parameters of the agent (action and state space)
-timeslots_for_state_load_percentages_costs = 4
+timeslots_for_state_load_percentages_costs = 5
 number_of_discrete_shifting_actions = 20
 minimum_shifting_percentage = 20
 maximum_shifting_percentage = 40

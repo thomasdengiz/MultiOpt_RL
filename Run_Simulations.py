@@ -21,7 +21,7 @@ useSupervisedLearning = False
 useReinforcementLearning = False
 useConventionalControl = False
 generateTrainingData = False
-useDichotomicMethodCentralized_Cost_Peak = False
+useDichotomicMethodCentralized_Cost_Peak = True
 useDichotomicMethodCentralized_Cost_Comfort = False
 dichotomicMethodTermination_NumberOfIterations = 70
 dichotomicMethod_toleranceLambdaNewSolution = 0.001
@@ -33,7 +33,7 @@ useBoxMethodCentralized_Cost_Comfort = False
 boxMethodTermination_AverageDifference = 0
 boxMethodTermination_NumberOfSolutions = 70
 
-useLocalSearch = True
+useLocalSearch = False
 calculate_pareto_front_comparisons = True
 
 create_result_load_profiles_multi_opt = True
@@ -1188,7 +1188,15 @@ if __name__ == "__main__":
                                     distance_array_to_all_selected_solutions = np.zeros((len(pareto_df_help), len(selected_ids)))
                                     for i in range (0, len (pareto_df_help)):
                                         for j in range(0, len(selected_ids)):
-                                            distance_array_to_all_selected_solutions [i] [j] = abs(pareto_df_help.loc[i, "Combined Score"] - pareto_df_help.loc[selected_ids[j], "Combined Score"])
+
+                                            try:
+                                                distance = abs( pareto_df_help.loc[i, "Combined Score"] - pareto_df_help.loc[selected_ids[j], "Combined Score"])
+                                                distance_array_to_all_selected_solutions[i][j] = distance
+                                            except KeyError as e:
+                                                # Handle the KeyError (index not found in DataFrame)
+                                                print(f"KeyError: {e}. Index {i} or {selected_ids[j]} not found in pareto_df_help.")
+                                                distance_array_to_all_selected_solutions[i][j] = -1
+
                                             if pareto_df_help.loc[i, "Combined Score"] < 0:
                                                 distance_array_to_all_selected_solutions[i][j] = -1
 
@@ -1315,7 +1323,16 @@ if __name__ == "__main__":
                     from pymoo.indicators.hv import HV
                     ref_point = np.array([help_value_normalization_cost_conventional, help_value_normalization_maxiumLoad_conventional ])
                     ind = HV(ref_point=ref_point)
-                    hypervolume_approximated_front = round(ind(pareto_front_approximation_values)[0], 1)
+                    result_ind = ind(pareto_front_approximation_values)
+                    if isinstance(result_ind, (list, np.ndarray)):
+                        # If it's a list or NumPy array, use the first element if available
+                        if len(result_ind) > 0:
+                            hypervolume_approximated_front = round(result_ind[0], 1)
+                        else:
+                            print("Empty list or array")
+                    else:
+                        # Handle other cases, e.g., when ind() returns a float
+                        hypervolume_approximated_front = round(result_ind, 1)
                     hypervolume_full_front = round(ind(pareto_front_full_values)[0], 1)
                     hypervolume_ratio_from_approximation_of_full_pareto_front = round((hypervolume_approximated_front / hypervolume_full_front) *100, 1)
                     print("")

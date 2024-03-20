@@ -25,7 +25,7 @@ number_of_new_solutions_per_iteration = 10
 number_of_iterations_per_day = 3
 use_resulting_state_after_action_as_current_solution = True
 
-#days_for_training =  [15, 28, 37,  52, 65, 72,   298, 303,310, 328, 346, 352], [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
+#days_for_training =  [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
 days_for_training =  [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
 choose_days_randomly = False
 
@@ -33,7 +33,7 @@ number_of_runs_for_the_algorithm = number_of_days_for_training * number_of_itera
 print("Number of runs for the algorithm: " + str(number_of_runs_for_the_algorithm))
 
 #Parameters of the agent (action and state space)
-timeslots_for_state_load_percentages_peak = 4
+timeslots_for_state_load_percentages_peak = 5
 number_of_discrete_shifting_actions = 15
 minimum_shifting_percentage = 10
 maximum_shifting_percentage = 25
@@ -338,7 +338,7 @@ if not os.path.exists(logdir):
     os.makedirs(logdir)
 
 #Define the model directory (PPO, A2C, TD3, DQN)
-model = PPO('MlpPolicy', env, verbose=1) #Default values: ent_coef= 0.0, learning_rate= 0.0003
+model = PPO('MlpPolicy', env, verbose=1, learning_rate= 0.0003, ent_coef= 0.2) #Default values: ent_coef= 0.0, learning_rate= 0.0003
 
 #train and save the model
 
@@ -358,7 +358,7 @@ print("")
 print(f"Elapsed time: {hours} hours, {minutes} minutes, {seconds} seconds")
 
 
-# Write the parameters  of the modelto the text file
+# Write the parameters  of the model to the text file
 model_init_params = {
     'ent_coef': model.ent_coef,
     'learning_rate': model.learning_rate,

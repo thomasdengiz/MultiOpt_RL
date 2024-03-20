@@ -410,7 +410,7 @@ if __name__ == "__main__":
                                 adjusted_array_highest_prices = np.minimum(reshaped_array_highest_prices[::2],reshaped_array_highest_prices[1::2])
 
                                 # Parameters of the agent (action and state space)
-                                timeslots_for_state_load_percentages_costs = 4
+                                timeslots_for_state_load_percentages_costs = 6
                                 number_of_discrete_shifting_actions = 20
                                 minimum_shifting_percentage = 20
                                 maximum_shifting_percentage = 40
@@ -434,7 +434,7 @@ if __name__ == "__main__":
 
                                 #Load the saved RL model (A2C, TD3, DQN, PPO)
                                 from stable_baselines3 import PPO
-                                model_path_extension = "RL2_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots4_ShiftActions20_PPO_ZZ/trained_PPO_model"
+                                model_path_extension = "RL3_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots6_ShiftActions15_PPO_Lu/trained_PPO_model"
                                 model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension)
 
                                 observation_space = (np.concatenate((percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened))).reshape(-1)
@@ -974,7 +974,14 @@ if __name__ == "__main__":
                                     distance_array_to_all_selected_solutions = np.zeros((len(pareto_df_help), len(selected_ids)))
                                     for i in range (0, len (pareto_df_help)):
                                         for j in range(0, len(selected_ids)):
-                                            distance_array_to_all_selected_solutions [i] [j] = abs(pareto_df_help.loc[i, "Combined Score"] - pareto_df_help.loc[selected_ids[j], "Combined Score"])
+                                            try:
+                                                distance = abs( pareto_df_help.loc[i, "Combined Score"] - pareto_df_help.loc[selected_ids[j], "Combined Score"])
+                                                distance_array_to_all_selected_solutions[i][j] = distance
+                                            except KeyError as e:
+                                                # Handle the KeyError (index not found in DataFrame)
+                                                print(f"KeyError: {e}. Index {i} or {selected_ids[j]} not found in pareto_df_help.")
+                                                distance_array_to_all_selected_solutions[i][j] = -1
+
                                             if pareto_df_help.loc[i, "Combined Score"] < 0:
                                                 distance_array_to_all_selected_solutions[i][j] = -1
 
@@ -1072,7 +1079,16 @@ if __name__ == "__main__":
                     from pymoo.indicators.hv import HV
                     ref_point = np.array([help_value_normalization_cost_conventional, help_value_normalization_maxiumLoad_conventional ])
                     ind = HV(ref_point=ref_point)
-                    hypervolume_approximated_front = round(ind(pareto_front_approximation_values)[0], 1)
+                    result_ind = ind(pareto_front_approximation_values)
+                    if isinstance(result_ind, (list, np.ndarray)):
+                        # If it's a list or NumPy array, use the first element if available
+                        if len(result_ind) > 0:
+                            hypervolume_approximated_front = round(result_ind[0], 1)
+                        else:
+                            print("Empty list or array")
+                    else:
+                        # Handle other cases, e.g., when ind() returns a float
+                        hypervolume_approximated_front = round(result_ind, 1)
                     hypervolume_full_front = round(ind(pareto_front_full_values)[0], 1)
                     hypervolume_ratio_from_approximation_of_full_pareto_front = round((hypervolume_approximated_front / hypervolume_full_front) *100, 1)
                     print("")

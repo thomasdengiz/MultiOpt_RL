@@ -486,8 +486,8 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.variable_HPswitchedOff_Individual_DHW_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary, initialize=0.0)
         model.variable_HPswitchedOff_Combined_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary)
         
-        model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary, initialize=0.0)
-        model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary, initialize=0.0)
         
         model.variable_HPswitchedOff_HelpModulationBinary_SpaceHeating_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary)
         model.variable_HPswitchedOff_HelpModulationBinary_DHW_BT1 = pyo.Var(model.set_buildings_BT1, model.set_timeslots, within =pyo.Binary)
@@ -500,7 +500,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t-1] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -509,7 +509,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ2_Rule_BT1 (model, i,  t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] <= 1
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -521,7 +521,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] == 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -531,7 +531,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ3_HelpAssociatedBinary_Rule_BT1 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT1[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT1[i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -541,7 +541,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ4_HelpAssociatedBinary_Rule_BT1 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_heatGenerationCoefficient_SpaceHeating_BT1[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t]
+                return model.variable_heatGenerationCoefficient_SpaceHeating_BT1[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -566,7 +566,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t-1] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -575,7 +575,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ2_Rule_BT1 (model, i,  t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] <= 1
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -587,7 +587,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] == 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -597,7 +597,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ3_HelpAssociatedBinary_Rule_BT1 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT1[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT1[i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -607,7 +607,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ4_HelpAssociatedBinary_Rule_BT1 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_heatGenerationCoefficient_DHW_BT1[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t]
+                return model.variable_heatGenerationCoefficient_DHW_BT1[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -631,7 +631,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Combined_BT1 [i, t]== 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t-1] + model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t-1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Combined_BT1 [i, t]
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t-1] + model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t-1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Combined_BT1 [i, t]
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==False: 
                 return pyo.Constraint.Skip
             
@@ -643,7 +643,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Combined_BT1 [i, t]== 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT1 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] <= 1
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==False: 
                return  pyo.Constraint.Skip
             
@@ -907,8 +907,8 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.variable_HPswitchedOff_Individual_DHW_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary, initialize=0.0)
         model.variable_HPswitchedOff_Combined_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary)
         
-        model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary, initialize=0.0)
-        model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary, initialize=0.0)
         
         model.variable_HPswitchedOff_HelpModulationBinary_SpaceHeating_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary)
         model.variable_HPswitchedOff_HelpModulationBinary_DHW_BT2 = pyo.Var(model.set_buildings_BT2, model.set_timeslots, within =pyo.Binary)
@@ -921,7 +921,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t-1] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -930,7 +930,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ2_Rule_BT2 (model, i,  t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] <= 1
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -942,7 +942,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] == 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -952,7 +952,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ3_HelpAssociatedBinary_Rule_BT2 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT2[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT2[i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -962,7 +962,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ4_HelpAssociatedBinary_Rule_BT2 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_heatGenerationCoefficient_SpaceHeating_BT2[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t]
+                return model.variable_heatGenerationCoefficient_SpaceHeating_BT2[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -987,7 +987,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t-1] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -996,7 +996,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ2_Rule_BT2 (model, i,  t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] <= 1
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -1008,7 +1008,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] == 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -1018,7 +1018,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ3_HelpAssociatedBinary_Rule_BT2 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT2[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT2[i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -1028,7 +1028,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ4_HelpAssociatedBinary_Rule_BT2 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_heatGenerationCoefficient_DHW_BT2[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t]
+                return model.variable_heatGenerationCoefficient_DHW_BT2[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -1052,7 +1052,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Combined_BT2 [i, t]== 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t-1] + model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t-1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Combined_BT2 [i, t]
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t-1] + model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t-1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Combined_BT2 [i, t]
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==False: 
                 return pyo.Constraint.Skip
             
@@ -1064,7 +1064,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Combined_BT2 [i, t]== 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_HelpAssociatedBinary_DHW_BT2 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] <= 1
             if Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==False: 
                return  pyo.Constraint.Skip
             
@@ -1474,7 +1474,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         #Constraint system for the maximum number of starts of the heat pump
         
         model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots, within =pyo.Binary, initialize=0.0)
-        model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots, within =pyo.Binary, initialize=0.0)
+        model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots, within =pyo.Binary, initialize=0.0)
         model.variable_HPswitchedOff_HelpModulationBinary_SpaceHeating_BT4 = pyo.Var(model.set_buildings_BT4, model.set_timeslots, within =pyo.Binary)
         
         
@@ -1484,7 +1484,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t-1] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -1493,7 +1493,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ2_Rule_BT4 (model, i,  t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] <= 1
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] <= 1
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -1505,7 +1505,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] == 0
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 [i, t - 1] <= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -1515,7 +1515,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ3_HelpAssociatedBinary_Rule_BT4 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT4[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT4[i, t] 
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -1525,7 +1525,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ4_HelpAssociatedBinary_Rule_BT4 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_heatGenerationCoefficient_SpaceHeating_BT4[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HPswitchedOff_HelpAssociatedBinary_SpaceHeating_BT4 [i, t]
+                return model.variable_heatGenerationCoefficient_SpaceHeating_BT4[i, t] * (1/(SetUpScenarios.minimalModulationdDegree_HP/100))  >= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                return pyo.Constraint.Skip
         
