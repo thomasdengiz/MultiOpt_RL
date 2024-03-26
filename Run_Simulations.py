@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Mar 15 17:26:50 2021
-
-@author: wi9632
+Main script for the simulations of the Pareto-Local-Search approach, the dichotomous method
+, the box method (another exact method for multiobjective optization) and the conventional control
 """
 import SetUpScenarios 
 import numpy as np
 import os
 from datetime import datetime
 import time
-
 
 
 #Set up
@@ -40,14 +37,7 @@ create_result_load_profiles_multi_opt = True
 scaleResultsWeightedSum = False
 font_size_title_Pareto_Plot = 14
 
-#Local Search Parameters: Default
-'''
-max_population_size = 40
-number_of_pareto_optimal_solutions_in_population = int(max_population_size * 0.6)
-number_of_new_solutions_per_solution_in_iteration = 5
-number_of_iterations_local_search = 7
-time_limit_in_seconds_for_local_search = 15 * 60
-'''
+
 #Local Search Parameters
 max_population_size = 20
 number_of_pareto_optimal_solutions_in_population = int(max_population_size * 0.6)
@@ -60,11 +50,6 @@ share_of_peak_min_iterations = 0.3
 share_of_comfort_max_iterations = 0.1
 
 threshold_discomfort_local_search = 0.3
-
-
-
-
-
 
 #Objectives and scenarios
 optParameters = {
@@ -95,15 +80,8 @@ optParameters = {
     'epsilon_objective_minimizeThermalDiscomfort_TargetValue': 9999999
 }
 
-
-
-
-
-
-
 includeObjectivesInReturnStatementCentralized = False #Default
 useCorrectionsAtTheEndOfDay = False
-
 
 
 # Choose internal Controller 
@@ -112,7 +90,6 @@ run_simulateDays_WithAddtionalController_Schedule =True
 useInternalControllerToOverruleActions_simulateDays_WithAddtionalController_Schedule = True
 
 useInternalControllerForRL = True
-
 
 
 #Maximal starting times for the heating devices
@@ -166,8 +143,7 @@ daysOfTheYearForSimulation_Testing = [ 1]
 
 #Run simulations
 if __name__ == "__main__":
-    import Building_Combined
-    import ANN
+    import Building_Optimization_Problem
     import ICSimulation
     import pandas as pd
     import random
@@ -177,11 +153,12 @@ if __name__ == "__main__":
     import time
     start_time = time.time()
 
-
     days_for_simulation = [9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361]#  [3,  28, 37, 52, 65, 81, 294, 298, 310, 315, 339, 352]
     df_results_multiopt_local_search = pd.DataFrame(columns=["Day", "GD_Conventional", "GD PF_Approx", "HV PF_Approx", "HV PF_Full", "HV_Ratio"])
     currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
     simulationName = "Base"
+
+    #Run the simulations for the different days
     for currentDay_iteration in days_for_simulation:
         currentDay = currentDay_iteration
         print(f"Current Day: {currentDay}")
@@ -219,7 +196,6 @@ if __name__ == "__main__":
             print("\n--------Centralized Optimization-------\n")
             includeObjectivesInReturnStatementCentralized = False
 
-
             indexOfBuildingsOverall_BT1 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT1 + 1)]
             indexOfBuildingsOverall_BT2 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT2 + 1)]
             indexOfBuildingsOverall_BT3 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT3 + 1)]
@@ -228,7 +204,7 @@ if __name__ == "__main__":
             indexOfBuildingsOverall_BT6 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT6 + 1 )]
             indexOfBuildingsOverall_BT7 = [i for i in range (1, SetUpScenarios.numberOfBuildings_BT7 + 1 )]
 
-
+            #Exectue (Pareto) Local Search
             if useLocalSearch == True:
                 # Measure wall-clock time and CPU time
                 start_time = time.time()
@@ -1451,6 +1427,8 @@ if __name__ == "__main__":
                         folder_path_single_result, preCorrectSchedules_AvoidingFrequentStarts, optParameters,
                         useLocalSearch)
                     useLocalSearch = True
+
+            # Exectue the dichotomous method for the goals: Costs and Peak
             if useDichotomicMethodCentralized_Cost_Peak == True:
                 id_of_the_run = 0
                 df_results = pd.DataFrame(columns=["id of the run", "Costs", "Peak Load", "Weight Costs", "Weight Peak Load", "MIP Gap", "Solving time"])
@@ -1474,7 +1452,7 @@ if __name__ == "__main__":
                 list_usedWeightes_minimizeCosts.append(optParameters['objective_minimizeCosts_weight'])
 
                 includeObjectivesInReturnStatementCentralized = True
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP1, objectiveSurplusEnergy_OP1, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP1, objectiveSurplusEnergy_OP1, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                 id_of_the_run += 1
                 df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP1, objectiveMaximumLoad_OP1, optParameters['objective_minimizeCosts_weight'], optParameters['objective_minimizePeakLoad_weight'], mipGapOfFoundSolution, timeForFindingOptimalSolution]
                 list_activePoints.append({"id": id_of_the_run, "Costs": objectiveCosts_OP1, "Maximum_Load": objectiveMaximumLoad_OP1})
@@ -1494,7 +1472,7 @@ if __name__ == "__main__":
                 list_usedWeightes_minimizeCosts.append(optParameters['objective_minimizeCosts_weight'])
 
 
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP2, objectiveSurplusEnergy_OP2, objectiveCosts_OP2,objectiveThermalDiscomfort_OP2, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP2, objectiveSurplusEnergy_OP2, objectiveCosts_OP2,objectiveThermalDiscomfort_OP2, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
 
 
                 id_of_the_run += 1
@@ -1574,7 +1552,7 @@ if __name__ == "__main__":
                     optParameters['objective_minimizePeakLoad_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
 
                     try:
-                        outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OPStar, objectiveSurplusEnergy_OPStar, objectiveCosts_OPStar, objectiveThermalDiscomfort_OPStar, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                        outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OPStar, objectiveSurplusEnergy_OPStar, objectiveCosts_OPStar, objectiveThermalDiscomfort_OPStar, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                     except:
                         break
                     id_of_the_run += 1
@@ -1733,280 +1711,12 @@ if __name__ == "__main__":
                         plt.tick_params(axis='both', which='major', labelsize=11)
                         plt.savefig(pathForCreatingTheResultData_Dichotromic + '/PFront_' + appendixResultFile + '.png',dpi=100)
 
-
-            elif useDichotomicMethodCentralized_Cost_Comfort == True:
-                id_of_the_run = 0
-                df_results = pd.DataFrame(columns=["id of the run", "Costs", "Discomfort", "Weight Costs", "Weight Discomfort", "MIP Gap", "Solving time"])
-
-                df_activePoints = pd.DataFrame(columns=["id", "Costs", "Discomfort"])
-                list_activePoints = []
-                list_usedWeightes_minimizeCosts = []
-
-                #Optimize the first goal: Costs
-                optParameters['optimizationGoal_minimizePeakLoad'] = False
-                optParameters['optimizationGoal_minimizeCosts'] = True
-                optParameters['optimizationGoal_minimizeGas'] = False
-                optParameters['optimizationGoal_minimizeThermalDiscomfort'] = True
-                optParameters['optimization_1Objective'] = False
-                optParameters['optimization_2Objective'] = True
-                optParameters['optimization_3Objectives'] = False
-                optParameters['optimization_4Objectives'] = False
-                optParameters['objective_minimizeCosts_weight'] = 0.99
-                optParameters['objective_minimizeThermalDiscomfort_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
-                list_usedWeightes_minimizeCosts.append(optParameters['objective_minimizeCosts_weight'])
-
-                includeObjectivesInReturnStatementCentralized = True
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP1, objectiveSurplusEnergy_OP1, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
-                id_of_the_run += 1
-                df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, optParameters['objective_minimizeCosts_weight'], optParameters['objective_minimizeThermalDiscomfort_weight'], mipGapOfFoundSolution, timeForFindingOptimalSolution]
-                list_activePoints.append({"id": id_of_the_run, "Costs": objectiveCosts_OP1, "Discomfort": objectiveThermalDiscomfort_OP1})
-
-                if create_result_load_profiles_multi_opt == True:
-                    preCorrectSchedules_AvoidingFrequentStarts = False
-                    overruleActions = False
-                    pathForCreatingTheResultData = pathForCreatingTheResultData_Dichotromic + "/Profiles/Solution_ID" + str(id_of_the_run)
-                    simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters)
-
-
-
-                # Optimize the second goal: Discomfort
-                optParameters['objective_minimizeCosts_weight'] = 0.01
-                optParameters['objective_minimizeThermalDiscomfort_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
-                list_usedWeightes_minimizeCosts.append(optParameters['objective_minimizeCosts_weight'])
-
-
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP2, objectiveSurplusEnergy_OP2, objectiveCosts_OP2,objectiveThermalDiscomfort_OP2, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
-                id_of_the_run += 1
-                df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP2, objectiveThermalDiscomfort_OP2, optParameters['objective_minimizeCosts_weight'], optParameters['objective_minimizeThermalDiscomfort_weight'], mipGapOfFoundSolution, timeForFindingOptimalSolution]
-                list_activePoints.append({"id": id_of_the_run, "Costs": objectiveCosts_OP2, "Discomfort": objectiveThermalDiscomfort_OP2})
-
-                if create_result_load_profiles_multi_opt == True:
-                    preCorrectSchedules_AvoidingFrequentStarts = False
-                    overruleActions = False
-                    pathForCreatingTheResultData = pathForCreatingTheResultData_Dichotromic + "/Profiles/Solution_ID" + str(id_of_the_run)
-                    simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters)
-
-
-                #Do the dichotomic iteration
-                helpCounterWeightAlreadyUsed = 0
-                terminationConditionReached = False
-                iterationCounter = 0
-                if scaleResultsWeightedSum ==True:
-                    optParameters['objective_minimizeCosts_normalizationValue'] =  objectiveCosts_OP1
-                    optParameters['objective_minimizeThermalDiscomfort_normalizationValue'] = objectiveThermalDiscomfort_OP2
-
-
-                while terminationConditionReached == False:
-
-                    #Write list of active points to csv (if desired for testing)
-                    if dichotomicMethodprintListOfActivePoints == True:
-                        import csv
-                        file_path = pathForCreatingTheResultData_Dichotromic + '/activePoints_It_' + str(iterationCounter) + '.csv'
-
-                        try:
-                            with open(file_path, 'w', newline='') as file:
-                                writer = csv.writer(file, delimiter=';', quoting=csv.QUOTE_NONE)
-                                writer.writerow(['id', 'Costs', 'Discomfort'])
-                                for row in list_activePoints:
-                                    writer.writerow([row['id'], round(row['Costs'], 0), round(row['Discomfort'], 0)])
-                            print("Data successfully written to CSV file.")
-                        except Exception as e:
-                            print(f"Error writing data to CSV file: {e}")
-
-
-                    if len(list_activePoints) <2 or iterationCounter>dichotomicMethodTermination_NumberOfIterations:
-                        terminationConditionReached = True
-                        break
-
-                    #Create new optimization problem
-                    iterationCounter += 1
-
-                    optParameters['optimizationGoal_minimizeThermalDiscomfort'] = True
-                    optParameters['optimizationGoal_minimizeCosts'] = True
-                    optParameters['objective_minimizeCosts_weight'] = (list_activePoints[0]["Discomfort"] - list_activePoints[1]["Discomfort"])/((list_activePoints[1]["Costs"] - list_activePoints[0]["Costs"] )  + (list_activePoints[0]["Discomfort"] - list_activePoints[1]["Discomfort"]))
-
-                    # Loop through the list and check if the value is within the range of dichotomicMethod_toleranceLambdaNewSolution
-                    weightAlreadyUsed = False
-                    for num in list_usedWeightes_minimizeCosts:
-                        if abs(num - optParameters['objective_minimizeCosts_weight']) < dichotomicMethod_toleranceLambdaNewSolution:
-                            weightAlreadyUsed = True
-                            break
-                    print("")
-
-                    print(f"\nhelpCounterWeightAlreadyUsed: {helpCounterWeightAlreadyUsed}")
-                    print(f"iweightAlreadyUsed: {weightAlreadyUsed}")
-                    print(f"iterationCounter DichotomicMethod: {iterationCounter}")
-                    print(f"len(list_activePoints): {len(list_activePoints)}")
-
-
-
-                    if weightAlreadyUsed ==True:
-                        #Remove entry at the first position of active points
-                        list_activePoints.pop(0)
-                        helpCounterWeightAlreadyUsed +=1
-                        continue
-                    else:
-                        list_usedWeightes_minimizeCosts.append(optParameters['objective_minimizeCosts_weight'])
-
-
-                    if optParameters['objective_minimizeCosts_weight'] > 1:
-                        optParameters['objective_minimizeCosts_weight'] = 1
-                    if optParameters['objective_minimizeCosts_weight'] < 0:
-                        optParameters['objective_minimizeCosts_weight'] = 0
-                    optParameters['objective_minimizeThermalDiscomfort_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
-
-                    try:
-                        outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OPStar, objectiveSurplusEnergy_OPStar, objectiveCosts_OPStar, objectiveThermalDiscomfort_OPStar, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
-                    except:
-                        continue
-                    id_of_the_run += 1
-                    df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OPStar, objectiveThermalDiscomfort_OPStar, optParameters['objective_minimizeCosts_weight'], optParameters['objective_minimizeThermalDiscomfort_weight'], mipGapOfFoundSolution, timeForFindingOptimalSolution]
-
-                    if create_result_load_profiles_multi_opt == True:
-                        preCorrectSchedules_AvoidingFrequentStarts = False
-                        overruleActions = False
-                        pathForCreatingTheResultData = pathForCreatingTheResultData_Dichotromic + "/Profiles/Solution_ID" + str(id_of_the_run)
-                        simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters)
-
-
-                    # Print results to csv
-                    df_results['Costs'] = df_results['Costs'].round(0)
-                    df_results['Discomfort'] = df_results['Discomfort'].round(0)
-                    df_results['Solving time'] = df_results['Solving time'].round(0)
-                    df_results['Weight Costs'] = df_results['Weight Costs'].round(4)
-                    df_results['Weight Discomfort'] = df_results['Weight Discomfort'].round(4)
-                    df_results.to_csv(pathForCreatingTheResultData_Dichotromic + "/DT_Discomfort_Costs"+ ".csv", index=False, sep=";")
-
-
-
-                    #Check stopping criterion
-                    if optParameters['objective_minimizeCosts_weight'] * objectiveCosts_OPStar  + (1-optParameters['objective_minimizeCosts_weight']) * objectiveThermalDiscomfort_OPStar < optParameters['objective_minimizeCosts_weight'] *  list_activePoints[0]["Costs"]  + (1- optParameters['objective_minimizeCosts_weight'] ) *  list_activePoints[0]["Discomfort"]:
-                        #Add new active point as the second entry
-                        list_activePoints.insert(1, {"id": id_of_the_run, "Costs": objectiveCosts_OPStar, "Discomfort": objectiveThermalDiscomfort_OPStar})
-
-                    else:
-                        #Remove entry at the first position of active points
-                        list_activePoints.pop(0)
-
-                    # Print results to csv
-                    titleOfThePlot = "Dichotromic Method - Day: " + str(currentDay) + " - "
-                    appendixResultFile = "DC_Day" + str(currentDay) + ""
-                    if SetUpScenarios.numberOfBuildings_BT1 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT1: " + str(SetUpScenarios.numberOfBuildings_BT1) + ", "
-                        appendixResultFile = appendixResultFile + "_BT1_" + str(SetUpScenarios.numberOfBuildings_BT1)
-                    if SetUpScenarios.numberOfBuildings_BT2 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT2: " + str(SetUpScenarios.numberOfBuildings_BT2) + ", "
-                        appendixResultFile = appendixResultFile + "_BT2_" + str(SetUpScenarios.numberOfBuildings_BT2)
-                    if SetUpScenarios.numberOfBuildings_BT3 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT3: " + str(SetUpScenarios.numberOfBuildings_BT3) + ", "
-                        appendixResultFile = appendixResultFile + "_BT3_" + str(SetUpScenarios.numberOfBuildings_BT3)
-                    if SetUpScenarios.numberOfBuildings_BT4 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT4: " + str(SetUpScenarios.numberOfBuildings_BT4) + ", "
-                        appendixResultFile = appendixResultFile + "_BT4_" + str(SetUpScenarios.numberOfBuildings_BT4)
-                    if SetUpScenarios.numberOfBuildings_BT5 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT5: " + str(SetUpScenarios.numberOfBuildings_BT5) + ", "
-                        appendixResultFile = appendixResultFile + "_BT5_" + str(SetUpScenarios.numberOfBuildings_BT5)
-                    if SetUpScenarios.numberOfBuildings_BT6 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT6: " + str(SetUpScenarios.numberOfBuildings_BT6) + ", "
-                        appendixResultFile = appendixResultFile + "_BT6_" + str(SetUpScenarios.numberOfBuildings_BT6)
-                    if SetUpScenarios.numberOfBuildings_BT7 > 0:
-                        titleOfThePlot = titleOfThePlot + "BT7: " + str(SetUpScenarios.numberOfBuildings_BT7) + ", "
-                        appendixResultFile = appendixResultFile + "_BT7_" + str(SetUpScenarios.numberOfBuildings_BT7)
-                    titleOfThePlot = titleOfThePlot [:-2]
-
-                    df_results['Costs'] = df_results['Costs'].round(2)
-                    df_results['Discomfort'] = df_results['Discomfort'].round(2)
-                    df_results['Solving time'] = df_results['Solving time'].round(0)
-                    df_results['Weight Costs'] = df_results['Weight Costs'].round(4)
-                    df_results['Weight Discomfort'] = df_results['Weight Discomfort'].round(4)
-                    df_results.to_csv(pathForCreatingTheResultData_Dichotromic + "/Discomfort_Costs"+ appendixResultFile + ".csv", index=False, sep=";")
-
-
-                print(f"\nhelpCounterWeightAlreadyUsed: {helpCounterWeightAlreadyUsed}")
-                print(f"iterationCounter DichotomicMethod: {iterationCounter}")
-
-                #Round the end results and print them to csv
-                df_results['Costs'] = df_results['Costs'] / 100
-                df_results['Costs'] = df_results['Costs'].round(2)
-                df_results['Discomfort'] = df_results['Discomfort'] / SetUpScenarios.numberOfTimeSlotsPerDay
-                df_results['Discomfort'] = df_results['Discomfort'].round(2)
-
-                df_results['Solving time'] = df_results['Solving time'].round(0)
-                df_results['Weight Costs'] = df_results['Weight Costs'].round(4)
-                df_results['Weight Discomfort'] = df_results['Weight Discomfort'].round(4)
-                df_results.to_csv(pathForCreatingTheResultData_Dichotromic + "/Discomfort_Costs" + appendixResultFile + ".csv",index=False, sep=";")
-
-
-                # Create figure with pareto front
-                import pandas as pd
-
-                import pandas as pd
-                import matplotlib.pyplot as plt
-                import matplotlib
-
-                matplotlib.use('Agg')
-
-                if df_results.empty:
-                    print("Error: df_results DataFrame is empty.")
-                else:
-                    # Create an empty DataFrame to store the Pareto-efficient solutions
-                    pareto_front = pd.DataFrame(columns=['Costs', 'Discomfort'])
-
-                    # Loop through all solutions in the DataFrame
-                    for i, row in df_results.iterrows():
-                        # Assume the current solution is Pareto-efficient until proven otherwise
-                        is_efficient = True
-                        # Loop through all existing solutions in the Pareto front
-                        for j, pareto_row in pareto_front.iterrows():
-                            # Check if the current solution is dominated by any existing solution in the Pareto front
-                            if (row['Costs'] >= pareto_row['Costs'] and row['Discomfort'] >= pareto_row['Discomfort']):
-                                is_efficient = False
-                                break
-                            # Check if the current solution dominates any existing solution in the Pareto front
-                            elif (row['Costs'] <= pareto_row['Costs'] and row['Discomfort'] <= pareto_row['Discomfort']):
-                                pareto_front = pareto_front.drop(j)
-                        # If the current solution is Pareto-efficient, add it to the Pareto front
-                        if is_efficient:
-                            #pareto_front = pareto_front.append(row)
-                            pareto_front = pd.concat([pareto_front, row.to_frame().T], ignore_index=True)
-
-                    if pareto_front.empty:
-                        print("Error: pareto_front DataFrame is empty.")
-                    else:
-                        # Sort the Pareto front by 'Costs' and 'Peak Load'
-                        pareto_front = pareto_front.sort_values(['Costs', 'Discomfort'], ascending=[True, True])
-                        # Reset the index of the Pareto front DataFrame
-                        pareto_front = pareto_front.reset_index(drop=True)
-
-                        # Plot Pareto efficient solutions with line
-                        plt.scatter(pareto_front['Costs'], pareto_front['Discomfort'], color='blue')
-                        plt.plot(pareto_front['Costs'], pareto_front['Discomfort'], color='red')
-                        plt.xlabel('Costs', fontsize=15)
-                        plt.ylabel('Discomfort', fontsize=15)
-                        if font_size_title_Pareto_Plot > 0:
-                            plt.title(titleOfThePlot, fontsize=font_size_title_Pareto_Plot)
-                        plt.tick_params(axis='both', which='major', labelsize=11)
-                        plt.subplots_adjust(left=0.15)
-                        plt.savefig(pathForCreatingTheResultData_Dichotromic + '/PFront_Line_' + appendixResultFile + '.png', dpi=100)
-                        # Clear current figure
-                        plt.clf()
-                        # Plot Pareto efficient solutions without line
-                        plt.scatter(pareto_front['Costs'], pareto_front['Discomfort'], color='blue')
-                        plt.xlabel('Costs', fontsize=14)
-                        plt.ylabel('Discomfort', fontsize=14)
-                        plt.subplots_adjust(left=0.15)
-                        if font_size_title_Pareto_Plot > 0:
-                            plt.title(titleOfThePlot, fontsize=font_size_title_Pareto_Plot)
-                        plt.tick_params(axis='both', which='major', labelsize=11)
-                        plt.savefig(pathForCreatingTheResultData_Dichotromic + '/PFront_' + appendixResultFile + '.png',dpi=100)
-
+            # Exectue the box method for the goals: Costs and Peak
             elif useBoxMethodCentralized_Cost_Peak == True:
                 id_of_the_run = 0
                 df_results = pd.DataFrame(columns=["id of the run", "Costs", "Peak Load","epsilon_MaximumLoad_TargetValue", "MIP Gap", "Solving time"])
 
                 df_results_after_internal_controller = pd.DataFrame(columns=["id of the run", "Costs", "Peak Load","Thermal Discomfort"])
-
-
 
 
                 #Optimize the first goal: Costs
@@ -2022,7 +1732,7 @@ if __name__ == "__main__":
                 optParameters['objective_minimizePeakLoad_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
 
                 includeObjectivesInReturnStatementCentralized = True
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP1, objectiveSurplusEnergy_OP1, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP1, objectiveSurplusEnergy_OP1, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                 id_of_the_run += 1
                 df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP1, objectiveMaximumLoad_OP1, optParameters["epsilon_objective_minimizeMaximumLoad_TargetValue"] , mipGapOfFoundSolution, timeForFindingOptimalSolution]
 
@@ -2042,7 +1752,7 @@ if __name__ == "__main__":
 
 
 
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP2, objectiveSurplusEnergy_OP2, objectiveCosts_OP2,objectiveThermalDiscomfort_OP2, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP2, objectiveSurplusEnergy_OP2, objectiveCosts_OP2,objectiveThermalDiscomfort_OP2, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                 id_of_the_run += 1
                 df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP2, objectiveMaximumLoad_OP2, optParameters["epsilon_objective_minimizeMaximumLoad_TargetValue"] , mipGapOfFoundSolution, timeForFindingOptimalSolution]
 
@@ -2097,7 +1807,7 @@ if __name__ == "__main__":
 
 
                         try:
-                            outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OPEpsilon, objectiveSurplusEnergy_OPEpsilon, objectiveCosts_OPEpsilon,objectiveThermalDiscomfort_OPEpsilon, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                            outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OPEpsilon, objectiveSurplusEnergy_OPEpsilon, objectiveCosts_OPEpsilon,objectiveThermalDiscomfort_OPEpsilon, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                         except:
                             break
                         df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OPEpsilon, objectiveMaximumLoad_OPEpsilon, optParameters["epsilon_objective_minimizeMaximumLoad_TargetValue"] , mipGapOfFoundSolution, timeForFindingOptimalSolution]
@@ -2234,223 +1944,12 @@ if __name__ == "__main__":
                         plt.tick_params(axis='both', which='major', labelsize=11)
                         plt.savefig(pathForCreatingTheResultData_Box + '/PFront_' + appendixResultFile + '.png',dpi=100)
 
-            elif useBoxMethodCentralized_Cost_Comfort == True:
-                id_of_the_run = 0
-                df_results = pd.DataFrame(columns=["id of the run", "Costs", "Discomfort", "epsilon_ThermalDiscomfort_TargetValue", "MIP Gap", "Solving time"])
-
-                #Optimize the first goal: Costs
-                optParameters['optimizationGoal_minimizePeakLoad'] = False
-                optParameters['optimizationGoal_minimizeCosts'] = True
-                optParameters['optimizationGoal_minimizeGas'] = False
-                optParameters['optimizationGoal_minimizeThermalDiscomfort'] = True
-                optParameters['optimization_1Objective'] = False
-                optParameters['optimization_2Objective'] = True
-                optParameters['optimization_3Objectives'] = False
-                optParameters['optimization_4Objectives'] = False
-                optParameters['objective_minimizeCosts_weight'] = 0.99
-                optParameters['objective_minimizeThermalDiscomfort_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
-
-                includeObjectivesInReturnStatementCentralized = True
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP1, objectiveSurplusEnergy_OP1, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
-                id_of_the_run += 1
-                df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP1, objectiveThermalDiscomfort_OP1,optParameters["epsilon_objective_minimizeThermalDiscomfort_TargetValue"], mipGapOfFoundSolution, timeForFindingOptimalSolution]
-
-
-                if create_result_load_profiles_multi_opt == True:
-                    preCorrectSchedules_AvoidingFrequentStarts = False
-                    overruleActions = False
-                    pathForCreatingTheResultData = pathForCreatingTheResultData_Box + "/Profiles/Solution_ID" + str(id_of_the_run)
-                    simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters)
-
-
-
-                # Optimize the second goal: Thermal discomfort
-                optParameters['objective_minimizeCosts_weight'] = 0.01
-                optParameters['objective_minimizeThermalDiscomfort_weight'] = 1 - optParameters['objective_minimizeCosts_weight']
-
-
-
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OP2, objectiveSurplusEnergy_OP2, objectiveCosts_OP2,objectiveThermalDiscomfort_OP2, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
-                id_of_the_run += 1
-                df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OP2, objectiveThermalDiscomfort_OP2, optParameters["epsilon_objective_minimizeThermalDiscomfort_TargetValue"], mipGapOfFoundSolution, timeForFindingOptimalSolution]
-
-
-                if create_result_load_profiles_multi_opt == True:
-                    preCorrectSchedules_AvoidingFrequentStarts = False
-                    overruleActions = False
-                    pathForCreatingTheResultData = pathForCreatingTheResultData_Box + "/Profiles/Solution_ID" + str(id_of_the_run)
-                    simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters)
-
-
-
-                #Do the box-method iteration
-                terminationConditionReached = False
-                iterationCounter = 0
-                if scaleResultsWeightedSum ==True:
-                    optParameters['objective_minimizeCosts_normalizationValue'] =  objectiveCosts_OP1
-                    optParameters['minimizeThermalDiscomfort'] = objectiveThermalDiscomfort_OP2
-
-
-
-                while terminationConditionReached == False:
-                    # Sort the temporary results
-                    df_results.sort_values(by=["Discomfort"], ascending=False, inplace=True)
-                    num_solution = df_results.shape[0]
-
-                    #Calculate average difference between the peak load values of all solutions
-                    comfort_diff = df_results["Discomfort"].diff().abs()  # compute absolute differences
-                    comfort_diff = comfort_diff.dropna()  # drop any NaN values
-                    avg_comfort_diff= comfort_diff.mean()  # compute mean of differences
-
-                    if avg_comfort_diff < boxMethodTermination_AverageDifference or num_solution > boxMethodTermination_NumberOfSolutions:
-                        terminationConditionReached = True
-                        break
-                    for i in range (0, num_solution - 1):
-
-                        optParameters['optimizationGoal_minimizePeakLoad'] = False
-                        optParameters['optimizationGoal_minimizeCosts'] = True
-                        optParameters['optimization_1Objective'] = True
-                        optParameters['optimization_2Objective'] = False
-
-                        optParameters["epsilon_objective_minimizeCosts_Active"] = False
-                        optParameters["epsilon_objective_minimizePeakLoad_Active"] = False
-                        optParameters["epsilon_objective_minimizeGasConsumption_Active"] = False
-                        optParameters["epsilon_objective_minimizeThermalDiscomfort_Active"] = True
-                        optParameters["epsilon_objective_minimizeCosts_TargetValue"] = 9999999
-                        optParameters["epsilon_objective_minimizeMaximumLoad_TargetValue"] =9999999
-                        optParameters["epsilon_objective_minimizeGasConsumption_TargetValue"] = 9999999
-                        optParameters["epsilon_objective_minimizeThermalDiscomfort_TargetValue"] = (df_results.iloc[i, df_results.columns.get_loc("Discomfort")] + df_results.iloc[i + 1, df_results.columns.get_loc("Discomfort")])/2
-                        boxSize =  optParameters["epsilon_objective_minimizeMaximumLoad_TargetValue"]
-
-                        outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7,  objectiveMaximumLoad_OPEpsilon, objectiveSurplusEnergy_OPEpsilon, objectiveCosts_OPEpsilon,objectiveThermalDiscomfort_OPEpsilon, mipGapOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
-                        id_of_the_run += 1
-                        df_results.loc[id_of_the_run - 1] = [id_of_the_run, objectiveCosts_OPEpsilon, objectiveThermalDiscomfort_OPEpsilon, optParameters["epsilon_objective_minimizeThermalDiscomfort_TargetValue"], mipGapOfFoundSolution, timeForFindingOptimalSolution]
-
-
-                        if create_result_load_profiles_multi_opt == True:
-                            preCorrectSchedules_AvoidingFrequentStarts = False
-                            overruleActions = False
-                            pathForCreatingTheResultData = pathForCreatingTheResultData_Box + "/Profiles/Solution_ID" + str(id_of_the_run)
-                            simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined= ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters)
-
-
-                        if id_of_the_run > boxMethodTermination_NumberOfSolutions:
-                            terminationConditionReached = True
-                            df_results.sort_values(by=["Discomfort"], ascending=False, inplace=True)
-                            break
-
-
-                # Print results to csv
-                titleOfThePlot = "Box Method - Day: " + str(currentDay) + " - "
-                appendixResultFile = "Box_CD" + str(boxMethodTermination_NumberOfSolutions) + "_Day" + str(currentDay) + ""
-                if SetUpScenarios.numberOfBuildings_BT1 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT1: " + str(SetUpScenarios.numberOfBuildings_BT1) + ", "
-                    appendixResultFile = appendixResultFile + "_BT1_" + str(SetUpScenarios.numberOfBuildings_BT1)
-                if SetUpScenarios.numberOfBuildings_BT2 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT2: " + str(SetUpScenarios.numberOfBuildings_BT2) + ", "
-                    appendixResultFile = appendixResultFile + "_BT2_" + str(SetUpScenarios.numberOfBuildings_BT2)
-                if SetUpScenarios.numberOfBuildings_BT3 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT3: " + str(SetUpScenarios.numberOfBuildings_BT3) + ", "
-                    appendixResultFile = appendixResultFile + "_BT3_" + str(SetUpScenarios.numberOfBuildings_BT3)
-                if SetUpScenarios.numberOfBuildings_BT4 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT4: " + str(SetUpScenarios.numberOfBuildings_BT4) + ", "
-                    appendixResultFile = appendixResultFile + "_BT4_" + str(SetUpScenarios.numberOfBuildings_BT4)
-                if SetUpScenarios.numberOfBuildings_BT5 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT5: " + str(SetUpScenarios.numberOfBuildings_BT5) + ", "
-                    appendixResultFile = appendixResultFile + "_BT5_" + str(SetUpScenarios.numberOfBuildings_BT5)
-                if SetUpScenarios.numberOfBuildings_BT6 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT6: " + str(SetUpScenarios.numberOfBuildings_BT6) + ", "
-                    appendixResultFile = appendixResultFile + "_BT6_" + str(SetUpScenarios.numberOfBuildings_BT6)
-                if SetUpScenarios.numberOfBuildings_BT7 > 0:
-                    titleOfThePlot = titleOfThePlot + "BT7: " + str(SetUpScenarios.numberOfBuildings_BT7) + ", "
-                    appendixResultFile = appendixResultFile + "_BT7_" + str(SetUpScenarios.numberOfBuildings_BT7)
-                titleOfThePlot = titleOfThePlot[:-2]
-                df_results['Costs'] = df_results['Costs'].round(0)
-                df_results['Discomfort'] = df_results['Discomfort'].round(0)
-                df_results['Solving time'] = df_results['Solving time'].round(0)
-
-
-                #Round the end results and print them to csv
-                df_results['Costs'] = df_results['Costs'] / 100
-                df_results['Costs'] = df_results['Costs'].round(2)
-                df_results['Discomfort'] = df_results['Discomfort'] / SetUpScenarios.numberOfTimeSlotsPerDay
-                df_results['Discomfort'] = df_results['Discomfort'].round(2)
-                df_results['Solving time'] = df_results['Solving time'].round(0)
-                df_results['epsilon_ThermalDiscomfort_TargetValue'] = df_results['epsilon_ThermalDiscomfort_TargetValue'].round(0)
-
-
-
-                df_results.to_csv(pathForCreatingTheResultData_Box + "/Discomfort_Costs" + appendixResultFile + ".csv",index=False, sep=";")
-
-
-                # Create figure with pareto front
-                import pandas as pd
-                import matplotlib.pyplot as plt
-                import matplotlib
-
-                matplotlib.use('Agg')
-
-                if df_results.empty:
-                    print("Error: df_results DataFrame is empty.")
-                else:
-                    # Create an empty DataFrame to store the Pareto-efficient solutions
-                    pareto_front = pd.DataFrame(columns=['Costs', 'Discomfort'])
-
-                    # Loop through all solutions in the DataFrame
-                    for i, row in df_results.iterrows():
-                        # Assume the current solution is Pareto-efficient until proven otherwise
-                        is_efficient = True
-                        # Loop through all existing solutions in the Pareto front
-                        for j, pareto_row in pareto_front.iterrows():
-                            # Check if the current solution is dominated by any existing solution in the Pareto front
-                            if (row['Costs'] >= pareto_row['Costs'] and row['Discomfort'] >= pareto_row[
-                                'Discomfort']):
-                                is_efficient = False
-                                break
-                            # Check if the current solution dominates any existing solution in the Pareto front
-                            elif (row['Costs'] <= pareto_row['Costs'] and row['Discomfort'] <= pareto_row['Discomfort']):
-                                pareto_front = pareto_front.drop(j)
-                        # If the current solution is Pareto-efficient, add it to the Pareto front
-                        if is_efficient:
-                            pareto_front = pd.concat([pareto_front, row.to_frame().T])
-
-                    if pareto_front.empty:
-                        print("Error: pareto_front DataFrame is empty.")
-                    else:
-                        # Sort the Pareto front by 'Costs' and 'Discomfort'
-                        pareto_front = pareto_front.sort_values(['Costs', 'Discomfort'], ascending=[True, True])
-                        # Reset the index of the Pareto front DataFrame
-                        pareto_front = pareto_front.reset_index(drop=True)
-
-                        # Plot Pareto efficient solutions with line
-                        plt.scatter(pareto_front['Costs'], pareto_front['Discomfort'], color='blue')
-                        plt.plot(pareto_front['Costs'], pareto_front['Discomfort'], color='red')
-                        plt.xlabel('Costs [€]', fontsize=15)
-                        plt.ylabel('Discomfort [°C]', fontsize=15)
-                        if font_size_title_Pareto_Plot > 0:
-                            plt.title(titleOfThePlot, fontsize=font_size_title_Pareto_Plot)
-                        plt.tick_params(axis='both', which='major', labelsize=11)
-                        plt.subplots_adjust(left=0.15)
-                        plt.savefig(pathForCreatingTheResultData_Box + '/PFront_Line_' + appendixResultFile + '.png',dpi=100)
-                        # Clear current figure
-                        plt.clf()
-                        # Plot Pareto efficient solutions without line
-                        plt.scatter(pareto_front['Costs'], pareto_front['Discomfort'], color='blue')
-                        plt.xlabel('Costs [€]', fontsize=14)
-                        plt.ylabel('Discomfort [°C]', fontsize=14)
-                        plt.subplots_adjust(left=0.15)
-                        if font_size_title_Pareto_Plot > 0:
-                            plt.title(titleOfThePlot, fontsize=font_size_title_Pareto_Plot)
-                        plt.tick_params(axis='both', which='major', labelsize=11)
-                        plt.savefig(pathForCreatingTheResultData_Box + '/PFront_' + appendixResultFile + '.png',dpi=100)
-
             if useLocalSearch == False and useDichotomicMethodCentralized_Cost_Peak == False and  useDichotomicMethodCentralized_Cost_Comfort == False and  useBoxMethodCentralized_Cost_Peak == False and  useBoxMethodCentralized_Cost_Comfort == False:
                 print("........IF statement for OPtimization is fullwilled..........")
                 includeObjectivesInReturnStatementCentralized = True
-                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, objectiveMaximumLoad_OP, objectiveSurplusEnergy_OP, objectiveCosts_OP,objectiveThermalDiscomfort_OP, mipGapPercentOfFoundSolution, timeForFindingOptimalSolution =   Building_Combined.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
+                outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, objectiveMaximumLoad_OP, objectiveSurplusEnergy_OP, objectiveCosts_OP,objectiveThermalDiscomfort_OP, mipGapPercentOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                 useLocalSearchHelp = False
                 simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_costs_Euro_combined,simulationObjective_thermalDiscomfort_combined,simulationObjective_gasConsumptionkWh_combined,  simulationObjective_combinedScore_combined = ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5,outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData_Centralized, preCorrectSchedules_AvoidingFrequentStarts, optParameters, useLocalSearchHelp)
-
 
 
         # Conventional Control
@@ -2466,7 +1965,6 @@ if __name__ == "__main__":
             indexOfBuildingsOverall_BT7 = [i + 1 for i in range (0, SetUpScenarios.numberOfBuildings_BT7)]
             useLocalSearch = False
             simulationObjective_surplusEnergy_kWh_combined , simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined = ICSimulation.simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4,indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, pathForCreatingTheResultData_Conventional, useLocalSearch)
-
 
 
     #Print result of multi objective optimization from local search and calculate averages over all days
@@ -2496,12 +1994,3 @@ if __name__ == "__main__":
     minutes, seconds = divmod(remainder, 60)
     time_str = f"{int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds"
     print(f"Time taken: {time_str}")
-
-
-
-
-
-
-
-    
-

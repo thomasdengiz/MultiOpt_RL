@@ -1,3 +1,8 @@
+"""
+This script uses the metaheuristic evolutionary algorithms NSGA-II and SPEA-II within the package Pymoo to solve the corresponding optimization problems
+The vector of decision variables are transofrmed to make it suitable for the simulation which is externally exectued in the file ICSimulation.simulateDays_WithLightController_Schedule
+"""
+
 import numpy as np
 from pymoo.core.problem import ElementwiseProblem
 import ICSimulation
@@ -19,7 +24,7 @@ currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
 for currentDay_iteration in days_for_simulation:
     #Specify folders
 
-    simulationName = "SPEAII"
+    simulationName = "NSGAII"
     folderName_WholeSimulation = currentDatetimeString + "_" + simulationName + "_Min" + str(total_minutes) + "_BTCombined_" + str(SetUpScenarios.numberOfBuildings_Total)
     folderPath_resultFile_multiOpt = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/Pymoo/Instance_1/" + folderName_WholeSimulation
     folderName_WholeSimulation = folderName_WholeSimulation + "/Day" + str(currentDay_iteration)
@@ -34,7 +39,7 @@ for currentDay_iteration in days_for_simulation:
     else:
         print("Successfully created the directory %s" % folderPath_pymoo)
 
-    #Objectives and scenarios (only for output in this case)
+    #Objectives and scenarios (only necessary for the output in this case)
     optParameters = {
         'optimizationGoal_minimizePeakLoad': True,
         'optimizationGoal_minimizeCosts': True,
@@ -71,9 +76,12 @@ for currentDay_iteration in days_for_simulation:
     start_time = time.time()
     start_cpu = time.process_time()
 
+
+
+    # Assign the values of the inptut vectors for the simulation (called outputVectors here; theyey will be used as input for the simulation and evaluation) to the decicion variable x
     def transfer_simulation_input_into_decisionvariable (outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5,outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7):
 
-        #Assigne the values of the inptut vectors for the simulation (called outputVectors here; htey will be used as input for the simulation and evaluation) to the decicion variable x
+
         currentPositionInVariableX = 0
         x = np.zeros (numberOfVariables)
 
@@ -146,8 +154,8 @@ for currentDay_iteration in days_for_simulation:
         return  x
 
 
+    # Assign the values of the generated variable x (by Pymoo) to the inptut vectors for the simulation (called outputVectors here; they will be used as input for the simulation and evaluation)
     def transfer_decisionvariables_into_simulation_inputs (x):
-            #Assigne the values of the generated variable x (by Pymoo) to the inptut vectors for the simulation (called outputVectors here; htey will be used as input for the simulation and evaluation)
             currentPositionInVariableX = 0
             outputVector_heatGenerationCoefficientSpaceHeating_BT1 = np.zeros((SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
             outputVector_heatGenerationCoefficientDHW_BT1 = np.zeros((SetUpScenarios.numberOfBuildings_BT1, SetUpScenarios.numberOfTimeSlotsPerDay))
@@ -230,6 +238,8 @@ for currentDay_iteration in days_for_simulation:
             return  outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5,outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7
 
     evaluation_counter = 0
+
+    #Define the problem class for pymoo
     class MyProblem(ElementwiseProblem):
 
         def __init__(self, pathForCreatingResults, secondObjectiveComfort):
@@ -306,6 +316,7 @@ for currentDay_iteration in days_for_simulation:
     simulationObjective_surplusEnergy_kWh_combined, simulationObjective_maximumLoad_kW_combined, simulationObjective_thermalDiscomfort_combined, simulationObjective_gasConsumptionkWh_combined, simulationObjective_costs_Euro_combined, simulationObjective_combinedScore_combined, simulationResult_electricalLoad_combined, price_array, simulationInput_BT1_availabilityPattern, combined_array_thermal_discomfort, outputVector_BT1_heatGenerationCoefficientSpaceHeating, outputVector_BT1_heatGenerationCoefficientDHW, outputVector_BT1_chargingPowerEV, outputVector_BT2_heatGenerationCoefficientSpaceHeating, outputVector_BT2_heatGenerationCoefficientDHW, outputVector_BT3_chargingPowerEV, outputVector_BT4_heatGenerationCoefficientSpaceHeating, outputVector_BT5_chargingPowerBAT, outputVector_BT5_disChargingPowerBAT, outputVector_BT6_heatGenerationCoefficient_GasBoiler, outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement, outputVector_BT6_heatTransferCoefficient_StorageToRoom, outputVector_BT7_heatGenerationCoefficient_GasBoiler, outputVector_BT7_electricalPowerFanHeater, combined_array_thermal_discomfort, simulationResult_thermalDiscomfort_BT1, simulationResult_thermalDiscomfort_BT2, simulationResult_thermalDiscomfort_BT3, simulationResult_thermalDiscomfort_BT4, simulationResult_thermalDiscomfort_BT5, simulationResult_thermalDiscomfort_BT6, simulationResult_thermalDiscomfort_BT7 = ICSimulation.simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, pathForCreatingResults, use_local_search)
     help_value_normalization_cost_conventional = simulationObjective_costs_Euro_combined
     help_value_normalization_maxiumLoad_conventional = simulationObjective_maximumLoad_kW_combined
+
     #Create initial solution vector
     initial_solution_conventional_control = transfer_simulation_input_into_decisionvariable (outputVector_BT1_heatGenerationCoefficientSpaceHeating, outputVector_BT1_heatGenerationCoefficientDHW, outputVector_BT1_chargingPowerEV, outputVector_BT2_heatGenerationCoefficientSpaceHeating, outputVector_BT2_heatGenerationCoefficientDHW, outputVector_BT3_chargingPowerEV, outputVector_BT4_heatGenerationCoefficientSpaceHeating, outputVector_BT5_chargingPowerBAT, outputVector_BT5_disChargingPowerBAT, outputVector_BT6_heatGenerationCoefficient_GasBoiler, outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement, outputVector_BT6_heatTransferCoefficient_StorageToRoom, outputVector_BT7_heatGenerationCoefficient_GasBoiler, outputVector_BT7_electricalPowerFanHeater)
 
@@ -370,23 +381,26 @@ for currentDay_iteration in days_for_simulation:
             return X
 
 
-    #Define the metaheuristic algorithm for solving the problem
-    from pymoo.algorithms.moo.spea2 import SPEA2
-    algorithm = SPEA2(
+    # Define the metaheuristic algorithm for solving the problem with its hyperparameters
+    algorithm = NSGA2(
+        pop_size=20,
+        n_offsprings=10,
+        #sampling=FloatRandomSampling(),
+        sampling=HybridSampling(candidates=[initial_solution_conventional_control]),
+        crossover=SBX(prob=0.4, eta=20),
+        mutation=PM(eta=30),
+        eliminate_duplicates=True
+    )
+
+    ''' Definition of Spea 2
+        from pymoo.algorithms.moo.spea2 import SPEA2
+             algorithm = SPEA2(
         pop_size=20,
         sampling=HybridSampling(candidates=[initial_solution_conventional_control]),
         crossover=SBX(prob=0.7, eta=25),
         mutation=PM(eta=40),
         eliminate_duplicates=True,
     )
-
-    ''' Default
-        algorithm = SPEA2(
-        pop_size=30,
-        sampling=HybridSampling(candidates=[initial_solution_conventional_control]),
-        crossover=SBX(prob=0.5, eta=20),
-        mutation=PM(eta=30),
-        eliminate_duplicates=True,
     )
     '''
 
@@ -677,6 +691,6 @@ averages = averages.round(1)
 average_row = pd.DataFrame(averages).T
 average_row["Day"] = "Average"
 df_results_multiopt_metaH = pd.concat([df_results_multiopt_metaH, pd.DataFrame(average_row, index=[0])], ignore_index=True)
-df_results_multiopt_metaH.to_csv(folderPath_resultFile_multiOpt + "/SPEAII_result_multiopt_" + "Min" + str(total_minutes) + ".csv", sep=';',index=False)
+df_results_multiopt_metaH.to_csv(folderPath_resultFile_multiOpt + "/NSGAII_result_multiopt_" + "Min" + str(total_minutes) + ".csv", sep=';',index=False)
 
 

@@ -1,22 +1,36 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri May 21 09:49:38 2021
+Centralized optimization problem for mutiple buildings implemented with the package pyomo
+7 building types:
+    - Building Type 1: single-familiy building with modulating air-source heat pump (mHP) and electric vehicle (EV) --> used in Paper as BT1
+    - Building Type 2: single-familiy building with modulating air-source heat pump (mHP)  --> used in Paper as BT2
+    - Builidng Type 3: single-familiy building with electric vehicle  --> not used in Paper
+    - Building Type 4: multi-familiy building with modulating air-source heat pump (mHP) only for space heating (and not domestic hot water)  --> used in Paper as BT3
+    - Building Type 5: Building with battery  --> not used in Paper
+    - Building Type 6: Gas heating with hot water tank and additional electrical heating element. 2 Storage systems (Building mass, hot water tank)  --> not used in Paper
+    - Building Type 7: Gas heating without hot water tank and with additional electrical fan heater.  --> not used in Paper
+"""
 
-Centralized optimization problem for mutiple buildings
-3 building types:
-    - Building Type 1: single-familiy building with modulating air-source heat pump (mHP) and electric vehicle (EV)
-    - Building Type 2: single-familiy building with modulating air-source heat pump (mHP) 
-    - Builidng Type 3: single-familiy building with electric vehicle
-    - Building Type 4: multi-familiy building with modulating air-source heat pump (mHP) only for space heating (and not domestic hot water)
-    - Building Type 5: Building with battery
-    - Building Type 6: Gas heating with hot water tank and additional electrical heating element. 2 Storage systems (Building mass, hot water tank)
-    - Building Type 7: Gas heating without hot water tank and with additional electrical fan heater.
-"""
-import SetUpScenarios
 
 
 def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters):
-    import SetUpScenarios 
+    """
+    This method uses as solver to solve the optimization problem of a residential area with different building types for one day
+
+    Args:
+        indexOfBuildingsOverall_BT1 (list): List of buildings for type 1.
+        indexOfBuildingsOverall_BT2 (list): List of buildings for type 2.
+        indexOfBuildingsOverall_BT3 (list): List of buildings for type 3.
+        indexOfBuildingsOverall_BT4 (list): List of buildings for type 4.
+        indexOfBuildingsOverall_BT5 (list): List of buildings for type 5.
+        indexOfBuildingsOverall_BT6 (list): List of buildings for type 6.
+        indexOfBuildingsOverall_BT7 (list): List of buildings for type 7.
+        currentDay (int): The current day.
+        includeObjectivesInReturnStatementCentralized (bool): Whether to include objectives in the return statement.
+        optParameters (dict): Optimization parameters.
+
+    """
+
+    import SetUpScenarios
     import Run_Simulations
     import pyomo.environ as pyo
     import pandas as pd
@@ -62,7 +76,6 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     
     
     #Define the sets
-    
     model.set_timeslots = pyo.RangeSet(1, SetUpScenarios.numberOfTimeSlotsPerDay)
     model.set_buildings_BT1 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT1)
     model.set_buildings_BT2 = pyo.RangeSet(1, SetUpScenarios.numberOfBuildings_BT2)

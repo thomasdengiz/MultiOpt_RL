@@ -1,21 +1,16 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Mar 15 17:26:50 2021
-
-@author: wi9632
+This file contains methods for simulating either a whole day or just one single time step. The different methods include an additional correcting controller
+that can adjust the heating or charging actions of the flexible devices if a constraint violation is about to occur of if discomfort is about to occur.
 """
 import SetUpScenarios
 import numpy as np
 import pandas as pd
 import Run_Simulations
-import ANN
 import os
 
 
 
-# Method for simulating variable number of days with an additional controller if dersired.
-# Input: boolean overruleActions, 3-dim-arrays inputVector_BT1_heatGenerationCoefficientSpaceHeating [index_BT1, index_timeslot] etc.
-
+# Method for simulating variable number of days (specified in Run_Simulations.daysOfTheYearForSimulation_Testing) with an additional controller if dersired. This controller adjusts the actions if discomfort is about to occur.
 def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, currentDay, overruleActions, inputVector_BT1_heatGenerationCoefficientSpaceHeating, inputVector_BT1_heatGenerationCoefficientDHW, inputVector_BT1_chargingPowerEV, inputVector_BT2_heatGenerationCoefficientSpaceHeating, inputVector_BT2_heatGenerationCoefficientDHW, inputVector_BT3_chargingPowerEV, inputVector_BT4_heatGenerationCoefficientSpaceHeating, inputVector_BT5_chargingPowerBAT, inputVector_BT5_disChargingPowerBAT, pathForCreatingTheResultData):
 
     #Variables of the simulation for all buildings combined
@@ -3520,7 +3515,7 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
 
 
-
+# Method for simulating variable number of days (specified in Run_Simulations.daysOfTheYearForSimulation_Testing) with an additional controller if dersired. This controller only adjusts the actions if a contraint violation is about to occur
 def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, inputVector_BT1_heatGenerationCoefficientSpaceHeating, inputVector_BT1_heatGenerationCoefficientDHW, inputVector_BT1_chargingPowerEV, inputVector_BT2_heatGenerationCoefficientSpaceHeating, inputVector_BT2_heatGenerationCoefficientDHW, inputVector_BT3_chargingPowerEV, inputVector_BT4_heatGenerationCoefficientSpaceHeating, inputVector_BT5_chargingPowerBAT, inputVector_BT5_disChargingPowerBAT,  inputVector_heatGenerationCoefficient_GasBoiler_BT6, inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, inputVector_heatTransferCoefficient_StorageToRoom_BT6, inputVector_heatGenerationCoefficient_GasBoiler_BT7, inputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, use_local_search):
     #Variables of the simulation for all buildings combined
     import sys
@@ -6377,7 +6372,7 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
             df_energyConsumptionEV_Joule.index +=1
 
 
-            #Wind generation
+            #Wind generation (not considered in the paper)
 
             indexBuildingForWindPowerAssignment = index_BT1
             windProfileNominal = SetUpScenarios.calculateAssignedWindPowerNominalPerBuilding (currentDay,indexBuildingForWindPowerAssignment)
@@ -7881,7 +7876,7 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
 
 #'''
 
-
+# Simulate one time step with an additional correcting controller for BT1
 def simulateTimeSlot_WithAddtionalController_BT1 (overruleActions, action_SpaceHeating, action_DHWHeating, action_EVCharging, state_BufferStorageTemperatureLastTimeSlot,
                                                  state_usableVolumeDHWLastTimeSlot, state_SOCofEVLastTimeSlot, helpCountNumberOfStartsIndividual_SpaceHeating,
                                                  helpCountNumberOfStartsIndividual_DHW, helpCountNumberOfStarts_Combined , helpCounterNumberOfRunningSlots_SpaceHeating , helpCounterNumberOfRunningSlots_DHW ,
@@ -8459,6 +8454,7 @@ def simulateTimeSlot_WithAddtionalController_BT1 (overruleActions, action_SpaceH
     return action_SpaceHeating, action_DHWHeating, action_EVCharging, simulationResult_BufferStorageTemperature_BT1, simulationResult_UsableVolumeDHW_BT1, simulationResult_SOCofEV_BT1, helpCountNumberOfStartsIndividual_SpaceHeating, helpCountNumberOfStartsIndividual_DHW, helpCountNumberOfStarts_Combined , helpCounterNumberOfRunningSlots_SpaceHeating , helpCounterNumberOfRunningSlots_DHW , helpCounterNumberOfRunningSlots_Combined , helpCounterNumberOfStandBySlots_SpaceHeating , helpCounterNumberOfStandBySlots_DHW , helpCounterNumberOfStandBySlots_Combined, helpCurrentPeakLoad,  helpStartedHeatingHeatPump, numberOfHeatPumpStartsReachedSoftLimit, numberOfHeatPumpStartsReachedHardLimit, helpHypotheticalSOCDropNoCharging, lastHeatingAfterHeatPumpStartsReachedHardLimitStarted, lastHeatingAfterHeatPumpStartsReachedHardLimitStopped, heatingStartedPhysicalLimit_BufferStorage, heatingStartedPhysicalLimit_DHWTank,startedHeatingSpaceHeatingCorrection_end, startedHeatingDHWCorrection_end, help_bothStorageHeatedUp_lastTimeBufferStorageOverruled, help_bothStorageHeatedUp_lastTimeDHWOverruled
 
 #'''
+# Simulate one time step with an additional correcting controller for BT2
 def simulateTimeSlot_WithAddtionalController_BT2 (overruleActions, action_SpaceHeating, action_DHWHeating, state_BufferStorageTemperatureLastTimeSlot,
                                                  state_usableVolumeDHWLastTimeSlot, helpCountNumberOfStartsIndividual_SpaceHeating,
                                                  helpCountNumberOfStartsIndividual_DHW, helpCountNumberOfStarts_Combined , helpCounterNumberOfRunningSlots_SpaceHeating , helpCounterNumberOfRunningSlots_DHW ,
@@ -8965,7 +8961,7 @@ def simulateTimeSlot_WithAddtionalController_BT2 (overruleActions, action_SpaceH
     return action_SpaceHeating, action_DHWHeating, simulationResult_BufferStorageTemperature_BT2, simulationResult_UsableVolumeDHW_BT2, helpCountNumberOfStartsIndividual_SpaceHeating, helpCountNumberOfStartsIndividual_DHW, helpCountNumberOfStarts_Combined , helpCounterNumberOfRunningSlots_SpaceHeating , helpCounterNumberOfRunningSlots_DHW , helpCounterNumberOfRunningSlots_Combined , helpCounterNumberOfStandBySlots_SpaceHeating , helpCounterNumberOfStandBySlots_DHW , helpCounterNumberOfStandBySlots_Combined, helpCurrentPeakLoad,  helpStartedHeatingHeatPump, numberOfHeatPumpStartsReachedSoftLimit, numberOfHeatPumpStartsReachedHardLimit, lastHeatingAfterHeatPumpStartsReachedHardLimitStarted, lastHeatingAfterHeatPumpStartsReachedHardLimitStopped, heatingStartedPhysicalLimit_BufferStorage, heatingStartedPhysicalLimit_DHWTank,startedHeatingSpaceHeatingCorrection_end, startedHeatingDHWCorrection_end, help_bothStorageHeatedUp_lastTimeBufferStorageOverruled, help_bothStorageHeatedUp_lastTimeDHWOverruled
 
 
-
+# Simulate one time step with an additional correcting controller for BT3
 def simulateTimeSlot_WithAddtionalController_BT3 (overruleActions,  action_EVCharging, state_SOCofEVLastTimeSlot, helpCurrentPeakLoad,
                                                  index_timeslot, outsideTemperature, PVGeneration, electricityDemand, availabilityOfTheEV, energyDemandEV, priceForElectricity_CentsPerkWh, helpPVGenerationPreviousTimeSlot, helpElectricalLoadPreviousTimeSlot, helpHypotheticalSOCDropNoCharging ):
 
@@ -9101,7 +9097,7 @@ def simulateTimeSlot_WithAddtionalController_BT3 (overruleActions,  action_EVCha
 
 
 #'''
-
+# Simulate one time step with an additional correcting controller for BT4
 def simulateTimeSlot_WithAddtionalController_BT4 (overruleActions, action_SpaceHeating, state_BufferStorageTemperatureLastTimeSlot
                                                  ,helpCountNumberOfStartsIndividual_SpaceHeating,
                                                   helpCountNumberOfStarts_Combined , helpCounterNumberOfRunningSlots_SpaceHeating ,
@@ -9403,7 +9399,7 @@ def simulateTimeSlot_WithAddtionalController_BT4 (overruleActions, action_SpaceH
 
 
 #'''
-
+# Simulate one time step with an additional correcting controller for BT5
 def simulateTimeSlot_WithAddtionalController_BT5 (overruleActions,  action_chargingPowerBat, action_disChargingPowerBat, state_SOCofBATLastTimeSlot, helpCurrentPeakLoad,
                                                  index_timeslot, outsideTemperature, PVGeneration, electricityDemand,  priceForElectricity_CentsPerkWh, helpPVGenerationPreviousTimeSlot, helpElectricalLoadPreviousTimeSlot ):
 
@@ -9515,23 +9511,6 @@ def simulateTimeSlot_WithAddtionalController_BT5 (overruleActions,  action_charg
 #'''
 
 
-
-
-
-
-if __name__ == "__main__":
-    print("In IC Simulation")
-
-
-    if Run_Simulations.run_simulateDays_WithAddtionalController_Schedule == True:
-        useInternalControllerToOverruleActions = Run_Simulations.useInternalControllerToOverruleActions_simulateDays_WithAddtionalController_Schedule
-        inputVector_BT1_heatGenerationCoefficientSpaceHeating, inputVector_BT1_heatGenerationCoefficientDHW, inputVector_BT1_chargingPowerEV, inputVector_BT2_heatGenerationCoefficientSpaceHeating, inputVector_BT2_heatGenerationCoefficientDHW, inputVector_BT3_chargingPowerEV, inputVector_BT4_heatGenerationCoefficientSpaceHeating = ANN.generateActionsForAllTimeslotWithANN()
-        outputVector_BT1_heatGenerationCoefficientSpaceHeating_corrected, outputVector_BT1_heatGenerationCoefficientDHW_corrected, outputVector_BT1_chargingPowerEV_corrected, outputVector_BT2_heatGenerationCoefficientSpaceHeating_corrected, outputVector_BT2_heatGenerationCoefficientDHW_corrected, outputVector_BT3_chargingPowerEV_corrected, outputVector_BT4_heatGenerationCoefficientSpaceHeating_corrected = simulateDays_WithAddtionalController_Schedule (useInternalControllerToOverruleActions, inputVector_BT1_heatGenerationCoefficientSpaceHeating, inputVector_BT1_heatGenerationCoefficientDHW, inputVector_BT1_chargingPowerEV, inputVector_BT2_heatGenerationCoefficientSpaceHeating, inputVector_BT2_heatGenerationCoefficientDHW, inputVector_BT3_chargingPowerEV, inputVector_BT4_heatGenerationCoefficientSpaceHeating )
-        print("End of method: simulateDays_WithAddtionalController_Schedule()")
-
-    if Run_Simulations.run_simulateDays_ConventionalControl == True:
-        outputVector_BT1_heatGenerationCoefficientSpaceHeating_Conventional, outputVector_BT1_heatGenerationCoefficientDHW_Conventional, outputVector_BT1_chargingPowerEV_Conventional, outputVector_BT2_heatGenerationCoefficientSpaceHeating_Conventional, outputVector_BT2_heatGenerationCoefficientDHW_Conventional, outputVector_BT3_chargingPowerEV_Conventional, outputVector_BT4_heatGenerationCoefficientSpaceHeating_Conventional = simulateDays_ConventionalControl()
-        print("End of method: simulateDays_ConventionalControl()")
 
 
 

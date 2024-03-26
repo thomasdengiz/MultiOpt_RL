@@ -1,4 +1,7 @@
-
+'''
+This script trains an model-free Reinforecement Learning agent for the Peak Shift Operator. The trained model is saved to file (with prefix RL3).
+The package gymnasium is used for defining the environment and the package stable-baselines3 for including the RL algorithms.
+'''
 import gymnasium as gym
 from gymnasium import Env
 from gymnasium.spaces import Discrete, Box, Tuple, MultiDiscrete
@@ -25,7 +28,6 @@ number_of_new_solutions_per_iteration = 10
 number_of_iterations_per_day = 3
 use_resulting_state_after_action_as_current_solution = True
 
-#days_for_training =  [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
 days_for_training =  [18, 31, 32, 49, 74, 80, 290, 302, 305, 331, 349, 345]
 choose_days_randomly = False
 
@@ -140,7 +142,7 @@ class DSM_Env(Env):
 
         #Exectue one "dummy" action in the environment to just get the initial state space
         current_solution = self.list_of_solution_current_training_day[self.solution_of_current_file]
-        result_costs, result_peak, result_DC, results_dict, array_load_percentages_lowest_prices_shortened_after, array_load_percentages_lowest_prices_shortened_before  = Run_Simulations_Help.execute_single_modification_operator_decision_RL3(current_solution, 0, 0, self.read_RL_data_day,timeslots_for_state_load_percentages_peak)
+        result_costs, result_peak, result_DC, results_dict, array_load_percentages_lowest_prices_shortened_after, array_load_percentages_lowest_prices_shortened_before  = Run_Simulations_Help.execute_single_modification_operator_decision_RL3_peak_shift(current_solution, 0, 0, self.read_RL_data_day, timeslots_for_state_load_percentages_peak)
 
 
         #Specify observation space
@@ -181,7 +183,7 @@ class DSM_Env(Env):
 
 
         # Execute the action in the external simulation and return the next observation, reward, done, and info
-        result_costs, result_peak, result_DC, results_dict, array_load_percentages_lowest_prices_shortened_after, array_load_percentages_lowest_prices_shortened_before = Run_Simulations_Help.execute_single_modification_operator_decision_RL3( current_solution, action_to_timeslot, action_shifting_percentage, self.read_RL_data_day, timeslots_for_state_load_percentages_peak)
+        result_costs, result_peak, result_DC, results_dict, array_load_percentages_lowest_prices_shortened_after, array_load_percentages_lowest_prices_shortened_before = Run_Simulations_Help.execute_single_modification_operator_decision_RL3_peak_shift(current_solution, action_to_timeslot, action_shifting_percentage, self.read_RL_data_day, timeslots_for_state_load_percentages_peak)
 
 
         #calculate state

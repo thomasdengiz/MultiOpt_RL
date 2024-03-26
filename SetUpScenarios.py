@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri Mar  5 10:29:49 2021
+This file sets up the scenarios for the residential area by specifying all the relevant parameters of the  heat pump, building, EV,
+stationary battery (not used in the paper), gas boiler (not used in the paper), fan heater (not used in the paper) and solver
+"""
 
-@author: wi9632
-"""
 import pandas as pd
 import numpy as np
 from random import random
@@ -151,15 +150,7 @@ if timeResolution_InMinutes ==60:
 
 
 #Parameters of the heat pump
-'''
-electricalPower_HP = 3000  # Unit: [W]
-electricalPower_HP_BT4_MFH = 5 * 3000  # Unit: [W]
-COP_CalculationValue1_TemperatureDifference  = 20.5 # Unit: [K]
-COP_CalculationValue1_COP = 4.14   # Unit: dimensionless
-COP_CalculationValue2_TemperatureDifference = 42  # Unit: [K]
-COP_CalculationValue2_COP = 2.61   # Unit: dimensionless
-minimalModulationdDegree_HP = 25   # Unit: [%]
-'''
+
 #Bosch Compress 6800i AW  series
 electricalPower_HP = 3000  # Unit: [W]
 electricalPower_HP_BT4_MFH = 5 * 3000  # Unit: [W]
@@ -237,42 +228,6 @@ electricalPowerFanHeater_Stage3 = 2000 # Unit: [W]
 
 
 
-
-
-if __name__ == "__main__":
-    #MonteCarlo method for randomly creating parameters of the scenarios
-
-    def monteCarloScenarioGeneration(numberOfBuildings_BT1, numberOfBuildings_BT2, numberOfBuildings_BT3,numberOfBuildings_BT4, numberOfBuildings_Total,
-                                     averagePVPeak, maximalDeviationFromPVPeak, percentageBuildingsWithPV, powerOfWindTurbinePerBuilding):
-        numberOfBuildings_BT1_MonteCarlo  = int(  numberOfBuildings_BT1 *random() *2  + 1)
-        numberOfBuildings_BT2_MonteCarlo  = int(numberOfBuildings_BT2 *random() *2  + 1)
-        numberOfBuildings_BT3_MonteCarlo  = int(numberOfBuildings_BT3 *random() *2  + 1)
-        numberOfBuildings_BT4_MonteCarlo  = int(numberOfBuildings_BT4 *random() *2  + 1)
-        averagePVPeak_MonteCarlo = int( int(((averagePVPeak-1000)/1000) *random() *2)*1000  + 3000)
-        maximalDeviationFromPVPeak_MonteCarlo = (1000 + int(random() * 3) *1000)
-        percentageBuildingsWithPV_MonteCarlo = (25 + int(random()*11) * 5)
-        powerOfWindTurbinePerBuilding_MonteCarlo = 1000 + int(random()*300) * 10 
-    
-        if useMonteCarloMethodForScenarioCreation ==True:
-            numberOfBuildings_BT1 = numberOfBuildings_BT1_MonteCarlo
-            numberOfBuildings_BT2  = numberOfBuildings_BT2_MonteCarlo
-            numberOfBuildings_BT3  = numberOfBuildings_BT3_MonteCarlo
-            numberOfBuildings_BT4  = numberOfBuildings_BT4_MonteCarlo
-            numberOfBuildings_Total = numberOfBuildings_BT1 + numberOfBuildings_BT2 + numberOfBuildings_BT3 + numberOfBuildings_BT4
-            averagePVPeak = averagePVPeak_MonteCarlo
-            maximalDeviationFromPVPeak = maximalDeviationFromPVPeak_MonteCarlo
-            percentageBuildingsWithPV = percentageBuildingsWithPV_MonteCarlo
-            powerOfWindTurbinePerBuilding = powerOfWindTurbinePerBuilding_MonteCarlo
-        
-        return numberOfBuildings_BT1, numberOfBuildings_BT2, numberOfBuildings_BT3, numberOfBuildings_BT4, numberOfBuildings_Total, averagePVPeak, maximalDeviationFromPVPeak, percentageBuildingsWithPV, powerOfWindTurbinePerBuilding
-    
-
-    numberOfBuildings_BT1, numberOfBuildings_BT2, numberOfBuildings_BT3, numberOfBuildings_BT4, numberOfBuildings_Total, averagePVPeak, maximalDeviationFromPVPeak, percentageBuildingsWithPV, powerOfWindTurbinePerBuilding = monteCarloScenarioGeneration(numberOfBuildings_BT1, numberOfBuildings_BT2, numberOfBuildings_BT3, numberOfBuildings_BT4, numberOfBuildings_Total,
-                                 averagePVPeak, maximalDeviationFromPVPeak, percentageBuildingsWithPV, powerOfWindTurbinePerBuilding)
-
-
-
-
 #Determine Energy Consumption of EVs
 
 numberOfEVsTotal = numberOfBuildings_BT1 + numberOfBuildings_BT3
@@ -324,24 +279,12 @@ def generateEVEnergyConsumptionPatterns( array_AvailabilityForTheEV, indexWithin
             energyConsumptionOfEVs_Joule [j] = constantEnergyPerTimeSlot
         else:
             energyConsumptionOfEVs_Joule [j] = 0
-    ''' 
-    print("EV_Method")
-    print()
-    print("array_AvailabilityForTheEV: ", array_AvailabilityForTheEV)
-    print("indexWithinAllEVs: ", indexWithinAllEVs)    
-    print("numberOfDrivingTimeSlotsForTheEV: ", numberOfDrivingTimeSlotsForTheEV)
-    print("totalEnergyConusumptionPerRideInJoule", totalEnergyConusumptionPerRideInJoule)
-    print("constantEnergyPerTimeSlot: ", constantEnergyPerTimeSlot)
-    print("energyConsumptionOfEVs_Joule: ", energyConsumptionOfEVs_Joule)
-    '''              
+
     return energyConsumptionOfEVs_Joule
                 
                
                 
-#Determine the PV peak of the different buildings
-
-
-
+#Determine the PV peak of the different buildings (not considered in the paper)
 
 def determinePVPeakOfBuildings(indexBuildingTotal):
     pvPeaksOfBuildings = np.zeros (numberOfBuildings_Total)
@@ -369,7 +312,7 @@ def determinePVPeakOfBuildings(indexBuildingTotal):
         
      
 
-#Assign wind power to the different buildings with an equal distribution 
+#Assign wind power to the different buildings with an equal distribution (not considered in the paper)
 
 def calculateAssignedWindPowerNominalPerBuilding (currentDay, indexOfBuildingTotal):
     windPowerAssignedNominalPerBuilding = np.zeros ((numberOfBuildings_Total, numberOfTimeSlotsPerDay))
@@ -445,28 +388,3 @@ def mixTheValuesOfAnArray(array):
             secondValueOfArray = array [len(array) - (i+1)]
             array [i] = secondValueOfArray
             array [len(array) - (i+1)] = firstValueOfArray
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
