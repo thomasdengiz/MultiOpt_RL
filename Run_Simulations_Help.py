@@ -10,7 +10,7 @@ import ICSimulation
 
 
 
-threshold_discomfort_local_search = 0.3
+
 
 #Objectives and scenarios
 optParameters = {
@@ -40,8 +40,10 @@ optParameters = {
     'epsilon_objective_minimizeGasConsumption_TargetValue': 9999999,
     'epsilon_objective_minimizeThermalDiscomfort_TargetValue': 9999999
 }
+threshold_discomfort_local_search = 0.3
 
 
+#This function exectues one single modification for the price shift operator on a current solution (base_solution) using an RL agent
 def execute_single_modification_operator_decision_RL2_price_shift (base_solution, action_from_timeslot, action_to_timeslot, action_shifting_percentage, current_day, timeslots_for_state_load_percentages_costs):
     indexOfBuildingsOverall_BT1 = [i + 1 for i in range(0, SetUpScenarios.numberOfBuildings_BT1)]
     indexOfBuildingsOverall_BT2 = [i + 1 for i in range(0, SetUpScenarios.numberOfBuildings_BT2)]
@@ -586,7 +588,7 @@ def execute_single_modification_operator_decision_RL2_price_shift (base_solution
 
     return  result_costs, result_peak, result_DC, results_dict, percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened, percentage_array_loads_per_timeslot_highest_prices_shortened_before_action, percentage_array_loads_per_timeslot_lowest_prices_shortened_before_action
 
-
+#This function exectues one single modification for the peak shift operator on a current solution (base_solution) using an RL agent
 def execute_single_modification_operator_decision_RL3_peak_shift (base_solution, action_to_timeslot, action_shifting_percentage, current_day, timeslots_for_state_load_percentages):
     indexOfBuildingsOverall_BT1 = [i + 1 for i in range(0, SetUpScenarios.numberOfBuildings_BT1)]
     indexOfBuildingsOverall_BT2 = [i + 1 for i in range(0, SetUpScenarios.numberOfBuildings_BT2)]

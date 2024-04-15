@@ -1,6 +1,6 @@
 """
-Just a simple helper file. Sometimes it is possible through numeric instability or rounding issues that the obtained pareto-fronts of the exact methods contain duplicates
-or solutions that are not entirely pareto-effiecient. This script reads the outputed pareto-front (in the file file_path) and corrects it
+Just a simple helper file. Sometimes it is possible due to numeric instability or rounding issues that the obtained pareto-fronts of the exact methods contain duplicates
+or solutions that are not entirely pareto-efficient. This script reads the outputted pareto-front (in the file file_path) and corrects it
 """
 
 import pandas as pd

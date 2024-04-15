@@ -11,14 +11,10 @@ import time
 
 #Set up
 
-# Specify the used optimization methods
+# Specify the used control methods
 useCentralizedOptimization = True
-useDecentralizedOptimization = False
-useSupervisedLearning = False
-useReinforcementLearning = False
 useConventionalControl = False
-generateTrainingData = False
-useDichotomicMethodCentralized_Cost_Peak = True
+useDichotomicMethodCentralized_Cost_Peak = False
 useDichotomicMethodCentralized_Cost_Comfort = False
 dichotomicMethodTermination_NumberOfIterations = 70
 dichotomicMethod_toleranceLambdaNewSolution = 0.001
@@ -153,7 +149,7 @@ if __name__ == "__main__":
     import time
     start_time = time.time()
 
-    days_for_simulation = [9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361]#  [3,  28, 37, 52, 65, 81, 294, 298, 310, 315, 339, 352]
+    days_for_simulation = [9,11]#  [9, 11, 15, 23, 39, 45, 55, 72, 80, 292, 303, 314, 319, 328, 332, 346,350, 361]
     df_results_multiopt_local_search = pd.DataFrame(columns=["Day", "GD_Conventional", "GD PF_Approx", "HV PF_Approx", "HV PF_Full", "HV_Ratio"])
     currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
     simulationName = "Base"
@@ -1945,7 +1941,6 @@ if __name__ == "__main__":
                         plt.savefig(pathForCreatingTheResultData_Box + '/PFront_' + appendixResultFile + '.png',dpi=100)
 
             if useLocalSearch == False and useDichotomicMethodCentralized_Cost_Peak == False and  useDichotomicMethodCentralized_Cost_Comfort == False and  useBoxMethodCentralized_Cost_Peak == False and  useBoxMethodCentralized_Cost_Comfort == False:
-                print("........IF statement for OPtimization is fullwilled..........")
                 includeObjectivesInReturnStatementCentralized = True
                 outputVector_heatGenerationCoefficientSpaceHeating_BT1, outputVector_heatGenerationCoefficientDHW_BT1, outputVector_chargingPowerEV_BT1, outputVector_heatGenerationCoefficientSpaceHeating_BT2, outputVector_heatGenerationCoefficientDHW_BT2, outputVector_chargingPowerEV_BT3, outputVector_heatGenerationCoefficientSpaceHeating_BT4, outputVector_chargingPowerBAT_BT5, outputVector_disChargingPowerBAT_BT5, outputVector_heatGenerationCoefficient_GasBoiler_BT6, outputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, outputVector_heatTransferCoefficient_StorageToRoom_BT6, outputVector_heatGenerationCoefficient_GasBoiler_BT7, outputVector_electricalPowerFanHeater_BT7, objectiveMaximumLoad_OP, objectiveSurplusEnergy_OP, objectiveCosts_OP,objectiveThermalDiscomfort_OP, mipGapPercentOfFoundSolution, timeForFindingOptimalSolution =   Building_Optimization_Problem.optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5,indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters)
                 useLocalSearchHelp = False

@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from random import random
 
-#Set some parameters for the model
+#Set the parameters for the model
 
 
 #Specify the number of Buildings buildings
@@ -337,7 +337,7 @@ def calculateAssignedWindPowerNominalPerBuilding (currentDay, indexOfBuildingTot
 
 
 
-#Calculate the COP of the heat pump for all time slots
+#Calculate the COP of the (air-source) heat pump for all time slots based on outside temperature values
 def calculateCOP(temperatureValues):
     cop_heatPump_SpaceHeating = np.zeros(numberOfTimeSlotsPerDay)
     cop_heatPump_DHW = np.zeros(numberOfTimeSlotsPerDay)
