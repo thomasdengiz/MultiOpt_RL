@@ -2,6 +2,8 @@
 """
 This file contains two methods that exectue the actions of the two operators for local search (price-shift and peak-shift) for the Reinforcement
 learning agents.
+
+The results (including resulting load profiles) are store on file (path specified by the variable "pathForCreatingTheResultData") and returned at the end of the functions
 """
 import SetUpScenarios 
 import numpy as np

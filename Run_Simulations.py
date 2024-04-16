@@ -1,6 +1,8 @@
 """
 Main script for the simulations of the Pareto-Local-Search approach, the dichotomous method
-, the box method (another exact method for multiobjective optization) and the conventional control
+, the box method (another exact method for multiobjective optization; also called the epsilon-constraint method) and the conventional control
+
+Main result folder is stored on file (path is specified by the variable "folderPath_WholeSimulation")
 """
 import SetUpScenarios 
 import numpy as np
@@ -47,7 +49,7 @@ share_of_comfort_max_iterations = 0.1
 
 threshold_discomfort_local_search = 0.3
 
-#Objectives and scenarios
+#Objectives and scenarios defined by the dictionary "optParameters"
 optParameters = {
     'optimizationGoal_minimizePeakLoad': False,
     'optimizationGoal_minimizeCosts': True,
@@ -66,11 +68,11 @@ optParameters = {
     'objective_minimizeCosts_weight': 0.5,
     'objective_minimizeThermalDiscomfort_weight': 0.5,
     'objective_minimizeSurplusEnergy_weight': 0.5,
-    'epsilon_objective_minimizeCosts_Active': False,
+    'epsilon_objective_minimizeCosts_Active': False, # specifies if the epsilon constraint method (for the objective cost) is used
     'epsilon_objective_minimizePeakLoad_Active': False,
     'epsilon_objective_minimizeGasConsumption_Active': False ,
     'epsilon_objective_minimizeThermalDiscomfort_Active':False,
-    'epsilon_objective_minimizeCosts_TargetValue': 9999999,
+    'epsilon_objective_minimizeCosts_TargetValue': 9999999,  # specifies the target value for epsilon constraint method (for the objective cost). If the current solution is below that value, the method terminates
     'epsilon_objective_minimizeMaximumLoad_TargetValue': 9999999,
     'epsilon_objective_minimizeGasConsumption_TargetValue': 9999999,
     'epsilon_objective_minimizeThermalDiscomfort_TargetValue': 9999999

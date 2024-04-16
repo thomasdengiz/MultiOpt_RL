@@ -1,6 +1,8 @@
 '''
-This script trains an model-free Reinforecement Learning agent for the Peak Shift Operator. The trained model is saved to file (with prefix RL3).
+This script trains an model-free Reinforecement Learning agent for the Peak Shift Operator. The trained model is saved to file (with prefix RL3) on the path specified by the variable "models_dir"
 The package gymnasium is used for defining the environment and the package stable-baselines3 for including the RL algorithms.
+
+A starting solution (given load profiles for a building) is needed and loaded from file. The shifting operators are applied on this starting solution (the solution is created e.g. by using a conventional control approach or some itermediate solution of another control algorithm)
 '''
 import gymnasium as gym
 from gymnasium import Env

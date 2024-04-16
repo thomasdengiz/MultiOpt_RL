@@ -8,6 +8,10 @@ Centralized optimization problem for mutiple buildings implemented with the pack
     - Building Type 5: Building with battery  --> not used in Paper
     - Building Type 6: Gas heating with hot water tank and additional electrical heating element. 2 Storage systems (Building mass, hot water tank)  --> not used in Paper
     - Building Type 7: Gas heating without hot water tank and with additional electrical fan heater.  --> not used in Paper
+
+Price, temperature and demand data for the buildings (space heating, domestic hot water, electricity) are read from csv files with a 1-minute resolution
+
+The results (including resulting load profiles) are both stored on file (path is specified by the variable "folderPath" in the function) and returned by the function (at the end of this script)
 """
 
 
@@ -2806,7 +2810,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     
         
     elif (solution.solver.termination_condition == TerminationCondition.infeasible):
-        # Do something when model in infeasible
+        # Print something when model is infeasible
         print ("Result Status: Infeasible")
     else:
         # Something else is wrong

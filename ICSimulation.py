@@ -1,6 +1,10 @@
 """
 This file contains methods for simulating either a whole day or just one single time step. The different methods include an additional correcting controller
 that can adjust the heating or charging actions of the flexible devices if a constraint violation is about to occur of if discomfort is about to occur.
+
+Price, temperature and demand data for the buildings (space heating, domestic hot water, electricity) are read from csv files with a 1-minute resolution
+
+The results (including resulting load profiles) are both stored on file (specified by the function argument "pathForCreatingTheResultData") and returned by the functions
 """
 import SetUpScenarios
 import numpy as np

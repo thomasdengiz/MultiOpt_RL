@@ -1,5 +1,11 @@
 """
 This script runs the simulation of the residential area with a trained RL agent for the Price-Shift-Operatore (RL2) and Peak-Shift-Operator (RL3)
+
+Hint: You need to load the trained model from file by specifying the path of the trained model. Search for the comment "#Load the saved RL model from file" (2 occurences) in this script to get to know to position for specifying the path
+
+Main result folder is stored on file (path is specified by the variable "folderPath_WholeSimulation")
+
+This script is similar to the script "Run_Simulations" but can only be used with a trained RL model
 """
 import SetUpScenarios 
 import numpy as np
@@ -386,7 +392,7 @@ if __name__ == "__main__":
                             adjusted_array_highest_prices = np.minimum(reshaped_array_highest_prices[::2],reshaped_array_highest_prices[1::2])
 
                             # Parameters of the agent (action and state space)
-                            timeslots_for_state_load_percentages_costs = 5
+                            timeslots_for_state_load_percentages_costs = 5 # This number must be equal to the number of time slots which the agent was trained with
                             number_of_discrete_shifting_actions = 20
                             minimum_shifting_percentage = 20
                             maximum_shifting_percentage = 40
@@ -408,30 +414,22 @@ if __name__ == "__main__":
 
                             param_1_number_of_partitions_for_shifting = 1
 
-                            #Load the saved RL model (A2C, TD3, DQN, PPO)
+                            #Load the saved RL model from file for the price-shift operatore RL2
                             from stable_baselines3 import PPO
                             model_path_extension_RL2 = "RL2_Days12_SolSol10_SolIt10_ItDay3_ResStateTrue_StateTimeSlots5_ShiftActions20_PPO_tC/trained_PPO_model"
-                            model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL2)
+                            model_RL2 = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL2)
 
                             observation_space = (np.concatenate((percentage_array_loads_per_timeslot_highest_prices_shortened, percentage_array_loads_per_timeslot_lowest_prices_shortened))).reshape(-1)
 
 
                             for helpIterationRLAction in range (0,2):
                                 #Get the action from the RL agent
-                                action_rl_agent1, _ = model.predict(observation_space, deterministic=False)
+                                action_rl_agent1, _ = model_RL2.predict(observation_space, deterministic=False)
                                 action_from_timeslot = action_rl_agent1[0]
                                 action_to_timeslot = action_rl_agent1[1]
                                 action_shifting_percentage = minimum_shifting_percentage + ((maximum_shifting_percentage - minimum_shifting_percentage)/ number_of_discrete_shifting_actions) * action_rl_agent1[2]
 
-                                #Print Help Info
-                                '''
-                                print(f"Info: action Nr. {helpIterationRLAction + 1}")
-                                print(f"Info: observation_space: {observation_space}")
-                                print(f"Info: action_rl_agent1: {action_rl_agent1}")
-                                print(f"Info: action_from_timeslot: {action_from_timeslot}")
-                                print(f"Info: action_to_timeslot: {round(action_to_timeslot, 1)}")
-                                print(f"Info: action_shifting_percentage: {round(action_shifting_percentage, 1)}")
-                                '''
+
                                 for helpIteration in range (0,2):
                                     #Shift profiles cosindering the full day partition
                                     if param_1_number_of_partitions_for_shifting == 1:
@@ -577,11 +575,10 @@ if __name__ == "__main__":
 
                             array_load_percentages_lowest_prices_shortened_before = array_load_percentages_lowest_prices[0:timeslots_for_state_load_percentages_peak]
 
-                            #Load the saved RL model (A2C, TD3, DQN, PPO)
+                            #Load the saved RL model from file for the peak shift operatore RL3
                             from stable_baselines3 import PPO
                             model_path_extension_RL3 = "RL3_Days12_SolSol11_SolIt11_ItDay3_ResStateTrue_StateTimeSlots4_ShiftActions15_PPO_wb/trained_PPO_model"
-                            model = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL3)
-
+                            model_RL3 = PPO.load("C:/Users/wi9632/bwSyncShare/Eigene Arbeit/Code/Python/Demand_Side_Management/MultiOpt_RL/RL/RL_Models/" + model_path_extension_RL3)
 
 
                             for peak_timeslot in list_timeslots_max_load:
@@ -589,16 +586,10 @@ if __name__ == "__main__":
 
                                 # Get the action from the RL agent
                                 observation_space = array_load_percentages_lowest_prices_shortened_before.reshape(-1)
-                                action_rl_agent1, _ = model.predict(observation_space, deterministic=False )
+                                action_rl_agent1, _ = model_RL3.predict(observation_space, deterministic=False )
                                 action_to_timeslot = action_rl_agent1[0]
                                 action_shifting_percentage = minimum_shifting_percentage + ((maximum_shifting_percentage - minimum_shifting_percentage)/ number_of_discrete_shifting_actions) * action_rl_agent1[1]
 
-                                # Print Help Info
-                                '''
-                                print(f"Info: Action Nr. 1")
-                                print(f"Info: observation_space: {observation_space}")
-                                print(f"Info: action_shifting_percentage: {action_shifting_percentage}")
-                                '''
 
                                 #Reduce load at all peaks
                                 shifting_percentage_load = action_shifting_percentage

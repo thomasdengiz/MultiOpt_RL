@@ -1,6 +1,8 @@
 """
 This script uses the metaheuristic evolutionary algorithms NSGA-II and SPEA-II within the package Pymoo to solve the corresponding optimization problems
 The vector of decision variables are transofrmed to make it suitable for the simulation which is externally exectued in the file ICSimulation.simulateDays_WithLightController_Schedule
+
+Results (including resulting load profiles) are stored on file (specified in the variable "folderPath_pymoo")
 """
 
 import numpy as np
@@ -590,7 +592,7 @@ for currentDay_iteration in days_for_simulation:
     calculate_pareto_front_comparisons = True
     #Calculate parto front metrics for comparisons if desired
     if calculate_pareto_front_comparisons == True:
-        #Read pareto front dataframe from file
+        #Read pareto front dataframe from file for evaluation
         file_path = r'C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\Pareto_Front_Full\ParetoFront_' + appendixResultFile + '.csv'
         file_path_adjusted = file_path.replace("NSGA2_", "")
         pareto_front_full = pd.read_csv(file_path_adjusted, sep=';')
