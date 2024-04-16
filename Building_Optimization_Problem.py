@@ -1656,7 +1656,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         model.constraint_energyLevelOfBAT_BT5 = pyo.Constraint(model.set_buildings_BT5, model.set_timeslots, rule=energyLevelOfBATRule_BT5)
         
         
-        #Constraints for the minimal and maximal energy level of the EV at the end of the optimization horizon
+        #Constraints for the minimal and maximal energy level of the battery at the end of the optimization horizon
         def constraint_energyLevelOfBAT_lastLowerLimitRule_BT5 (model, i, t):
             return model.variable_energyLevelBAT_BT5[i, model.set_timeslots.last()] >= ((SetUpScenarios.initialSOC_BAT - SetUpScenarios.endSOC_BATAllowedDeviationFromInitalValueLowerLimit)/100) * SetUpScenarios.capacityMaximal_BAT
         
@@ -2750,7 +2750,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
 
 
     
-        #Read the just created resul files for all buildings and subdivide them into a file for each building
+        #Read the just created result files for all buildings and subdivide them into a file for each building
         sleep(0.5)
         if SetUpScenarios.numberOfBuildings_BT1 >=1:
             multiple_dataframes_BT1 = list(pd.read_csv(filePath_BT1, sep =";", chunksize=SetUpScenarios.numberOfTimeSlotsPerDay))

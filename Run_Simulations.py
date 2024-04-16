@@ -28,7 +28,7 @@ useBoxMethodCentralized_Cost_Comfort = False
 boxMethodTermination_AverageDifference = 0
 boxMethodTermination_NumberOfSolutions = 70
 
-useLocalSearch = False
+useLocalSearch = True
 calculate_pareto_front_comparisons = True
 
 create_result_load_profiles_multi_opt = True
