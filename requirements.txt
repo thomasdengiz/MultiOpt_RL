@@ -1,0 +1,10 @@
+pyomo
+pymoo
+pandas
+numpy
+
+joblib
+stable_baselines3
+gymnasium
+scikit-learn
+tensorflow
