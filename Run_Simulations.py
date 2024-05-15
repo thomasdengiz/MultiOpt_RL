@@ -1272,10 +1272,10 @@ if __name__ == "__main__":
                 if calculate_pareto_front_comparisons == True:
                     #Read pareto front dataframe from file
 
-                file_path = os.path.join(config.DIR_RESULT, 'Pareto_Front_Full/ParetoFront_' + appendixResultFile + '.csv')
-                file_path_adjusted = file_path.replace("Local Search_", "")
-                pareto_front_full = pd.read_csv(file_path_adjusted, sep=';')
-                pareto_front_approximation = pareto_front
+                    file_path = os.path.join(config.DIR_RESULT, 'Pareto_Front_Full/ParetoFront_' + appendixResultFile + '.csv')
+                    file_path_adjusted = file_path.replace("Local Search_", "")
+                    pareto_front_full = pd.read_csv(file_path_adjusted, sep=';')
+                    pareto_front_approximation = pareto_front
 
                     pareto_front_approximation['Costs'] = pareto_front_approximation['Costs'].apply(lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x)
                     pareto_front_approximation['Peak Load'] = pareto_front_approximation['Peak Load'].apply(lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x)
