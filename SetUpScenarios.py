@@ -8,6 +8,10 @@ import numpy as np
 from random import random
 
 #Set the parameters for the model
+import os
+import config
+
+#Set some parameters for the model
 
 
 #Specify the number of Buildings buildings
@@ -317,7 +321,7 @@ def determinePVPeakOfBuildings(indexBuildingTotal):
 def calculateAssignedWindPowerNominalPerBuilding (currentDay, indexOfBuildingTotal):
     windPowerAssignedNominalPerBuilding = np.zeros ((numberOfBuildings_Total, numberOfTimeSlotsPerDay))
     
-    df_windData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+    df_windData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
     
     #Adjust time resolution
     df_windData_original['Time'] = pd.to_datetime(df_windData_original['Time'], format = '%d.%m.%Y %H:%M')

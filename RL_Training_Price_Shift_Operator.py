@@ -17,7 +17,7 @@ import string
 import time
 import random
 
-
+import config
 
 # Record the start time
 start_time = time.time()
@@ -114,7 +114,7 @@ class DSM_Env(Env):
 
         print(f"Reselt called")
         #Read the base solution when a new training day or iteration is used
-        file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(self.read_RL_data_iteration) + ".pkl"
+        file_path = os.path.join(config.DIR_RL_INPUT, "list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(self.read_RL_data_iteration) + ".pkl")
         # Load the list from the file
         try:
             with open(file_path, "rb") as file:
@@ -125,7 +125,7 @@ class DSM_Env(Env):
 
 
         #read conventional solution
-        file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(0) + ".pkl"
+        file_path = os.path.join(config.DIR_RL_INPUT, "list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(self.read_RL_data_day) + "_It" + str(0) + ".pkl")
         try:
             with open(file_path, "rb") as file:
                 conventional_solutions = pickle.load(file)
@@ -335,8 +335,8 @@ characters = string.ascii_letters  # Includes uppercase and lowercase letters
 random_string = random.choice(characters) + random.choice(characters)
 
 #Define the model directory (PPO, A2C, TD3, DQN)
-models_dir = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Models\\" + string_run_name + "_PPO_" + random_string
-logdir = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Models\\" + string_run_name + "_PPO_" + random_string
+models_dir = os.path.join(config.DIR_RL_MODELS, string_run_name + "_PPO_" + random_string)
+logdir = os.path.join(config.DIR_RL_LOGS, string_run_name + "_PPO_" + random_string)
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 if not os.path.exists(logdir):

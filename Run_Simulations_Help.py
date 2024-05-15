@@ -9,8 +9,7 @@ import SetUpScenarios
 import numpy as np
 import os
 import ICSimulation
-
-
+import config
 
 
 
@@ -94,7 +93,7 @@ def execute_single_modification_operator_decision_RL2_price_shift (base_solution
     outputVector_BT7_electricalPowerFanHeater = outputVector_BT7_electricalPowerFanHeater_original.copy()
 
 
-    pathForCreatingTheResultData = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/RL/RL_Temp"
+    pathForCreatingTheResultData = os.path.join(config.DIR_RESULT, "RL_Temp")
     preCorrectSchedules_AvoidingFrequentStarts = False
     use_local_search = True
     returned_objects = ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, current_day, outputVector_BT1_heatGenerationCoefficientSpaceHeating, outputVector_BT1_heatGenerationCoefficientDHW, outputVector_BT1_chargingPowerEV, outputVector_BT2_heatGenerationCoefficientSpaceHeating, outputVector_BT2_heatGenerationCoefficientDHW, outputVector_BT3_chargingPowerEV, outputVector_BT4_heatGenerationCoefficientSpaceHeating, outputVector_BT5_chargingPowerBAT, outputVector_BT5_disChargingPowerBAT, outputVector_BT6_heatGenerationCoefficient_GasBoiler, outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement, outputVector_BT6_heatTransferCoefficient_StorageToRoom, outputVector_BT7_heatGenerationCoefficient_GasBoiler, outputVector_BT7_electricalPowerFanHeater, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, use_local_search)
@@ -639,7 +638,7 @@ def execute_single_modification_operator_decision_RL3_peak_shift (base_solution,
     outputVector_BT7_electricalPowerFanHeater = outputVector_BT7_electricalPowerFanHeater_original.copy()
 
 
-    pathForCreatingTheResultData = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/RL/RL_Temp"
+    pathForCreatingTheResultData = os.path.join(config.DIR_RESULT, "RL_Temp")
     preCorrectSchedules_AvoidingFrequentStarts = False
     use_local_search = True
     returned_objects = ICSimulation.simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, current_day, outputVector_BT1_heatGenerationCoefficientSpaceHeating, outputVector_BT1_heatGenerationCoefficientDHW, outputVector_BT1_chargingPowerEV, outputVector_BT2_heatGenerationCoefficientSpaceHeating, outputVector_BT2_heatGenerationCoefficientDHW, outputVector_BT3_chargingPowerEV, outputVector_BT4_heatGenerationCoefficientSpaceHeating, outputVector_BT5_chargingPowerBAT, outputVector_BT5_disChargingPowerBAT, outputVector_BT6_heatGenerationCoefficient_GasBoiler, outputVector_BT6_heatGenerationCoefficient_ElectricalHeatingElement, outputVector_BT6_heatTransferCoefficient_StorageToRoom, outputVector_BT7_heatGenerationCoefficient_GasBoiler, outputVector_BT7_electricalPowerFanHeater, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, use_local_search)

@@ -11,6 +11,8 @@ from datetime import datetime
 import time
 
 
+import config
+
 #Set up
 
 # Specify the used control methods
@@ -182,7 +184,7 @@ if __name__ == "__main__":
                 os.makedirs(pathForCreatingTheResultData_Box)
             if useLocalSearch == True:
                 os.makedirs(pathForCreatingTheResultData_LocalSearch)
-                
+
         except OSError:
             print ("Creation of the directory %s failed" % folderPath_WholeSimulation)
         else:
@@ -267,10 +269,10 @@ if __name__ == "__main__":
                     else:
                         number_of_new_solutions_per_solution = number_of_new_solutions_per_solution_in_iteration
 
-                    #Store the current population
-                    file_path = r"C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\RL\RL_Input\list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(currentDay) + "_It" + str(index_iteration) + ".pkl"
-                    with open(file_path, "wb") as file:
-                        pickle.dump(results_list_population, file)
+                #Store the current population
+                file_path = os.path.join(config.DIR_RL_INPUT, "list_population_NB" + str(SetUpScenarios.numberOfBuildings_Total) + "_Day" + str(currentDay) + "_It" + str(index_iteration) + ".pkl")
+                with open(file_path, "wb+") as file:
+                    pickle.dump(results_list_population, file)
 
                     for index_solution_in_population in range (0, len (results_list_population)):
                         #Check termination condition
@@ -1270,10 +1272,10 @@ if __name__ == "__main__":
                 if calculate_pareto_front_comparisons == True:
                     #Read pareto front dataframe from file
 
-                    file_path = r'C:\Users\wi9632\bwSyncShare\Eigene Arbeit\Code\Python\Demand_Side_Management\MultiOpt_RL\Pareto_Front_Full\ParetoFront_' + appendixResultFile + '.csv'
-                    file_path_adjusted = file_path.replace("Local Search_", "")
-                    pareto_front_full = pd.read_csv(file_path_adjusted, sep=';')
-                    pareto_front_approximation = pareto_front
+                file_path = os.path.join(config.DIR_RESULT, 'Pareto_Front_Full/ParetoFront_' + appendixResultFile + '.csv')
+                file_path_adjusted = file_path.replace("Local Search_", "")
+                pareto_front_full = pd.read_csv(file_path_adjusted, sep=';')
+                pareto_front_approximation = pareto_front
 
                     pareto_front_approximation['Costs'] = pareto_front_approximation['Costs'].apply(lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x)
                     pareto_front_approximation['Peak Load'] = pareto_front_approximation['Peak Load'].apply(lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x)

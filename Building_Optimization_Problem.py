@@ -13,8 +13,12 @@ Price, temperature and demand data for the buildings (space heating, domestic ho
 
 The results (including resulting load profiles) are both stored on file (path is specified by the variable "folderPath" in the function) and returned by the function (at the end of this script)
 """
+import os
+import sys
 
+import SetUpScenarios
 
+import config
 
 def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, includeObjectivesInReturnStatementCentralized, optParameters):
     """
@@ -56,14 +60,14 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     if printLogToFile == True:
         #Specify output file for the logs
         prev_stdout = sys.stdout
-        sys.stdout = open('C:/Users/wi9632/bwSyncShare3/Eigene Arbeit/Code/Python/Demand_Side_Management/Results/log_results_Building_combined.txt', 'w')
+        sys.stdout = open(config.DIR_LOG_FILE, 'w')
     
     
     
     # define the directory to be created for the result files
     currentDatetimeString = datetime.today().strftime('%d_%m_%Y_Time_%H_%M_%S')
     folderName = currentDatetimeString + "_BTCombined_" + str(SetUpScenarios.numberOfBuildings_Total) 
-    folderPath = "C:/Users/wi9632/Desktop/Ergebnisse/DSM/Centralized Optimization/Instance Base/" + folderName
+    folderPath = os.path.join(config.DIR_CENTRAL_OPT_INSTANCE_BASE, folderName)
     
     try:
         os.makedirs(folderPath)
@@ -91,7 +95,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
 
     
     #Reading of the price data
-    df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+    df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
     df_priceData_original['Time'] = pd.to_datetime(df_priceData_original['Time'], format = '%d.%m.%Y %H:%M')
     df_priceData = df_priceData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
     arrayTimeSlots = [i for i in range (1,SetUpScenarios.numberOfTimeSlotsPerDay + 1)]
@@ -99,7 +103,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     df_priceData = df_priceData.set_index('Timeslot')
     
     #Reading outside temperature data
-    df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+    df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
     df_outsideTemperatureData_original['Time'] = pd.to_datetime(df_outsideTemperatureData_original['Time'], format = '%d.%m.%Y %H:%M')
     df_outsideTemperatureData = df_outsideTemperatureData_original.set_index('Time').resample(str(SetUpScenarios.timeResolution_InMinutes) +'Min').mean()
     df_outsideTemperatureData['Timeslot'] = arrayTimeSlots
@@ -119,13 +123,13 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
     
     
     #Reading of the building data
-    list_df_buildingData_BT1_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT1_mHP_EV_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT1]
-    list_df_buildingData_BT2_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT2_mHP_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT2]
-    list_df_buildingData_BT3_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT3_EV_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT3]
-    list_df_buildingData_BT4_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT4_mHP_MFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT4]
-    list_df_buildingData_BT5_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT5_BAT_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT5]
-    list_df_buildingData_BT6_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT6]
-    list_df_buildingData_BT7_original= [pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) +".csv", sep =";") for index in indexOfBuildingsOverall_BT7]
+    list_df_buildingData_BT1_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT1_mHP_EV_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT1]
+    list_df_buildingData_BT2_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT2_mHP_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT2]
+    list_df_buildingData_BT3_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT3_EV_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT3]
+    list_df_buildingData_BT4_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT4_mHP_MFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT4]
+    list_df_buildingData_BT5_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT5_BAT_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT5]
+    list_df_buildingData_BT6_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT6]
+    list_df_buildingData_BT7_original= [pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(index) + "/HH" + str(index) + "_Day" + str(currentDay) + ".csv"), sep =";") for index in indexOfBuildingsOverall_BT7]
 
 
 
@@ -517,7 +521,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t-1]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -538,7 +542,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] == 0
-                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT1 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -548,7 +552,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ3_HelpAssociatedBinary_Rule_BT1 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT1[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT1 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT1[i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -583,7 +587,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t-1]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -604,7 +608,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] == 0
-                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT1 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -614,7 +618,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ3_HelpAssociatedBinary_Rule_BT1 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT1[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT1 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT1[i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -938,7 +942,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t-1]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -959,7 +963,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] == 0
-                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT2 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -969,7 +973,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ3_HelpAssociatedBinary_Rule_BT2 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT2[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT2 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT2[i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -1004,7 +1008,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t-1]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -1025,7 +1029,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] == 0
-                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] + model.variable_HPswitchedOff_Individual_DHW_BT2 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -1035,7 +1039,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_DHW_EQ3_HelpAssociatedBinary_Rule_BT2 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT2[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_DHW_BT2 [i, t] >= model.variable_heatGenerationCoefficient_DHW_BT2[i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -1501,7 +1505,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] == 0
-                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t-1] 
+                return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t-1]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                 return pyo.Constraint.Skip
                 
@@ -1522,7 +1526,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True:
                 if t == model.set_timeslots.first():
                     return model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] == 0
-                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t - 1] <= model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] + model.variable_HPswitchedOff_Individual_SpaceHeating_BT4 [i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                 return pyo.Constraint.Skip       
                 
@@ -1532,7 +1536,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         
         def maximumNumberOfStarts_Individual_SpaceHeating_EQ3_HelpAssociatedBinary_Rule_BT4 (model, i, t):
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==True or Run_Simulations.considerMaximumNumberOfStartsHP_Combined ==True:
-                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT4[i, t] 
+                return model.variable_HP_running_HelpAssociatedBinary_SpaceHeating_BT4 [i, t] >= model.variable_heatGenerationCoefficient_SpaceHeating_BT4[i, t]
             if Run_Simulations.considerMaxiumNumberOfStartsHP_MFH_Individual ==False: 
                return pyo.Constraint.Skip
         
@@ -2565,7 +2569,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             results_BT1['variable_energyLevelEV_kWh'] = results_BT1['variable_energyLevelEV_kWh'].round(2)
             results_BT1['variable_heatGenerationCoefficient_SpaceHeating'] = results_BT1['variable_heatGenerationCoefficient_SpaceHeating'].round(4)
             results_BT1['variable_heatGenerationCoefficient_DHW'] = results_BT1['variable_heatGenerationCoefficient_DHW'].round(4)
-            filePath_BT1 = folderPath + "\Combined_BT1.csv"
+            filePath_BT1 = folderPath + "/Combined_BT1.csv"
             results_BT1.to_csv(filePath_BT1, index=False,  sep =";") 
 
             #Create output vector in the correct format
@@ -2593,7 +2597,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             results_BT2['param_COPHeatPump_DHW'] = results_BT2['param_COPHeatPump_DHW'].round(3)
             results_BT2['variable_heatGenerationCoefficient_SpaceHeating'] = results_BT2['variable_heatGenerationCoefficient_SpaceHeating'].round(4)
             results_BT2['variable_heatGenerationCoefficient_DHW'] = results_BT2['variable_heatGenerationCoefficient_DHW'].round(4)
-            filePath_BT2 = folderPath + "\Combined_BT2.csv"
+            filePath_BT2 = folderPath + "/Combined_BT2.csv"
             results_BT2.to_csv(filePath_BT2, index=False,  sep =";") 
             
             #Create output vector in the correct format
@@ -2615,7 +2619,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             results_BT3['variable_energyLevelEV_kWh'] = results_BT3['variable_energyLevelEV_kWh']/3600000
             results_BT3['variable_energyLevelEV_kWh'] = results_BT3['variable_energyLevelEV_kWh'].round(2)
             
-            filePath_BT3 = folderPath + "\Combined_BT3.csv"
+            filePath_BT3 = folderPath + "/Combined_BT3.csv"
             results_BT3.to_csv(filePath_BT3, index=False,  sep =";") 
             
             #Create output vector in the correct format
@@ -2643,7 +2647,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             results_BT4['variable_temperatureBufferStorage'] = results_BT4['variable_temperatureBufferStorage'].round(2)
             results_BT4['param_COPHeatPump_SpaceHeating'] = results_BT4['param_COPHeatPump_SpaceHeating'].round(3)
             results_BT4['variable_heatGenerationCoefficient_SpaceHeating'] = results_BT4['variable_heatGenerationCoefficient_SpaceHeating'].round(4)
-            filePath_BT4 = folderPath + "\Combined_BT4.csv"
+            filePath_BT4 = folderPath + "/Combined_BT4.csv"
             results_BT4.to_csv(filePath_BT4, index=False,  sep =";")
             
             #Create output vector in the correct format
@@ -2665,7 +2669,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             results_BT5['variable_energyLevelBAT_kWh'] = results_BT5['variable_energyLevelBAT_kWh']/3600000
             results_BT5['variable_energyLevelBAT_kWh'] = results_BT5['variable_energyLevelBAT_kWh'].round(2)
             
-            filePath_BT5 = folderPath + "\Combined_BT5.csv"
+            filePath_BT5 = folderPath + "/Combined_BT5.csv"
             results_BT5.to_csv(filePath_BT5, index=False,  sep =";") 
             
             #Create output vector in the correct format
@@ -2691,7 +2695,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
 
             results_BT6['variable_heatGenerationCoefficient_GasBoiler'] = results_BT6['variable_heatGenerationCoefficient_GasBoiler'].round(4)
             results_BT6['variable_heatGenerationCoefficient_ElectricalHeatingElement'] = results_BT6['variable_heatGenerationCoefficient_ElectricalHeatingElement'].round(4)
-            filePath_BT6 = folderPath + "\Combined_BT6.csv"
+            filePath_BT6 = folderPath + "/Combined_BT6.csv"
             results_BT6.to_csv(filePath_BT6, index=False,  sep =";")
 
             #Create output vector in the correct format
@@ -2717,7 +2721,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             results_BT7['variable_temperatureBuilding'] = results_BT7['variable_temperatureBuilding'].round(2)
             results_BT7['variable_heatGenerationCoefficient_GasBoiler'] = results_BT7['variable_heatGenerationCoefficient_GasBoiler'].round(4)
             results_BT7['variable_electricalPowerFanHeater'] = results_BT7['variable_electricalPowerFanHeater'].round(4)
-            filePath_BT7 = folderPath + "\Combined_BT7.csv"
+            filePath_BT7 = folderPath + "/Combined_BT7.csv"
             results_BT7.to_csv(filePath_BT7, index=False,  sep =";")
 
             #Create output vector in the correct format
@@ -2745,7 +2749,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
         results_All['variable_objectiveThermalDiscomfort'] = results_All['variable_objectiveThermalDiscomfort'].round(2)
         results_All ['objective_combined_general'] = results_All['objective_combined_general'].round(2)
         results_All['variable_gasConsumptionInKWH'] = results_All['variable_gasConsumptionInKWH'].round(2)
-        filePath_All = folderPath + "\Combined_WholeResidentialArea.csv"
+        filePath_All = folderPath + "/Combined_WholeResidentialArea.csv"
         results_All.to_csv(filePath_All, index=True,  sep =";")
 
 
@@ -2757,7 +2761,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT1)):
                 individual_dataframe_BT1 = multiple_dataframes_BT1[index]
                 individual_dataframe_BT1.set_index('timeslot', inplace=True)
-                filePath_Individual_BT1 = folderPath + "\BT1_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT1 = folderPath + "/BT1_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT1.to_csv(filePath_Individual_BT1, index=True,  sep =";") 
       
         if SetUpScenarios.numberOfBuildings_BT2 >=1:
@@ -2765,7 +2769,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT2)):
                 individual_dataframe_BT2 = multiple_dataframes_BT2[index]
                 individual_dataframe_BT2.set_index('timeslot', inplace=True)
-                filePath_Individual_BT2 = folderPath + "\BT2_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT2 = folderPath + "/BT2_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT2.to_csv(filePath_Individual_BT2, index=True,  sep =";") 
       
         if SetUpScenarios.numberOfBuildings_BT3 >=1:
@@ -2773,7 +2777,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT3)):
                 individual_dataframe_BT3 = multiple_dataframes_BT3[index]
                 individual_dataframe_BT3.set_index('timeslot', inplace=True)
-                filePath_Individual_BT3 = folderPath + "\BT3_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT3 = folderPath + "/BT3_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT3.to_csv(filePath_Individual_BT3, index=True,  sep =";") 
     
         if SetUpScenarios.numberOfBuildings_BT4 >=1:
@@ -2781,7 +2785,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT4)):
                 individual_dataframe_BT4 = multiple_dataframes_BT4[index]
                 individual_dataframe_BT4.set_index('timeslot', inplace=True)
-                filePath_Individual_BT4 = folderPath + "\BT4_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT4 = folderPath + "/BT4_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT4.to_csv(filePath_Individual_BT4, index=True,  sep =";") 
                 
         if SetUpScenarios.numberOfBuildings_BT5 >=1:
@@ -2789,7 +2793,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT5)):
                 individual_dataframe_BT5 = multiple_dataframes_BT5[index]
                 individual_dataframe_BT5.set_index('timeslot', inplace=True)
-                filePath_Individual_BT5 = folderPath + "\BT5_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT5 = folderPath + "/BT5_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT5.to_csv(filePath_Individual_BT5, index=True,  sep =";")
 
         if SetUpScenarios.numberOfBuildings_BT6 >=1:
@@ -2797,7 +2801,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT6)):
                 individual_dataframe_BT6 = multiple_dataframes_BT6[index]
                 individual_dataframe_BT6.set_index('timeslot', inplace=True)
-                filePath_Individual_BT6 = folderPath + "\BT6_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT6 = folderPath + "/BT6_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT6.to_csv(filePath_Individual_BT6, index=True,  sep =";")
 
         if SetUpScenarios.numberOfBuildings_BT7 >=1:
@@ -2805,7 +2809,7 @@ def optimizeOneDay(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, ind
             for index in range (0, len(multiple_dataframes_BT7)):
                 individual_dataframe_BT7 = multiple_dataframes_BT7[index]
                 individual_dataframe_BT7.set_index('timeslot', inplace=True)
-                filePath_Individual_BT7 = folderPath + "\BT7_Building_" + str(index+1) + ".csv"
+                filePath_Individual_BT7 = folderPath + "/BT7_Building_" + str(index+1) + ".csv"
                 individual_dataframe_BT7.to_csv(filePath_Individual_BT7, index=True,  sep =";")
     
         

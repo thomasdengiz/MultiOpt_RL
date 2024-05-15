@@ -12,6 +12,7 @@ import pandas as pd
 import Run_Simulations
 import os
 
+import config
 
 
 # Method for simulating variable number of days (specified in Run_Simulations.daysOfTheYearForSimulation_Testing) with an additional controller if dersired. This controller adjusts the actions if discomfort is about to occur.
@@ -400,9 +401,9 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT1_mHP_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT1_mHP_EV_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -1269,9 +1270,9 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT2_mHP_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT2_mHP_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -2022,9 +2023,9 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT3_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT3_EV_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS,SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -2278,9 +2279,9 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT4_mHP_MFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT4_mHP_MFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -2743,9 +2744,9 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT5_BAT_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT5_BAT_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -3523,7 +3524,7 @@ def simulateDays_WithAddtionalController_Schedule(indexOfBuildingsOverall_BT1, i
 def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, indexOfBuildingsOverall_BT2, indexOfBuildingsOverall_BT3, indexOfBuildingsOverall_BT4, indexOfBuildingsOverall_BT5, indexOfBuildingsOverall_BT6, indexOfBuildingsOverall_BT7, currentDay, inputVector_BT1_heatGenerationCoefficientSpaceHeating, inputVector_BT1_heatGenerationCoefficientDHW, inputVector_BT1_chargingPowerEV, inputVector_BT2_heatGenerationCoefficientSpaceHeating, inputVector_BT2_heatGenerationCoefficientDHW, inputVector_BT3_chargingPowerEV, inputVector_BT4_heatGenerationCoefficientSpaceHeating, inputVector_BT5_chargingPowerBAT, inputVector_BT5_disChargingPowerBAT,  inputVector_heatGenerationCoefficient_GasBoiler_BT6, inputVector_heatGenerationCoefficient_ElectricalHeatingElement_BT6, inputVector_heatTransferCoefficient_StorageToRoom_BT6, inputVector_heatGenerationCoefficient_GasBoiler_BT7, inputVector_electricalPowerFanHeater_BT7, pathForCreatingTheResultData, preCorrectSchedules_AvoidingFrequentStarts, optParameters, use_local_search):
     #Variables of the simulation for all buildings combined
     import sys
-    f = open('C:/Users/wi9632/Desktop/Ergebnisse/output.txt', 'a')
+    f = open(os.path.join(config.DIR_RESULT, 'output.txt'), 'a+')
     sys.stdout = f
 
     simulationResult_electricalLoad_combined = np.zeros((len(Run_Simulations.daysOfTheYearForSimulation_Testing), SetUpScenarios.numberOfTimeSlotsPerDay))
@@ -3802,9 +3803,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
         for index_BT1 in range (0, len(indexOfBuildingsOverall_BT1) ):
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT1_mHP_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT1_mHP_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) + ".csv"), sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -4213,9 +4214,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
 
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT2_mHP_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT2_mHP_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -4543,9 +4544,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT3_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT3_EV_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -4747,9 +4748,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT4_mHP_MFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT4_mHP_MFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -5002,9 +5003,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT5_BAT_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT5_BAT_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -5202,9 +5203,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
         for index_BT6 in range (0, len(indexOfBuildingsOverall_BT6) ):
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT6_mGas_mElement_SFH_1_Minute_Days/HH") + str(indexOfBuildingsOverall_BT6[index_BT6]) + "/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -5450,9 +5451,9 @@ def simulateDays_WithLightController_Schedule(indexOfBuildingsOverall_BT1, index
         for index_BT7 in range (0, len(indexOfBuildingsOverall_BT7) ):
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT7_mGas_Fan_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT7[index_BT7]) + "/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -6325,9 +6326,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         for index_BT1 in range (0, len(indexOfBuildingsOverall_BT1)):
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT1_mHP_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT1_mHP_EV_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT1[index_BT1]) + "/HH" + str(indexOfBuildingsOverall_BT1[index_BT1]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -6596,9 +6597,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         #Building Type 2
         for index_BT2 in range (0, len(indexOfBuildingsOverall_BT2)):
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT2_mHP_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT2_mHP_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT2[index_BT2]) + "/HH" + str(indexOfBuildingsOverall_BT2[index_BT2]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -6815,9 +6816,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         for index_BT3 in range (0, len(indexOfBuildingsOverall_BT3)):
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT3_EV_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT3_EV_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT3[index_BT3]) + "/HH" + str(indexOfBuildingsOverall_BT3[index_BT3]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -6967,9 +6968,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         for index_BT4 in range (0, len(indexOfBuildingsOverall_BT4)):
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT4_mHP_MFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT4_mHP_MFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT4[index_BT4]) + "/HH" + str(indexOfBuildingsOverall_BT4[index_BT4]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -7131,9 +7132,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
 
             #Reading of the data
 
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT5_BAT_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT5_BAT_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT5[index_BT5]) + "/HH" + str(indexOfBuildingsOverall_BT5[index_BT5]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
             if 'Demand Electricity [W]' in df_buildingData_original:
@@ -7279,9 +7280,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         for index_BT6 in range (0, len(indexOfBuildingsOverall_BT6) ):
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT6_mGas_mElement_SFH_1_Minute_Days/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT6_mGas_mElement_SFH_1_Minute_Days/HH") + str(indexOfBuildingsOverall_BT6[index_BT6]) + "/HH" + str(indexOfBuildingsOverall_BT6[index_BT6]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
@@ -7418,9 +7419,9 @@ def simulateDays_ConventionalControl(indexOfBuildingsOverall_BT1, indexOfBuildin
         for index_BT7 in range (0, len(indexOfBuildingsOverall_BT7) ):
 
             #Reading of the data
-            df_buildingData_original = pd.read_csv("C:/Users/wi9632/Desktop/Daten/DSM/BT7_mGas_Fan_SFH_1Minute_Days/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "_Day" + str(currentDay) +".csv", sep =";")
-            df_priceData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Price_1Minute_Days/' + SetUpScenarios.typeOfPriceData +'/Price_' + SetUpScenarios.typeOfPriceData +'_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
-            df_outsideTemperatureData_original = pd.read_csv('C:/Users/wi9632/Desktop/Daten/DSM/Outside_Temperature_1Minute_Days/Outside_Temperature_1Minute_Day' +  str(currentDay) + '.csv', sep =";")
+            df_buildingData_original = pd.read_csv(os.path.join(config.DIR_INPUT_DATA, "BT7_mGas_Fan_SFH_1Minute_Days/HH") + str(indexOfBuildingsOverall_BT7[index_BT7]) + "/HH" + str(indexOfBuildingsOverall_BT7[index_BT7]) + "_Day" + str(currentDay) + ".csv", sep =";")
+            df_priceData_original = pd.read_csv(os.path.join(config.DIR_PRICE_ONE_MINUTE_DAYS, SetUpScenarios.typeOfPriceData + '/Price_' + SetUpScenarios.typeOfPriceData + '_1Minute_Day' + str(currentDay) + '.csv'), sep =";")
+            df_outsideTemperatureData_original = pd.read_csv(os.path.join(config.DIR_OUTSIDE_TEMPERATURE_ONE_MINUTE_DAYS, 'Outside_Temperature_1Minute_Day') + str(currentDay) + '.csv', sep =";")
 
 
             #Rename column 'Demand Electricity [W]' to 'Electricity [W]' if it exists
